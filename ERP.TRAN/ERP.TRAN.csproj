@@ -16,7 +16,6 @@
     <Folder Include="CrossLayers\API\Inventario\Movimientos\Responses\" />
     <Folder Include="CrossLayers\API\Inventario\ProductoVariante\Enums\" />
     <Folder Include="CrossLayers\API\Inventario\ProductoVariante\Responses\" />
-    <Folder Include="CrossLayers\API\Inventario\Producto\Enums\" />
     <Folder Include="CrossLayers\API\Inventario\Producto\Services\" />
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Enums\" />
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Services\" />

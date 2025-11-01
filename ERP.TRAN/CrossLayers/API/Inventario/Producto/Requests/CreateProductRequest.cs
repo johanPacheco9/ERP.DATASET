@@ -1,4 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Producto.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
 using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using ERP.TRAN.CrossLayers.Utilities.Base.Requests;
 using System.ComponentModel.DataAnnotations;
@@ -15,6 +16,7 @@ public sealed class CreateProductoRequest : BaseCreateRequest, IValidatableReque
 
     [Required(ErrorMessage = "El nombre del producto es obligatorio.")]
     [MaxLength(120, ErrorMessage ="El nombre del producto no puede superar los 120 caracteres")]
+    [MinLength(4, ErrorMessage ="El nombre del producto debe contener al menos 5 caracteres")]
     public string Nombre { get; set; } = null!;
 
     [StringLength(500, ErrorMessage ="La descripción no puede contener más de 500 caracteres")]
@@ -66,20 +68,25 @@ public sealed class CreateProductoRequest : BaseCreateRequest, IValidatableReque
     public string? Dimensiones { get; set; }
 
     // ──────────────── Metadatos ────────────────
-    [MaxLength(500)]
+    [StringLength(500, ErrorMessage ="La url de la foto del producto no puede tener más de 500 caracteres")]
+    [MinLength(20, ErrorMessage ="La url debe contener al menos 20 caracteres")]
     public string? Imagen_Url { get; set; }
 
-    [MaxLength(500)]
+    [StringLength(150, ErrorMessage ="Las notas no pueden contener más de 150 caracteres")]
     public string? Notas { get; set; }
 
-    [MaxLength(200)]
+    [StringLength(20, ErrorMessage ="Los tags no pueden exceder los 20 caracteres")]
     public string? Tags { get; set; }
+
+
+    [Required(ErrorMessage = "El estado del producto es obligatorio.")]
+    public ProductoEnumStatus Estado { get; set; } = ProductoEnumStatus.Activo;
+
 
     // ──────────────── Variantes ────────────────
     public List<CreateProductoVarianteRequest>? Variantes { get; set; }
 
-    // ──────────────── Validación personalizada ────────────────
-   
+
     public override bool ParametersAreValid(out string? errors)
     {
         errors = null;

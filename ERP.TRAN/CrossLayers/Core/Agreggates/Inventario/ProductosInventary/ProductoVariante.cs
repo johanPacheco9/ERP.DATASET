@@ -1,5 +1,6 @@
 ﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
+using System.ComponentModel;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
 
@@ -7,9 +8,8 @@ public class ProductoVariante : EntityWithtraceability
 {
     //Relación base
     public Guid ProductoId { get; set; }
-    
-
     //Identificación
+    [DisplayName("SKU")]
     public string CodigoVariante { get; set; } = null!; // SKU único
     public string? Codigo_Barras { get; set; }
     public string? Lote { get; set; }
