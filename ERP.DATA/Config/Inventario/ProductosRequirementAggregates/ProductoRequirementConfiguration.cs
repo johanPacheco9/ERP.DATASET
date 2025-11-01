@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Producto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ERP.TRAN.CrossLayers.Infrastructure.Data.Configurations.Inventario.ProductosRequirementAggregates
 {
@@ -24,6 +25,12 @@ namespace ERP.TRAN.CrossLayers.Infrastructure.Data.Configurations.Inventario.Pro
 
             builder.Property(p => p.Descripcion)
                 .HasMaxLength(500);
+
+            builder.Property(p => p.Estado)
+                .IsRequired()
+                .HasConversion<int>() // Guarda como int en la BD
+                .HasDefaultValue(ProductoEnumStatus.Activo);
+
 
             // 💰 Costos y precios
             builder.Property(p => p.Costo_Unitario).HasPrecision(18, 2).HasDefaultValue(0);

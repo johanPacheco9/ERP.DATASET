@@ -1,4 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Producto.Enums;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
@@ -47,7 +48,9 @@ public class Producto : EntityWithtraceability
     public Categoria Categoria { get; set; } = null!;
     public Proveedor? Proveedor { get; set; }
 
-    
+    // Estado del producto
+    public ProductoEnumStatus Estado { get; set; } = ProductoEnumStatus.Activo;
+
     public ICollection<ProductoVariante> Variantes { get; set; } = new List<ProductoVariante>();
     public ICollection<StockBodega> StockEnBodegas { get; set; } = new List<StockBodega>();
 }
