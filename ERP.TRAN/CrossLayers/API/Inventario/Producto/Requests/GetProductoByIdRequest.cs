@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel;
 
 namespace ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
-public sealed class GetProveedorByIdRequest : IValidatableRequest
+public sealed class GetProductoByIdRequest : IValidatableRequest
 {
     [FromRoute(Name = "id")]
     [DisplayName("Id Del Producto")]

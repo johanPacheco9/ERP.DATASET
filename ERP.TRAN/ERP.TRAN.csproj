@@ -16,12 +16,12 @@
     <Folder Include="CrossLayers\API\Inventario\Movimientos\Responses\" />
     <Folder Include="CrossLayers\API\Inventario\ProductoVariante\Enums\" />
     <Folder Include="CrossLayers\API\Inventario\ProductoVariante\Responses\" />
-    <Folder Include="CrossLayers\API\Inventario\Producto\Services\" />
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Enums\" />
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Services\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Ardalis.ApiEndpoints" Version="4.1.0" />
     <PackageReference Include="Ardalis.GuardClauses" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />

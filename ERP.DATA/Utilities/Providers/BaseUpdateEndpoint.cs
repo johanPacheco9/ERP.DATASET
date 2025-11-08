@@ -1,19 +1,28 @@
 ﻿using Ardalis.ApiEndpoints;
 using Ardalis.GuardClauses;
+using ERP.API.Controllers.Utilities.Providers;
 using ERP.DATA.Repositories;
 using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
-namespace ERP.API.Controllers.Utilities.Providers;
+namespace ERP.DATA.Utilities.Providers;
 
-public abstract class BaseDeleteEndpoint<TRequest, TClass>(IServiceProvider serviceProvider) :
+/// <summary>
+///     Endpoint base para operaciones de creación de entidades.
+/// </summary>
+/// <param name="serviceProvider">Contenedor de dependencias</param>
+/// <typeparam name="TRequest">Solicitud de eliminación</typeparam>
+/// <typeparam name="TClass">Clase concreta</typeparam>
+public abstract class BaseUpdateEndpoint<TRequest, TClass>(IServiceProvider serviceProvider) :
     EndpointBaseAsync.WithRequest<TRequest>.WithActionResult where TRequest : IValidatableRequest
 {
     /// <summary>
     ///     Identificador de operación.
     /// </summary>
-    protected const string OperationId = "Eliminar";
+    protected const string OperationId = "Actualizar";
 
     /// <summary>
     ///     Repositorio (inyectado).
@@ -22,13 +31,22 @@ public abstract class BaseDeleteEndpoint<TRequest, TClass>(IServiceProvider serv
         Guard.Against.Null(serviceProvider.GetRequiredService<MainDataContext>());
 
     /// <summary>
+    ///     Repositorio para batch (inyectado).
+    /// </summary>
+    /// 
+    /*
+    protected BatchDbContext RepositoryBatch { get; init; } =
+        Guard.Against.Null(serviceProvider.GetRequiredService<BatchDbContext>());
+    */
+
+    /// <summary>
     ///     Motor de log (inyectado).
     /// </summary>
     protected ILogger<TClass> Logger { get; init; } =
         Guard.Against.Null(serviceProvider.GetRequiredService<ILogger<TClass>>());
 
     /// <summary>
-    ///     Manejador de la solicitud de eliminación. Primero valida y luego ejecuta.
+    ///     Manejador de la solicitud de actualización. Primero valida y luego ejecuta.
     /// </summary>
     /// <remarks>
     ///    Si la validación falla, se retorna un error 400 con los mensajes de validación.
@@ -41,44 +59,44 @@ public abstract class BaseDeleteEndpoint<TRequest, TClass>(IServiceProvider serv
         CancellationToken cancellationToken = new())
     {
         return await request.ValidateAndHandle(Logger,
-            async () => await TryDeleteEntity(request, cancellationToken));
+            async () => await TryUpdateEntity(request, cancellationToken));
     }
 
     /// <summary>
-    ///     Intenta eliminar la entidad. Si falla, se captura la excepción y se retorna un error 500.
+    ///     Intenta crear la entidad. Si falla, se captura la excepción y se retorna un error 500.
     /// </summary>
     /// <param name="request">Solicitud</param>
     /// <param name="cancellationToken">Token de cancelación</param>
     /// <returns><c>ActionResult</c> con el resultado. Es <c>Awaitable</c></returns>
-    private async Task<ActionResult> TryDeleteEntity(TRequest request, CancellationToken cancellationToken)
+    private async Task<ActionResult> TryUpdateEntity(TRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            return await DeleteEntity(request, cancellationToken);
+            return await UpdateEntity(request, cancellationToken);
         }
         catch (DbUpdateException ex)
         {
-            var error = $"No fue posible eliminar la entidad: {ex.Message + ex.InnerException?.Message}";
+            var error = $"No fue posible actualizar la entidad: {ex.Message + ex.InnerException?.Message}";
             Logger.LogError(error);
             return StatusCode(500, $"{error}");
         }
         catch (Exception ex)
         {
-            var error = $"No fue posible eliminar la entidad: {ex.Message}";
+            var error = $"No fue posible actualizar la entidad: {ex.Message}";
             Logger.LogError(error);
             return StatusCode(500, $"{error}");
         }
     }
 
     /// <summary>
-    ///     Realiza la eliminación de la entidad.
+    ///     Realiza la creación de la entidad.
     /// </summary>
     /// <param name="request">Solicitud</param>
     /// <param name="cancellationToken">Token de cancelación</param>
     /// <returns><c>ActionResult</c> con el resultado. Es <c>Awaitable</c></returns>
     /// <exception cref="DbUpdateException">Si hay problemas al ejecutar en el repositorio</exception>
     /// <exception cref="Exception">Si hay problemas al ejecutar en el repositorio o en el código</exception>
-    protected abstract Task<ActionResult> DeleteEntity(TRequest request, CancellationToken cancellationToken);
+    protected abstract Task<ActionResult> UpdateEntity(TRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     ///     Si no se encuentra la entidad en el repositorio, se retorna un error 404 luego de registrar el evento.
@@ -89,18 +107,18 @@ public abstract class BaseDeleteEndpoint<TRequest, TClass>(IServiceProvider serv
     protected ActionResult EntityNotFound(string entityName, int identifier)
     {
         var error =
-            $"No fue posible eliminar la entidad: {entityName} con id: {identifier} pues no se encontró en el repositorio.";
+            $"No fue posible actualizar la entidad: {entityName} con id: {identifier} pues no se encontró en el repositorio.";
         Logger.LogTrace(error);
         return NotFound(error);
     }
 
     /// <summary>
-    ///     Registra en el log que la entidad especificada fue eliminada satisfactoriamente.
+    ///     Registra en el log que la entidad especificada fue actualizada satisfactoriamente.
     /// </summary>
-    /// <param name="entityName">Nombre de la entidad eliminada</param>
-    /// <param name="primaryKey">PK de la entidad eliminada</param>
-    protected void TraceDeleted(string entityName, Guid primaryKey)
+    /// <param name="entityName">Nombre de la entidad actualizada</param>
+    /// <param name="primaryKey">PK de la entidad actualizada</param>
+    protected void TraceUpdated(string entityName, int primaryKey)
     {
-        Logger.LogTrace($"La entidad: {entityName}, con PK: {primaryKey}, se eliminó satisfactoriamente");
+        Logger.LogTrace($"La entidad: {entityName}, con PK: {primaryKey}, se actualizó satisfactoriamente");
     }
 }

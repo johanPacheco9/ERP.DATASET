@@ -1,9 +1,10 @@
 ﻿using ERP.API.Controllers.Utilities.Base;
+using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.BodegaController;
 
@@ -21,33 +22,37 @@ public sealed class CreateBodegaEndpoint(IServiceProvider serviceProvider)
 
     protected override async Task<ActionResult> CreateEntity(CreateBodegaRequest request, CancellationToken cancellationToken)
     {
-        var codigo = $"BOD-{request.Code[..3].ToUpper()}";
+        // 1. Validar el request
+        if (!request.ParametersAreValid(out var validationErrors))
+        {
+            return BadRequest(new { errors = validationErrors });
+        }
 
-        var exists = await Repository.Bodegas.AnyAsync(c => c.Codigo == codigo, cancellationToken);
-        if (exists)
-            return Conflict($"Ya existe una Bodega con el código '{codigo}'.");
-
+        // 2. MAPEAR Request DTO → Entidad de Dominio
         var bodega = new Bodega
         {
-            Id = Guid.NewGuid(),
-            Codigo = codigo,
+            // Asumo las propiedades de tu entidad Bodega
             Nombre = request.Nombre,
-            Ubicacion = request.Ubicacion,
+            Codigo = request.Code, // Si la entidad usa "Codigo" y el request "Code"
             Descripcion = request.Descripcion,
-            CreatedBy = "1",
-            CreatedAt = DateTime.UtcNow,
+            Ubicacion = request.Ubicacion,
             Capacidad_Maxima = request.CapacidadMaxima,
-            IsActive = true,
-            UpdatedAt = null,
-            UpdatedBy = null,
-            
+            IsActive = request.EsActiva,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = "01"
         };
 
-        Repository.Bodegas.Add(bodega);
+        var bodegaService = serviceProvider.GetRequiredService<IBodegaService>();
+        var bodegaId = await bodegaService.AddBodegaAsync(bodega, cancellationToken);
 
-        await Repository.SaveChangesAsync(cancellationToken);
-
-        return CreatedAtRoute("GetBodegaByIdRequest", new { id = bodega.Id }, bodega);
+        // 4. Retornar respuesta
+        return CreatedAtRoute("GetBodegaById", new { id = bodegaId }, new
+        {
+            id = bodegaId,
+            nombre = bodega.Nombre,
+            codigo = bodega.Codigo,
+            message = "Bodega creada exitosamente"
+        });
     }
 }
-

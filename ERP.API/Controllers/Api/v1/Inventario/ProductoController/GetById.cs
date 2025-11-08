@@ -1,9 +1,9 @@
-﻿using ERP.API.Controllers.Utilities.Providers;
+﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
-using Microsoft.AspNetCore.Authorization;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,32 +11,28 @@ using Microsoft.EntityFrameworkCore;
 namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
 
 public sealed class GetProductoByIdEndpoint(IServiceProvider serviceProvider)
-    : BaseGetEndpoint<GetProveedorByIdRequest, GetProductoByIdEndpoint, ProductoBaseDto>(serviceProvider)
+    : BaseGetEndpoint<GetProductoByIdRequest, GetProductoByIdEndpoint, ProductoBaseDto>(serviceProvider)
 {
 
     [Tags("Inventario - Productos")]
-    
+
     [HttpGet(ProductosEndpoints.Get, Name = ("GetProductoById"))]
     public override async Task<ActionResult<ProductoBaseDto>> HandleAsync(
-        [FromRoute] GetProveedorByIdRequest request,
+        [FromRoute] GetProductoByIdRequest request,
         CancellationToken cancellationToken = new())
     {
         return await base.HandleAsync(request, cancellationToken);
     }
 
-    protected override async Task<ActionResult<ProductoBaseDto>> GetEntity(GetProveedorByIdRequest request, CancellationToken cancellationToken)
+    protected override async Task<ActionResult<ProductoBaseDto>> GetEntity(GetProductoByIdRequest request, CancellationToken cancellationToken)
     {
+        var productoService = HttpContext.RequestServices.GetRequiredService<IProductoService>();
+        var response = productoService.GetProductoById(request.Id, cancellationToken);
+        var producto = response.Result;
 
-        var producto = await Repository.Productos.AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
-
-        if (producto is null)
-            return EntityNotFound(nameof(Producto));
-
-
-        var productoDto = new ProductoBaseDto
+        var productobaseDTO = new ProductoBaseDto
         (
-            Id : producto.Id,
+            Id: producto.Id,
             Codigo: producto.Codigo,
             Nombre: producto.Nombre,
             Descripcion: producto.Descripcion,
@@ -46,13 +42,10 @@ public sealed class GetProductoByIdEndpoint(IServiceProvider serviceProvider)
             ImagenUrl: producto.Imagen_Url,
             Tags: producto.Tags,
             Activo: producto.IsActive
-
         );
-
-        // Registrar que se encontró correctamente
         TraceFound(nameof(Producto), request.Id);
 
-        return productoDto;
+        return productobaseDTO;
     }
 }
 
