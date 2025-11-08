@@ -21,11 +21,29 @@ public sealed class CreateProductoEndpoint(IServiceProvider serviceProvider)
 
     protected override async Task<ActionResult> CreateEntity(CreateProveedorRequest request, CancellationToken cancellationToken)
     {
+        if (!request.ParametersAreValid(out var validationErrors))
+        {
+            return BadRequest(new { errors = validationErrors });
+        }
+        var proveedor = new Proveedor
+        {
+            Id = Guid.NewGuid(),
+            Nombre = request.Nombre,
+            Nit = request.Nit,
+            Direccion = request.Direccion,
+            Telefono = request.Telefono,
+            Activo = request.Activo,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = "system"
+        };
         var proveedorService = serviceProvider.GetRequiredService<IProveedorService>();
-
-        await proveedorService.AddProveedorAsync(request, cancellationToken);
-
-        return Created();
+        var proveedorCreado = await proveedorService.AddProveedorAsync(proveedor, cancellationToken);
+        return CreatedAtRoute("GetProveedorById", new { id = proveedorCreado.Id }, new
+        {
+            id = proveedorCreado.Id,
+            nombre = proveedorCreado.Nombre,
+            message = "Proveedor creado exitosamente"
+        });
     }
 
 }
