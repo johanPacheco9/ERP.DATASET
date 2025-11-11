@@ -2,6 +2,7 @@
 using ERP.TRAN.CrossLayers.API.Inventario.Producto;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,6 @@ public sealed class List(IServiceProvider serviceProvider)
     /// </summary>
     protected override async Task<ActionResult<PagedList<ProductoSummaryDto>>> ListEntity(ListProductRequest request,CancellationToken cancellationToken)
     {
-      
+        throw new NotImplementedException();
     }
 }

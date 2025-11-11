@@ -7,11 +7,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
 
-public sealed class CreateProductoEndpoint(IServiceProvider serviceProvider)
-    : BaseCreateEndpoint<CreateProductoRequest, CreateProductoEndpoint>(serviceProvider)
+public sealed class CreateProductoEndpoint : BaseCreateEndpoint<CreateProductoRequest, CreateProductoEndpoint>
 {
+    private readonly IProductoService _productoService;
+    public CreateProductoEndpoint(ILogger<CreateProductoEndpoint> logger, IProductoService productoService)
+        : base(logger)
+    {
+        _productoService = productoService;
+    }
+
     [Tags("Inventario - Productos")]
-    [HttpPost(ProductosEndpoints.List, Name = "Create Producto")]
+    [HttpPost(ProductosEndpoints.List, Name = "CreateProducto")] // ✅ Sin espacios
     public override async Task<ActionResult> HandleAsync(
         [FromBody] CreateProductoRequest request,
         CancellationToken cancellationToken = new())
@@ -21,18 +27,37 @@ public sealed class CreateProductoEndpoint(IServiceProvider serviceProvider)
 
     protected override async Task<ActionResult> CreateEntity(CreateProductoRequest request, CancellationToken cancellationToken)
     {
-        var productoService = HttpContext.RequestServices.GetRequiredService<IProductoService>();
+        if (!request.ParametersAreValid(out var validationErrors))
+        {
+            return BadRequest(new { errors = validationErrors });
+        }
 
         var producto = new Producto
         {
             Id = Guid.NewGuid(),
             Codigo = request.Codigo,
             Nombre = request.Nombre,
-            // otrass propiedades..
+            Descripcion = request.Descripcion,
+            Costo_Unitario = request.Costo_Unitario,
+            Precio_Venta = request.Precio_Venta,
+            CategoriaId = request.CategoriaId,
+            ProveedorId = request.ProveedorId,
+            Unidad_Medida = request.Unidad_Medida,
+            CreatedAt = DateTime.UtcNow,
         };
 
-        var result = await productoService.AddProductoAsync(producto, cancellationToken);
+        // ✅ Usar el servicio inyectado directamente
+        var productoCreado = await _productoService.AddProductoAsync(producto, cancellationToken);
 
-        return CreatedAtAction(nameof(HandleAsync), new { id = result.Id }, result);
+        // ✅ Registrar en log y retornar respuesta
+        TraceCreated(nameof(Producto), productoCreado.Id);
+
+        return CreatedAtRoute("GetProductoById", new { id = productoCreado.Id }, new
+        {
+            id = productoCreado.Id,
+            codigo = productoCreado.Codigo,
+            nombre = productoCreado.Nombre,
+            message = "Producto creado exitosamente"
+        });
     }
 }

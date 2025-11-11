@@ -1,16 +1,24 @@
-﻿using ERP.API.Controllers.Utilities.Base;
+﻿using ERP.API.Controllers.Api.v1.Inventario.MovimientosController;
 using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovimientos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.BodegaController;
 
-public sealed class CreateBodegaEndpoint(IServiceProvider serviceProvider)
-    : BaseCreateEndpoint<CreateBodegaRequest, CreateBodegaEndpoint>(serviceProvider)
+public sealed class CreateBodegaEndpoint : BaseCreateEndpoint<CreateBodegaRequest, CreateBodegaEndpoint>
 {
+    private readonly IBodegaService _bodegaService;
+
+    public CreateBodegaEndpoint(ILogger<CreateBodegaEndpoint> logger, IBodegaService bodegaService)
+       : base(logger)
+    {
+        _bodegaService= bodegaService;
+    }
+
     [Tags("Inventario - Bodegas")]
     [HttpPost(BodegasEndpoints.List)]
     public override async Task<ActionResult> HandleAsync(
@@ -42,9 +50,7 @@ public sealed class CreateBodegaEndpoint(IServiceProvider serviceProvider)
             UpdatedAt = DateTime.UtcNow,
             CreatedBy = "01"
         };
-
-        var bodegaService = serviceProvider.GetRequiredService<IBodegaService>();
-        var bodegaId = await bodegaService.AddBodegaAsync(bodega, cancellationToken);
+        var bodegaId = await _bodegaService.AddBodegaAsync(bodega, cancellationToken);
 
         // 4. Retornar respuesta
         return CreatedAtRoute("GetBodegaById", new { id = bodegaId }, new

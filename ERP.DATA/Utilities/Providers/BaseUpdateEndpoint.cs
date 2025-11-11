@@ -1,6 +1,5 @@
 ﻿using Ardalis.ApiEndpoints;
 using Ardalis.GuardClauses;
-using ERP.API.Controllers.Utilities.Providers;
 using ERP.DATA.Repositories;
 using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using Microsoft.AspNetCore.Mvc;

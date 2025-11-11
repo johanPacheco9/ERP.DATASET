@@ -5,13 +5,17 @@ using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProveedores;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ERP.API.Controllers.Api.v1.Inventario.ProveedorController;
-
-public sealed class CreateProductoEndpoint(IServiceProvider serviceProvider)
-    : BaseCreateEndpoint<CreateProveedorRequest, CreateProductoEndpoint>(serviceProvider)
+public sealed class CreateProveedorEndpoint : BaseCreateEndpoint<CreateProveedorRequest, CreateProveedorEndpoint>
 {
+    private readonly IProveedorService _proveedorService;
+    public CreateProveedorEndpoint(ILogger<CreateProveedorEndpoint> logger, IProveedorService proveedorService)
+        : base(logger)
+    {
+        _proveedorService = proveedorService;
+    }
+
     [Tags("Inventario - Proveedores")]
-    [HttpPost(ProveedorEndpoints.List, Name = ("Crear Proveedor"))]
+    [HttpPost(ProveedorEndpoints.List, Name = "CrearProveedor")]
     public override async Task<ActionResult> HandleAsync(
         [FromBody] CreateProveedorRequest request,
         CancellationToken cancellationToken = new())
@@ -22,9 +26,8 @@ public sealed class CreateProductoEndpoint(IServiceProvider serviceProvider)
     protected override async Task<ActionResult> CreateEntity(CreateProveedorRequest request, CancellationToken cancellationToken)
     {
         if (!request.ParametersAreValid(out var validationErrors))
-        {
             return BadRequest(new { errors = validationErrors });
-        }
+
         var proveedor = new Proveedor
         {
             Id = Guid.NewGuid(),
@@ -36,8 +39,11 @@ public sealed class CreateProductoEndpoint(IServiceProvider serviceProvider)
             CreatedAt = DateTime.UtcNow,
             CreatedBy = "system"
         };
-        var proveedorService = serviceProvider.GetRequiredService<IProveedorService>();
-        var proveedorCreado = await proveedorService.AddProveedorAsync(proveedor, cancellationToken);
+
+        var proveedorCreado = await _proveedorService.AddProveedorAsync(proveedor, cancellationToken);
+
+        TraceCreated(nameof(Proveedor), proveedorCreado.Id);
+
         return CreatedAtRoute("GetProveedorById", new { id = proveedorCreado.Id }, new
         {
             id = proveedorCreado.Id,
@@ -45,5 +51,4 @@ public sealed class CreateProductoEndpoint(IServiceProvider serviceProvider)
             message = "Proveedor creado exitosamente"
         });
     }
-
 }

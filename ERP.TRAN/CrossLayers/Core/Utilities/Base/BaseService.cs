@@ -41,14 +41,17 @@ public abstract class BaseService<T> where T : class
     {
         Log.LogTrace("Obteniendo token de acceso");
         var token = await GetAccessToken();
-        if (token != null)
+
+        var client = new HttpClient();
+
+        if (!string.IsNullOrEmpty(token))
         {
-            Log.LogTrace("Preparando cliente HTTP con token de acceso");
-            return _api.Prepare(token);
+            Log.LogTrace("Configurando cliente HTTP con token de acceso");
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
 
-        Log.LogTrace("No se pudo obtener el token de acceso");
-        throw new Exception();
+        return client;
     }
 
     protected static PaginationHeaders ProcessPaginationHeaders(HttpResponseMessage res)

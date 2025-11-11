@@ -5,6 +5,7 @@ namespace ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
 public interface IBodegaService
 {
     Task<bool> BodegaExistsAsync(Guid id, CancellationToken cancellationToken);
+    Task<Bodega> GetBodegaByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<Guid> AddBodegaAsync(Bodega bodega, CancellationToken cancellationToken);
     Task<bool> ExisteBodegaPorCodigoAsync(string codigo, CancellationToken cancellationToken);
 }

@@ -7,9 +7,7 @@ public partial class ProductoService
 {
     public async Task<Producto?> GetProductoById(Guid id, CancellationToken cancellationToken)
     {
-        var response = await _context.Productos
-            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-
+        var response = await _context.Productos.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         return response;
     }
 }

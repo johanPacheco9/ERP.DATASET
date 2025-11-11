@@ -47,7 +47,6 @@ public partial class ProductoService
 
         _context.Productos.Add(nuevoProducto);
         await _context.SaveChangesAsync(cancellationToken);
-
         return nuevoProducto;
     }
 }

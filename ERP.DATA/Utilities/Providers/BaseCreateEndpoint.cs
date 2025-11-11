@@ -2,7 +2,6 @@
 using Ardalis.GuardClauses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ERP.DATA.Utilities.Providers;
@@ -10,11 +9,11 @@ namespace ERP.DATA.Utilities.Providers;
 /// <summary>
 ///     Endpoint base para operaciones de creación de entidades usando services.
 /// </summary>
-/// <param name="serviceProvider">Contenedor de dependencias</param>
 /// <typeparam name="TRequest">Tipo de solicitud</typeparam>
 /// <typeparam name="TClass">Clase concreta del endpoint</typeparam>
-public abstract class BaseCreateEndpoint<TRequest, TClass>(IServiceProvider serviceProvider) :
-    EndpointBaseAsync.WithRequest<TRequest>.WithActionResult
+public abstract class BaseCreateEndpoint<TRequest, TClass> : EndpointBaseAsync
+    .WithRequest<TRequest>
+    .WithActionResult
     where TRequest : IValidatableRequest
 {
     /// <summary>
@@ -25,8 +24,16 @@ public abstract class BaseCreateEndpoint<TRequest, TClass>(IServiceProvider serv
     /// <summary>
     ///     Motor de log (inyectado).
     /// </summary>
-    protected ILogger<TClass> Logger { get; init; } =
-        Guard.Against.Null(serviceProvider.GetRequiredService<ILogger<TClass>>());
+    protected ILogger<TClass> Logger { get; }
+
+    /// <summary>
+    ///     Constructor protegido para inyección de dependencias.
+    /// </summary>
+    /// <param name="logger">Logger inyectado</param>
+    protected BaseCreateEndpoint(ILogger<TClass> logger)
+    {
+        Logger = Guard.Against.Null(logger);
+    }
 
     /// <summary>
     ///     Manejador principal de la solicitud de creación. Primero valida y luego ejecuta.

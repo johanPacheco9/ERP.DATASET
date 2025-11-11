@@ -21,7 +21,7 @@ public sealed class DeleteProductoEndpoint(IServiceProvider serviceProvider)
 
     protected override async Task<ActionResult> DeleteEntity(DeleteProveedorRequest request, CancellationToken cancellationToken)
     {
-        var productoService = HttpContext.RequestServices.GetRequiredService<IProductoService>();
+        var productoService = serviceProvider.GetRequiredService<IProductoService>();
         await productoService.DeleteProductoById(request.Id, cancellationToken);
         TraceDeleted("Producto eliminado correctamente",request.Id);
         return Ok();

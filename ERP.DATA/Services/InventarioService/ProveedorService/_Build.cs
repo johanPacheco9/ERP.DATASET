@@ -1,6 +1,4 @@
 ﻿using ERP.DATA.Repositories;
-using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProveedores;
 using Microsoft.Extensions.Logging;
 
