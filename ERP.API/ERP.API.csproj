@@ -24,4 +24,8 @@
     <ProjectReference Include="..\ERP.TRAN\ERP.TRAN.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Utilities\" />
+  </ItemGroup>
+
 </Project>

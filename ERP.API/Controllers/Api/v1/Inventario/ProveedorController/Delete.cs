@@ -1,7 +1,10 @@
 ﻿namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
-using ERP.API.Controllers.Utilities.Providers;
+
+using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProveedores;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,14 +22,9 @@ public sealed class DeleteProveedorEndpoint(IServiceProvider serviceProvider)
 
     protected override async Task<ActionResult> DeleteEntity(DeleteProveedorByIdRequest request, CancellationToken cancellationToken)
     {
-        await Repository.Proveedores
-            .Where(p => p.Id == request.Id)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        await Repository.SaveChangesAsync(cancellationToken);
-
-        TraceDeleted("Producto eliminado correctamente",request.Id);
-
+        var productoService = serviceProvider.GetRequiredService<IProveedorService>();
+        await productoService.DeleteProveedorById(request.Id, cancellationToken);
+        TraceDeleted("Proveedor eliminado correctamente", request.Id);
         return Ok();
 
     }

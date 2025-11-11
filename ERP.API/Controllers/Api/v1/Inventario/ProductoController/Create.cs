@@ -1,17 +1,23 @@
-﻿using ERP.API.Controllers.Utilities.Base;
+﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
 
-public sealed class CreateProductoEndpoint(IServiceProvider serviceProvider)
-    : BaseCreateEndpoint<CreateProductoRequest, CreateProductoEndpoint>(serviceProvider)
+public sealed class CreateProductoEndpoint : BaseCreateEndpoint<CreateProductoRequest, CreateProductoEndpoint>
 {
+    private readonly IProductoService _productoService;
+    public CreateProductoEndpoint(ILogger<CreateProductoEndpoint> logger, IProductoService productoService)
+        : base(logger)
+    {
+        _productoService = productoService;
+    }
+
     [Tags("Inventario - Productos")]
-    [HttpPost(ProductosEndpoints.List, Name = ("Create Producto"))]
+    [HttpPost(ProductosEndpoints.List, Name = "CreateProducto")] // ✅ Sin espacios
     public override async Task<ActionResult> HandleAsync(
         [FromBody] CreateProductoRequest request,
         CancellationToken cancellationToken = new())
@@ -21,45 +27,37 @@ public sealed class CreateProductoEndpoint(IServiceProvider serviceProvider)
 
     protected override async Task<ActionResult> CreateEntity(CreateProductoRequest request, CancellationToken cancellationToken)
     {
-        var codigo = $"PRD-{request.Codigo[..3].ToUpper()}";
-
-        var exists = await Repository.Productos.AnyAsync(c => c.Codigo == codigo, cancellationToken);
-        if (exists)
-            return Conflict($"Ya existe una Bodega con el código '{codigo}'.");
+        if (!request.ParametersAreValid(out var validationErrors))
+        {
+            return BadRequest(new { errors = validationErrors });
+        }
 
         var producto = new Producto
         {
             Id = Guid.NewGuid(),
-            Codigo = codigo,
+            Codigo = request.Codigo,
             Nombre = request.Nombre,
             Descripcion = request.Descripcion,
             Costo_Unitario = request.Costo_Unitario,
             Precio_Venta = request.Precio_Venta,
-            PorcentajeIVA = request.PorcentajeIVA,
-            PorcentajeICA = request.PorcentajeICA,
-            ImpuestoEspecifico = request.ImpuestoEspecifico,
-            ArancelImportacion = request.ArancelImportacion,
-            ExentoIVA = request.ExentoIVA,
-            GravadoICA = request.GravadoICA,
-            CodigoTributario = request.CodigoTributario,
             CategoriaId = request.CategoriaId,
             ProveedorId = request.ProveedorId,
             Unidad_Medida = request.Unidad_Medida,
-            Peso = request.Peso,
-            Volumen = request.Volumen,
-            Dimensiones = request.Dimensiones,
-            Imagen_Url = request.Imagen_Url,
-            Notas = request.Notas,
-            Tags = request.Tags,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy  = "01",
-            IsActive = true
         };
 
-        Repository.Productos.Add(producto);
+        // ✅ Usar el servicio inyectado directamente
+        var productoCreado = await _productoService.AddProductoAsync(producto, cancellationToken);
 
-        await Repository.SaveChangesAsync(cancellationToken);
+        // ✅ Registrar en log y retornar respuesta
+        TraceCreated(nameof(Producto), productoCreado.Id);
 
-        return Created();
+        return CreatedAtRoute("GetProductoById", new { id = productoCreado.Id }, new
+        {
+            id = productoCreado.Id,
+            codigo = productoCreado.Codigo,
+            nombre = productoCreado.Nombre,
+            message = "Producto creado exitosamente"
+        });
     }
 }

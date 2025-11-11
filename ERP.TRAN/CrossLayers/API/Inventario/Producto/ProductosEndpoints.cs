@@ -11,6 +11,5 @@ public static class ProductosEndpoints
     public const string List = "/api/v1/inventario/Productos";
 
     public const string Get = $"{List}/{PathLiterals.PrimaryKeyPlaceholder}";
-
 }
 

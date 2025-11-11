@@ -1,17 +1,21 @@
-﻿using ERP.API.Controllers.Utilities.Base;
+﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ICategorias;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.CategoriaController;
 
-public sealed class CreateCategoriaEndpoint(IServiceProvider serviceProvider)
-    : BaseCreateEndpoint<CreateCategoriaRequest, CreateCategoriaEndpoint>(serviceProvider)
+public sealed class CreateCategoriaEndpoint : BaseCreateEndpoint<CreateCategoriaRequest, CreateCategoriaEndpoint>
 {
-    [Tags("Inventario - Categorias")]
+    private readonly ICategoriaService _categoriaService;
+    public CreateCategoriaEndpoint(ILogger<CreateCategoriaEndpoint> logger, ICategoriaService categoriaService) : base(logger)
+    {
+        _categoriaService = categoriaService;
+    }
 
+    [Tags("Inventario - Categorias")]
     [HttpPost(CategoriasEndpoints.List)]
     public override async Task<ActionResult> HandleAsync(
         [FromBody] CreateCategoriaRequest request,
@@ -22,12 +26,14 @@ public sealed class CreateCategoriaEndpoint(IServiceProvider serviceProvider)
 
     protected override async Task<ActionResult> CreateEntity(CreateCategoriaRequest request, CancellationToken cancellationToken)
     {
-        var codigo = $"CAT-{request.codigo[..3].ToUpper()}";
-
-        var exists = await Repository.Categorias.AnyAsync(c => c.Codigo == codigo, cancellationToken);
-        if (exists)
-            return Conflict($"Ya existe una categoria con el código '{codigo}'.");
-
+        // 1. Validar el request
+        if (!request.ParametersAreValid(out var validationErrors))
+        {
+            return BadRequest(new { errors = validationErrors });
+        }
+        var codigo = string.IsNullOrWhiteSpace(request.codigo)
+            ? $"CAT-{Guid.NewGuid().ToString("N")[..8].ToUpper()}"
+            : $"CAT-{request.codigo[..3].ToUpper()}";
         var categoria = new Categoria
         {
             Id = Guid.NewGuid(),
@@ -36,16 +42,20 @@ public sealed class CreateCategoriaEndpoint(IServiceProvider serviceProvider)
             Descripcion = request.Descripcion,
             CreatedAt = DateTime.UtcNow,
             IsActive = true,
-            CreatedBy = "01",
+            CreatedBy = "01", // Esto debería venir del usuario autenticado
             UpdatedBy = null,
-
+            UpdatedAt = null
         };
 
-        Repository.Categorias.Add(categoria);
+        // 5. Llamar al servicio para crear la categoría
+        var categoriaCreada = await _categoriaService.AddCategoriasAsync(categoria);
 
-        await Repository.SaveChangesAsync(cancellationToken);
-
-        return Created();
+        return CreatedAtRoute("GetCategoriaById", new { id = categoriaCreada.Id }, new
+        {
+            id = categoriaCreada.Id,
+            codigo = categoriaCreada.Codigo,
+            nombre = categoriaCreada.Nombre,
+            message = "Categoría creada exitosamente"
+        });
     }
 }
-

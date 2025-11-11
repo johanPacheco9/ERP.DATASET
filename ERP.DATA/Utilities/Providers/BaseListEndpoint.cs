@@ -2,18 +2,22 @@
 using Ardalis.GuardClauses;
 using ERP.DATA.Repositories;
 using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
+using ERP.TRAN.CrossLayers.Core.Utilities.Structs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
-namespace ERP.API.Controllers.Utilities.Providers;
+namespace ERP.DATA.Utilities.Providers;
 
-public abstract class BaseGetEndpoint<TRequest, TClass, TResponse>(IServiceProvider serviceProvider) :
-    EndpointBaseAsync.WithRequest<TRequest>.WithActionResult<TResponse> where TRequest : IValidatableRequest
+public abstract class BaseListEndpoint<TRequest, TClass, TResponse>(IServiceProvider serviceProvider) :
+EndpointBaseAsync.WithRequest<TRequest>.WithActionResult<TResponse> where TRequest : IValidatableRequest
 {
     /// <summary>
     ///     Identificador de operación.
     /// </summary>
-    protected const string OperationId = "Consultar";
+    protected const string OperationId = "Listar";
 
     /// <summary>
     ///     Repositorio (inyectado).
@@ -28,7 +32,7 @@ public abstract class BaseGetEndpoint<TRequest, TClass, TResponse>(IServiceProvi
         Guard.Against.Null(serviceProvider.GetRequiredService<ILogger<TClass>>());
 
     /// <summary>
-    ///     Manejador de la solicitud de consulta. Primero valida y luego ejecuta.
+    ///     Manejador de la solicitud de listado. Primero valida y luego ejecuta.
     /// </summary>
     /// <remarks>
     ///    Si la validación falla, se retorna un error 400 con los mensajes de validación.
@@ -41,44 +45,44 @@ public abstract class BaseGetEndpoint<TRequest, TClass, TResponse>(IServiceProvi
         CancellationToken cancellationToken = new())
     {
         return await request.ValidateAndHandle(Logger,
-            async () => await TryGetEntity(request, cancellationToken));
+            async () => await TryListEntity(request, cancellationToken));
     }
 
     /// <summary>
-    ///     Intenta consultar la entidad. Si falla, se captura la excepción y se retorna un error 500.
+    ///     Intenta listar la entidad. Si falla, se captura la excepción y se retorna un error 500.
     /// </summary>
     /// <param name="request">Solicitud</param>
     /// <param name="cancellationToken">Token de cancelación</param>
     /// <returns><c>ActionResult</c> con el resultado. Es <c>Awaitable</c></returns>
-    private async Task<ActionResult<TResponse>> TryGetEntity(TRequest request, CancellationToken cancellationToken)
+    private async Task<ActionResult<TResponse>> TryListEntity(TRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            return await GetEntity(request, cancellationToken);
+            return await ListEntity(request, cancellationToken);
         }
         catch (DbUpdateException ex)
         {
-            var error = $"No fue posible guardar la entidad: {ex.Message + ex.InnerException?.Message}";
+            var error = $"No fue posible listar la entidad: {ex.Message + ex.InnerException?.Message}";
             Logger.LogError(error);
             return StatusCode(500, $"{error}");
         }
         catch (Exception ex)
         {
-            var error = $"No fue posible guardar la entidad: {ex.Message}";
+            var error = $"No fue posible listar la entidad: {ex.Message}";
             Logger.LogError(error);
             return StatusCode(500, $"{error}");
         }
     }
 
     /// <summary>
-    ///     Realiza la consulta de la entidad.
+    ///     Realiza el listado de la entidad.
     /// </summary>
     /// <param name="request">Solicitud</param>
     /// <param name="cancellationToken">Token de cancelación</param>
     /// <returns><c>ActionResult</c> con el resultado. Es <c>Awaitable</c></returns>
     /// <exception cref="DbUpdateException">Si hay problemas al ejecutar en el repositorio</exception>
     /// <exception cref="Exception">Si hay problemas al ejecutar en el repositorio o en el código</exception>
-    protected abstract Task<ActionResult<TResponse>> GetEntity(TRequest request, CancellationToken cancellationToken);
+    protected abstract Task<ActionResult<TResponse>> ListEntity(TRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     ///     Si no se encuentra la entidad en el repositorio, se retorna un error 404 luego de registrar el evento.
@@ -86,7 +90,7 @@ public abstract class BaseGetEndpoint<TRequest, TClass, TResponse>(IServiceProvi
     /// <param name="entityName">Nombre de la entidad buscada (para el log)</param>
     /// <param name="identifier">PK de la entidad buscada (para el log)</param>
     /// <returns><c>NotFound</c> luego de registrar en el log</returns>
-    protected ActionResult EntityNotFound(string entityName, Guid identifier)
+    protected ActionResult EntityNotFound(string entityName, int identifier)
     {
         var error = $"No fue posible encontrar la entidad: {entityName} con id: {identifier} pues no se encontró en el repositorio.";
         Logger.LogTrace(error);
@@ -94,25 +98,44 @@ public abstract class BaseGetEndpoint<TRequest, TClass, TResponse>(IServiceProvi
     }
 
     /// <summary>
-    ///     Si no se encuentra la entidad en el repositorio, se retorna un error 404 luego de registrar el evento.
+    ///     Registra en el log que la entidad especificada fue filtrada por el criterio dado, satisfactoriamente.
     /// </summary>
-    /// <param name="entityName">Nombre de la entidad buscada (para el log)</param>
-    /// <returns><c>NotFound</c> luego de registrar en el log</returns>
-    protected ActionResult EntityNotFound(string entityName)
+    /// <param name="entityName">Nombre de la entidad encontrada</param>
+    /// <param name="field">Campo de filtrado</param>
+    /// <param name="filter">Valor del filtro</param>
+    protected void TraceListFiltered(string entityName, string field, string filter)
     {
-        var error = $"No fue posible encontrar la entidad: {entityName} con los criterios especificados, pues no se encontró en el repositorio.";
-        Logger.LogTrace(error);
-        return NotFound(error);
+        Logger.LogTrace(
+            $"Filtrando listado de {entityName} por {field}: {filter}");
     }
 
     /// <summary>
-    ///     Registra en el log que la entidad especificada fue encontrada y retornada satisfactoriamente.
+    ///     Registra en el log que la entidad especificada fue filtrada por el criterio dado, satisfactoriamente.
     /// </summary>
     /// <param name="entityName">Nombre de la entidad encontrada</param>
-    /// <param name="primaryKey">PK de la entidad encontrada</param>
-    protected void TraceFound(string entityName, Guid primaryKey)
+    /// <param name="field">Campo de filtrado</param>
+    /// <param name="dateFilter">Valor del filtro (DateTime)</param>
+    protected void TraceListFiltered(string entityName, string field, DateTime dateFilter)
     {
-        Logger.LogTrace($"La entidad: {entityName}, con PK: {primaryKey}, se retornó satisfactoriamente");
+        Logger.LogTrace(
+            $"Filtrando listado de {entityName} por {field}: {dateFilter.ToLongDateString()}");
+    }
+
+    /// <summary>
+    ///     Registra en el log que la consulta SQL que fue aplicada.
+    /// </summary>
+    /// <param name="query">Query a ejecutar</param>
+    protected void LogGeneratedQuery(IQueryable query)
+    {
+        Logger.LogInformation($"Aplicando el query [{query.ToQueryString()}]");
+    }
+
+    /// <summary>
+    ///     Prepara los encabezados de respuesta con la paginación.
+    /// </summary>
+    /// <param name="paginationHeaders">Encabezados de paginación</param>
+    protected void PrepareResponseHeaders(PaginationHeaders paginationHeaders)
+    {
+        Response.Headers["X-Pagination"] = JsonConvert.SerializeObject(paginationHeaders);
     }
 }
-

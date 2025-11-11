@@ -1,10 +1,10 @@
-﻿using ERP.API.Controllers.Utilities.Providers;
+﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ICategorias;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.CategoriaController;
 
@@ -19,32 +19,23 @@ public sealed class GetCategoriaByIdEndpoint(IServiceProvider serviceProvider)
     {
         return await base.HandleAsync(request, cancellationToken);
     }
-
-
     protected override async Task<ActionResult<CategoriaDetailDto>> GetEntity(GetCategoriaByIdRequest request, CancellationToken cancellationToken)
     {
-        // Buscar la categoría en el repositorio por Id
-        var categoria = await Repository.Categorias
-            .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
-
-        // Si no existe, devolvemos 404 y registramos el evento
-        if (categoria is null)
-            return EntityNotFound(nameof(Categoria));
-
-        // Mapear la entidad a DTO
-        var categoriaDto = new CategoriaDetailDto
+        var categoriaService = serviceProvider.GetRequiredService<ICategoriaService>();
+        var categoria = await categoriaService.GetCategoriaByIdAsync(request.Id, cancellationToken);
+        if (categoria == null)
         {
-            Id = categoria.Id,
-            Nombre = categoria.Nombre,
-            Descripcion = categoria.Descripcion,
-            FechaCreacion = categoria.CreatedAt,
-            FechaModificacion = categoria.UpdatedAt
-        };
-
-        // Registrar que se encontró correctamente
+            return NotFound($"Categoría con ID {request.Id} no encontrada");
+        }
+        var categoriaDto = new CategoriaDetailDto
+        (
+            categoria.Id,
+            categoria.Nombre,
+            categoria.Descripcion,
+            categoria.CreatedAt,
+            categoria.UpdatedAt
+        );
         TraceFound(nameof(Categoria), request.Id);
-
-        // Devolver la categoría encontrada
         return Ok(categoriaDto);
     }
 }

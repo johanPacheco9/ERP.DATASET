@@ -1,7 +1,8 @@
 ﻿using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
-namespace ERP.API.Controllers.Utilities.Providers;
+namespace ERP.DATA.Utilities.Providers;
 public static class ValidatableRequestExtensions
 {
     /// <summary>

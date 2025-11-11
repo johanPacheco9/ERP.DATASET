@@ -1,14 +1,23 @@
-﻿using ERP.API.Controllers.Utilities.Base;
+﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovimientos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.MovimientosController;
-public sealed class CreateEntradaEndpoint(IServiceProvider serviceProvider)
-    : BaseCreateEndpoint<RegistrarMovimientoEntradaRequest, CreateEntradaEndpoint>(serviceProvider)
+
+public sealed class CreateEntradaEndpoint : BaseCreateEndpoint<RegistrarMovimientoEntradaRequest, CreateEntradaEndpoint>
 {
+    private readonly IMovimientoService _movimientoService;
+
+    
+    public CreateEntradaEndpoint(ILogger<CreateEntradaEndpoint> logger, IMovimientoService movimientoService)
+        : base(logger)
+    {
+        _movimientoService = movimientoService;
+    }
+
     [Tags("Inventario - Movimientos")]
     [HttpPost(MovimientosEndpoints.List)]
     public override async Task<ActionResult> HandleAsync(
@@ -18,69 +27,48 @@ public sealed class CreateEntradaEndpoint(IServiceProvider serviceProvider)
         return await base.HandleAsync(request, cancellationToken);
     }
 
-    protected override async Task<ActionResult> CreateEntity(RegistrarMovimientoEntradaRequest request, CancellationToken cancellationToken)
+    protected override async Task<ActionResult> CreateEntity(
+     RegistrarMovimientoEntradaRequest request,
+     CancellationToken cancellationToken)
     {
-        // 1. Buscar si ya existe stock para este producto-bodega
-        var stockExistente = await Repository.StockBodegas
-            .FirstOrDefaultAsync(bs => bs.BodegaId == request.BodegaId &&
-                                    bs.ProductoVarianteId == request.ProductoId, cancellationToken);
-
-        // 2. Si NO existe, crear nuevo registro de stock
-        if (stockExistente == null)
+        if (!request.ParametersAreValid(out var validationErrors))
         {
-            var nuevoStock = new StockBodega
-            {
-                Id = Guid.NewGuid(),
-                BodegaId = request.BodegaId,
-                ProductoVarianteId = request.ProductoId,
-                StockActual = request.Cantidad,
-                StockMinimo = 0, // Valor por defecto
-                StockMaximo = 0, // Valor por defecto  
-                StockReservado = 0,
-                FechaActualizacion = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = "1",
-                IsActive = true,
-            };
-            Repository.StockBodegas.Add(nuevoStock);
+            return BadRequest(new { errors = validationErrors });
         }
-        else
-        {
-            // 3. Si EXISTE, ACTUALIZAR el registro existente
-            stockExistente.StockActual += request.Cantidad;
-            stockExistente.FechaActualizacion = DateTime.UtcNow;
-            stockExistente.UpdatedAt = DateTime.UtcNow;
-            stockExistente.UpdatedBy = "1";
-        }
-
-        // 4. Crear el movimiento
         var movimiento = new Movimiento
         {
             Id = Guid.NewGuid(),
-            ProductoVarianteId = request.ProductoId,
+            ProductoId = request.ProductoId,
             BodegaId = request.BodegaId,
             TipoMovimiento = TipoMovimiento.Entrada,
+
             Cantidad = request.Cantidad,
             CostoUnitario = request.CostoUnitario,
-            Lote = request.Lote,
-            FechaVencimiento = request.FechaVencimiento,
-            Motivo = request.Motivo,
-            Observaciones = request.Observaciones,
+
             ReferenciaId = request.ReferenciaId,
             ReferenciaTipo = request.ReferenciaTipo,
+
+            Lote = request.Lote,
+            FechaVencimiento = request.FechaVencimiento,
+
+            Motivo = request.Motivo,
+            Observaciones = request.Observaciones,
+
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = "1",
-            IsActive = true,
+            CreatedBy = "01"
         };
+        var resultado = await _movimientoService.RegistrarEntradaAsync(movimiento, cancellationToken);
 
-        Repository.Movimientos.Add(movimiento);
+        if (!resultado)
+            return StatusCode(500, "Error registrando movimiento de entrada.");
 
-        // 5. Guardar ambos cambios
-        await Repository.SaveChangesAsync(cancellationToken);
-
-        return StatusCode(StatusCodes.Status201Created);
+        // Aquí podrías retornar el movimiento guardado
+        return CreatedAtRoute("GetMovimientoById", new { id = movimiento.Id }, new
+        {
+            id = movimiento.Id,
+            tipo = "Entrada",
+            message = "Movimiento de entrada registrado exitosamente"
+        });
     }
+
 }
- 
-
-
