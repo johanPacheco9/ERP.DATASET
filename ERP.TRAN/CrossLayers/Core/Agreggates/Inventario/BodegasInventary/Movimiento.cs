@@ -1,4 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+﻿using System.ComponentModel;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
@@ -36,4 +37,19 @@ public class Movimiento : EntityWithtraceability
     public ProductoVariante ProductoVariante { get; set; } = null!;
     public Bodega Bodega { get; set; } = null!;
 }
-public enum TipoMovimiento { Entrada = 1, Salida = 2, Ajuste = 3, Transferencia = 4 }
+
+public enum TipoMovimiento
+{
+    [Description("Entrada")]
+    Entrada = 1,
+
+    [Description("Salida")]
+    Salida = 2,
+
+    [Description("Ajuste")]
+    Ajuste = 3,
+
+    [Description("Transferencia")]
+    Transferencia = 4
+}
+

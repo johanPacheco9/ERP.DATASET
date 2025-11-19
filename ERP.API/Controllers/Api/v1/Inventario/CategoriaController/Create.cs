@@ -26,36 +26,27 @@ public sealed class CreateCategoriaEndpoint : BaseCreateEndpoint<CreateCategoria
 
     protected override async Task<ActionResult> CreateEntity(CreateCategoriaRequest request, CancellationToken cancellationToken)
     {
-        // 1. Validar el request
         if (!request.ParametersAreValid(out var validationErrors))
-        {
             return BadRequest(new { errors = validationErrors });
-        }
-        var codigo = string.IsNullOrWhiteSpace(request.codigo)
-            ? $"CAT-{Guid.NewGuid().ToString("N")[..8].ToUpper()}"
-            : $"CAT-{request.codigo[..3].ToUpper()}";
+
+        // Solo mapear del request a la entidad mínima
         var categoria = new Categoria
         {
-            Id = Guid.NewGuid(),
-            Codigo = codigo,
             Nombre = request.Nombre,
             Descripcion = request.Descripcion,
-            CreatedAt = DateTime.UtcNow,
-            IsActive = true,
-            CreatedBy = "01", // Esto debería venir del usuario autenticado
-            UpdatedBy = null,
-            UpdatedAt = null
+            Codigo = request.codigo // opcional, el servicio decide si genera uno
         };
 
-        // 5. Llamar al servicio para crear la categoría
+        // Llamar al servicio
         var categoriaCreada = await _categoriaService.AddCategoriasAsync(categoria);
 
         return CreatedAtRoute("GetCategoriaById", new { id = categoriaCreada.Id }, new
         {
-            id = categoriaCreada.Id,
-            codigo = categoriaCreada.Codigo,
-            nombre = categoriaCreada.Nombre,
+            categoriaCreada.Id,
+            categoriaCreada.Codigo,
+            categoriaCreada.Nombre,
             message = "Categoría creada exitosamente"
         });
     }
+
 }

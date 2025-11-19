@@ -43,8 +43,6 @@ public sealed class CreateEntradaEndpoint : BaseCreateEndpoint<RegistrarMovimien
             TipoMovimiento = TipoMovimiento.Entrada,
 
             Cantidad = request.Cantidad,
-            CostoUnitario = request.CostoUnitario,
-
             ReferenciaId = request.ReferenciaId,
             ReferenciaTipo = request.ReferenciaTipo,
 
