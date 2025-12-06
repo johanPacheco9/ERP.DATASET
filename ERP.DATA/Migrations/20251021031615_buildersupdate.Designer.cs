@@ -13,7 +13,7 @@ namespace ERP.DATA.Migrations
 {
     [DbContext(typeof(MainDataContext))]
     [Migration("20251021031615_buildersupdate")]
-    partial class buildersupdate
+    partial class Buildersupdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

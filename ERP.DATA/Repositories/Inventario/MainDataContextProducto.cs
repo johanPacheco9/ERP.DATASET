@@ -1,4 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.AuditoriasInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +19,8 @@ public partial class MainDataContext
 
     public DbSet<Movimiento> Movimientos { get; set; }
 
+    public DbSet<AuditoriaProductos> AuditoriaProductos{get; set;}
 
+    public DbSet<ProductoAuditado> productosAuditados { get; set; }
 }
 

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ERP.DATA.Migrations
 {
     /// <inheritdoc />
-    public partial class buildersupdate : Migration
+    public partial class Buildersupdate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

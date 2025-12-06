@@ -9,7 +9,6 @@ public partial class ProductoService
 {
     public async Task<Producto> AddProductoAsync(Producto producto, CancellationToken cancellationToken = default)
     {
-        // Generar un código único basado en los primeros 3 caracteres del nombre o código  o no sé como xd
         var codigo = $"PRD-{producto.Codigo[..3].ToUpper()}";
 
         var exists = await _context.Productos.AnyAsync(c => c.Codigo == codigo, cancellationToken);

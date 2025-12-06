@@ -46,7 +46,7 @@ public class Producto : EntityWithtraceability
 
     // Relaciones
     public Categoria Categoria { get; set; } = null!;
-    public Proveedor? Proveedor { get; set; }
+    public Proveedor Proveedor { get; set; } = null!;
 
     // Estado del producto
     public ProductoEnumStatus Estado { get; set; } = ProductoEnumStatus.Activo;

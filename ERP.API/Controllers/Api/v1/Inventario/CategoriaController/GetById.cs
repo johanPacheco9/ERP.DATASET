@@ -1,5 +1,4 @@
-﻿using ERP.DATA.Utilities.Providers;
-using ERP.TRAN.CrossLayers.API.Inventario.Categoria;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Categoria;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
@@ -8,9 +7,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.CategoriaController;
 
-public sealed class GetCategoriaByIdEndpoint(IServiceProvider serviceProvider)
-    : BaseGetEndpoint<GetCategoriaByIdRequest, GetCategoriaByIdEndpoint, CategoriaDetailDto>(serviceProvider)
+public sealed class GetCategoriaByIdEndpoint
+    : BaseGetEndpoint<GetCategoriaByIdRequest, GetCategoriaByIdEndpoint, CategoriaDetailDto>
 {
+    private readonly ICategoriaService _categoriaService;
+
+
+    public GetCategoriaByIdEndpoint(ICategoriaService categoriaService, ILogger<GetCategoriaByIdEndpoint> logger) : base(logger)
+    {
+        _categoriaService = categoriaService;
+    }
+   
     [Tags("Inventario - Categorias")]
     [HttpGet(CategoriasEndpoints.Get, Name = "Get categoria by id")]
     public override async Task<ActionResult<CategoriaDetailDto>> HandleAsync(
@@ -21,8 +28,7 @@ public sealed class GetCategoriaByIdEndpoint(IServiceProvider serviceProvider)
     }
     protected override async Task<ActionResult<CategoriaDetailDto>> GetEntity(GetCategoriaByIdRequest request, CancellationToken cancellationToken)
     {
-        var categoriaService = serviceProvider.GetRequiredService<ICategoriaService>();
-        var categoria = await categoriaService.GetCategoriaByIdAsync(request.Id, cancellationToken);
+        var categoria = await _categoriaService.GetCategoriaByIdAsync(request.Id, cancellationToken);
         if (categoria == null)
         {
             return NotFound($"Categoría con ID {request.Id} no encontrada");

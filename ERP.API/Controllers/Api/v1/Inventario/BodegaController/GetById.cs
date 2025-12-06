@@ -1,5 +1,4 @@
-﻿using ERP.DATA.Utilities.Providers;
-using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
@@ -8,9 +7,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.BodegaController;
 
-public sealed class GetBodegaByIdEndpoint(IServiceProvider serviceProvider)
-    : BaseGetEndpoint<GetBodegaByIdRequest, GetBodegaByIdEndpoint, BodegaDetailDTO>(serviceProvider)
+public sealed class GetBodegaByIdEndpoint : BaseGetEndpoint<GetBodegaByIdRequest, GetBodegaByIdEndpoint, BodegaDetailDTO>
 {
+    private readonly IBodegaService _bodegaService;
+    public GetBodegaByIdEndpoint(IBodegaService bodegaService, ILogger<GetBodegaByIdEndpoint> logger) : base(logger)
+    {
+        _bodegaService = bodegaService;
+    }
+
     [Tags("Inventario - Bodegas")]
     [HttpGet(BodegasEndpoints.Get, Name = "GetBodegaByIdRequest")]
     public override async Task<ActionResult<BodegaDetailDTO>> HandleAsync(
@@ -24,8 +28,8 @@ public sealed class GetBodegaByIdEndpoint(IServiceProvider serviceProvider)
         GetBodegaByIdRequest request,
         CancellationToken cancellationToken)
     {
-        var bodegaService = serviceProvider.GetRequiredService<IBodegaService>();
-        var bodega = await bodegaService.GetBodegaByIdAsync(request.Id, cancellationToken);
+        
+        var bodega = await _bodegaService.GetBodegaByIdAsync(request.Id, cancellationToken);
 
         if (bodega == null)
         {

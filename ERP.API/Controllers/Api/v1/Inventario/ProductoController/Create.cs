@@ -17,7 +17,7 @@ public sealed class CreateProductoEndpoint : BaseCreateEndpoint<CreateProductoRe
     }
 
     [Tags("Inventario - Productos")]
-    [HttpPost(ProductosEndpoints.List, Name = "CreateProducto")] // ✅ Sin espacios
+    [HttpPost(ProductosEndpoints.List, Name = "CreateProducto")]
     public override async Task<ActionResult> HandleAsync(
         [FromBody] CreateProductoRequest request,
         CancellationToken cancellationToken = new())
@@ -46,10 +46,8 @@ public sealed class CreateProductoEndpoint : BaseCreateEndpoint<CreateProductoRe
             CreatedAt = DateTime.UtcNow,
         };
 
-        // ✅ Usar el servicio inyectado directamente
         var productoCreado = await _productoService.AddProductoAsync(producto, cancellationToken);
 
-        // ✅ Registrar en log y retornar respuesta
         TraceCreated(nameof(Producto), productoCreado.Id);
 
         return CreatedAtRoute("GetProductoById", new { id = productoCreado.Id }, new

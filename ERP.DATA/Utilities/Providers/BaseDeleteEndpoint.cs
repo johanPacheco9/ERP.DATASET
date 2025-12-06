@@ -1,35 +1,24 @@
 ﻿using Ardalis.ApiEndpoints;
-using Ardalis.GuardClauses;
+using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ERP.DATA.Utilities.Providers;
-
-/// <summary>
-/// Base para endpoints de eliminación de entidades usando services.
-/// </summary>
-/// <typeparam name="TRequest">Tipo de solicitud</typeparam>
-/// <typeparam name="TClass">Clase concreta del endpoint</typeparam>
-public abstract class BaseDeleteEndpoint<TRequest, TClass>(IServiceProvider serviceProvider) :
-    EndpointBaseAsync.WithRequest<TRequest>.WithActionResult
+public abstract class BaseDeleteEndpoint<TRequest, TClass, TService>(TService service)
+    : EndpointBaseAsync.WithRequest<TRequest>.WithActionResult
     where TRequest : IValidatableRequest
 {
-    /// <summary>
-    /// Identificador de operación
-    /// </summary>
     protected const string OperationId = "Eliminar";
 
-    /// <summary>
-    /// Motor de log (inyectado)
-    /// </summary>
-    protected ILogger<TClass> Logger { get; init; } =
-        Guard.Against.Null(serviceProvider.GetRequiredService<ILogger<TClass>>());
+    protected readonly TService Service = service;
 
-    /// <summary>
-    /// Manejador principal de la solicitud de eliminación. Primero valida y luego ejecuta.
-    /// </summary>
+    protected ILogger<TClass> Logger { get; init; }
+
+    public BaseDeleteEndpoint(TService service, ILogger<TClass> logger) : this(service)
+    {
+        Logger = logger;
+    }
+
     public override async Task<ActionResult> HandleAsync(
         TRequest request,
         CancellationToken cancellationToken = default)
@@ -38,10 +27,6 @@ public abstract class BaseDeleteEndpoint<TRequest, TClass>(IServiceProvider serv
             async () => await TryDeleteEntity(request, cancellationToken));
     }
 
-    /// <summary>
-    /// Intenta eliminar la entidad usando el service correspondiente.
-    /// Captura excepciones y devuelve 500 en caso de error.
-    /// </summary>
     private async Task<ActionResult> TryDeleteEntity(TRequest request, CancellationToken cancellationToken)
     {
         try
@@ -56,15 +41,9 @@ public abstract class BaseDeleteEndpoint<TRequest, TClass>(IServiceProvider serv
         }
     }
 
-    /// <summary>
-    /// Implementación concreta de eliminación usando services.
-    /// Aquí el endpoint concreto llama al service correspondiente.
-    /// </summary>
-    protected abstract Task<ActionResult> DeleteEntity(TRequest request, CancellationToken cancellationToken);
+    protected abstract Task<ActionResult> DeleteEntity(
+        TRequest request, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Si no se encuentra la entidad, retorna 404 y registra en el log
-    /// </summary>
     protected ActionResult EntityNotFound(string entityName, Guid identifier)
     {
         var error =
@@ -73,9 +52,6 @@ public abstract class BaseDeleteEndpoint<TRequest, TClass>(IServiceProvider serv
         return NotFound(error);
     }
 
-    /// <summary>
-    /// Registra en el log que la entidad se eliminó correctamente
-    /// </summary>
     protected void TraceDeleted(string entityName, Guid primaryKey)
     {
         Logger.LogTrace($"La entidad '{entityName}', con PK: {primaryKey}, se eliminó satisfactoriamente.");
