@@ -1,11 +1,13 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 
 namespace ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
 
 public interface IBodegaService
 {
-    Task<bool> BodegaExistsAsync(Guid id, CancellationToken cancellationToken);
-    Task<Bodega> GetBodegaByIdAsync(Guid id, CancellationToken cancellationToken);
-    Task<Guid> AddBodegaAsync(Bodega bodega, CancellationToken cancellationToken);
+    Task<bool> BodegaExistsAsync(int id, CancellationToken cancellationToken);
+    Task<BodegaDetailDTO> GetBodegaByIdAsync(int id, CancellationToken cancellationToken);
+    Task<int> AddBodegaAsync(CreateBodegaRequest bodegarequest, CancellationToken cancellationToken);
     Task<bool> ExisteBodegaPorCodigoAsync(string codigo, CancellationToken cancellationToken);
 }

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
 public sealed class CreateProductoVarianteRequest : IValidatableRequest
 {
+    public int ProductoId { get; set; }
     [Required]
     [MaxLength(50)]
     public string CodigoVariante { get; set; } = null!; // SKU

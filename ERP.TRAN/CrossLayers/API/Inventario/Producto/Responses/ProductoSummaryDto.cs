@@ -1,8 +1,9 @@
-﻿namespace ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Responses;
 
+namespace ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
 public record ProductoSummaryDto
 (
-    Guid? Id,
+   int? Id,
     string Codigo,
     string Nombre,
     string? Descripcion,
@@ -14,5 +15,6 @@ public record ProductoSummaryDto
     string? ProveedorNombre,
     string? ImagenUrl,
     string? Tags,
-    bool Activo
+    bool Activo,
+    List<ProductoVarianteDetailDto> ProductoVariantes
 );

@@ -1,51 +1,60 @@
 ﻿namespace ERP.DATA.Services.Inventario.ProductoService;
-
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
 
 public partial class ProductoService
 {
-    public async Task<Producto> AddProductoAsync(Producto producto, CancellationToken cancellationToken = default)
+    public async Task<int> AddProductoAsync(
+        CreateProductoRequest request,
+        CancellationToken cancellationToken = default)
     {
-        var codigo = $"PRD-{producto.Codigo[..3].ToUpper()}";
+        if (string.IsNullOrWhiteSpace(request.Codigo) || request.Codigo.Length < 3)
+            throw new ArgumentException("El código debe tener al menos 3 caracteres.");
 
-        var exists = await _context.Productos.AnyAsync(c => c.Codigo == codigo, cancellationToken);
+        var codigoProducto = request.Codigo.Trim().ToUpper();
+
+        var exists = await _context.Productos
+            .AnyAsync(p => p.Codigo == codigoProducto, cancellationToken);
+
         if (exists)
-            throw new InvalidOperationException($"Ya existe un producto con el código '{codigo}'.");
+            throw new InvalidOperationException($"Ya existe un producto con el código '{codigoProducto}'.");
 
-        var nuevoProducto = new Producto
+        var producto = new Producto
         {
-            Id = Guid.NewGuid(),
-            Codigo = codigo,
-            Nombre = producto.Nombre,
-            Descripcion = producto.Descripcion,
-            Costo_Unitario = producto.Costo_Unitario,
-            Precio_Venta = producto.Precio_Venta,
-            PorcentajeIVA = producto.PorcentajeIVA,
-            PorcentajeICA = producto.PorcentajeICA,
-            ImpuestoEspecifico = producto.ImpuestoEspecifico,
-            ArancelImportacion = producto.ArancelImportacion,
-            ExentoIVA = producto.ExentoIVA,
-            GravadoICA = producto.GravadoICA,
-            CodigoTributario = producto.CodigoTributario,
-            CategoriaId = producto.CategoriaId,
-            ProveedorId = producto.ProveedorId,
-            Unidad_Medida = producto.Unidad_Medida,
-            Peso = producto.Peso,
-            Volumen = producto.Volumen,
-            Dimensiones = producto.Dimensiones,
-            Imagen_Url = producto.Imagen_Url,
-            Notas = producto.Notas,
-            Tags = producto.Tags,
+            Codigo = codigoProducto,
+            Nombre = request.Nombre,
+            Descripcion = request.Descripcion,
+            CategoriaId = request.CategoriaId,
+            ProveedorId = request.ProveedorId,
+            Unidad_Medida = request.Unidad_Medida ?? "UND",
+            Peso = request.Peso,
+            Volumen = request.Volumen,
+            Dimensiones = request.Dimensiones,
+            Imagen_Url = request.Imagen_Url,
+            Notas = request.Notas,
+            Tags = request.Tags,
+            Costo_Unitario = request.Costo_Unitario,
+            Precio_Venta = request.Precio_Venta,
+            PorcentajeIVA = request.PorcentajeIVA,
+            PorcentajeICA = request.PorcentajeICA,
+            ImpuestoEspecifico = request.ImpuestoEspecifico,
+            ArancelImportacion = request.ArancelImportacion,
+            ExentoIVA = request.ExentoIVA,
+            GravadoICA = request.GravadoICA,
+            CodigoTributario = request.CodigoTributario,
+            Es_Perecedero = request.Es_Perecedero,
+            Estado = 0,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = "01",
+            CreatedBy = "SYSTEM",
             IsActive = true
         };
 
-        _context.Productos.Add(nuevoProducto);
+        _context.Productos.Add(producto);
         await _context.SaveChangesAsync(cancellationToken);
-        return nuevoProducto;
+
+        return producto.Id;
     }
 }

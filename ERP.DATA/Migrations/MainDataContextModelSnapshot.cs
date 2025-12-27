@@ -17,16 +17,78 @@ namespace ERP.DATA.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary.Bodega", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditoriasInventary.AuditoriaProductos", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuditoriaStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Detalles")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuditoriaProductos");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditoriasInventary.ProductoAuditado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuditoriaId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("productosAuditados");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary.Bodega", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("Capacidad_Maxima")
                         .HasColumnType("numeric");
@@ -52,6 +114,12 @@ namespace ERP.DATA.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("StoreId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TipoBodega")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Ubicacion")
                         .HasColumnType("text");
 
@@ -63,17 +131,21 @@ namespace ERP.DATA.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("StoreId");
+
                     b.ToTable("Bodegas");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary.Movimiento", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary.Movimiento", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
 
-                    b.Property<Guid>("BodegaId")
-                        .HasColumnType("uuid");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BodegaId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Cantidad")
                         .HasColumnType("integer");
@@ -103,14 +175,14 @@ namespace ERP.DATA.Migrations
                     b.Property<string>("Observaciones")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("ProductoId")
-                        .HasColumnType("uuid");
+                    b.Property<int?>("ProductoId")
+                        .HasColumnType("integer");
 
-                    b.Property<Guid?>("ProductoVarianteId")
-                        .HasColumnType("uuid");
+                    b.Property<int?>("ProductoVarianteId")
+                        .HasColumnType("integer");
 
-                    b.Property<Guid?>("ReferenciaId")
-                        .HasColumnType("uuid");
+                    b.Property<int?>("ReferenciaId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("ReferenciaTipo")
                         .HasColumnType("text");
@@ -135,14 +207,16 @@ namespace ERP.DATA.Migrations
                     b.ToTable("Movimientos");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary.StockBodega", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary.StockBodega", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
 
-                    b.Property<Guid>("BodegaId")
-                        .HasColumnType("uuid");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BodegaId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -157,11 +231,11 @@ namespace ERP.DATA.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid?>("ProductoId")
-                        .HasColumnType("uuid");
+                    b.Property<int?>("ProductoId")
+                        .HasColumnType("integer");
 
-                    b.Property<Guid?>("ProductoVarianteId")
-                        .HasColumnType("uuid");
+                    b.Property<int?>("ProductoVarianteId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("StockActual")
                         .HasColumnType("integer");
@@ -192,11 +266,13 @@ namespace ERP.DATA.Migrations
                     b.ToTable("StockBodegas");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Categoria", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Categoria", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Codigo")
                         .IsRequired()
@@ -230,17 +306,19 @@ namespace ERP.DATA.Migrations
                     b.ToTable("Categorias");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Producto", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Producto", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("ArancelImportacion")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid>("CategoriaId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("CategoriaId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Codigo")
                         .IsRequired()
@@ -305,8 +383,8 @@ namespace ERP.DATA.Migrations
                     b.Property<decimal>("Precio_Venta")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid?>("ProveedorId")
-                        .HasColumnType("uuid");
+                    b.Property<int?>("ProveedorId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Tags")
                         .HasColumnType("text");
@@ -333,11 +411,13 @@ namespace ERP.DATA.Migrations
                     b.ToTable("Productos");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.ProductoVariante", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.ProductoVariante", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Atributos")
                         .HasColumnType("text");
@@ -371,8 +451,8 @@ namespace ERP.DATA.Migrations
                     b.Property<decimal?>("Precio_Venta")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid>("ProductoId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -384,14 +464,16 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProductoId");
 
-                    b.ToTable("ProductoVariante");
+                    b.ToTable("ProductoVariantes");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Proveedor", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Proveedor", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("Activo")
                         .HasColumnType("boolean");
@@ -433,19 +515,80 @@ namespace ERP.DATA.Migrations
                     b.ToTable("Proveedores");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary.Movimiento", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores.Store", b =>
                 {
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary.Bodega", "Bodega")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsMainStore")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Store");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditoriasInventary.ProductoAuditado", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditoriasInventary.ProductoAuditado", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary.Bodega", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores.Store", "Store")
+                        .WithMany("Bodegas")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary.Movimiento", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary.Bodega", "Bodega")
                         .WithMany("Movimiento")
                         .HasForeignKey("BodegaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Producto", "Producto")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Producto", "Producto")
                         .WithMany()
                         .HasForeignKey("ProductoId");
 
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.ProductoVariante", "ProductoVariante")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.ProductoVariante", "ProductoVariante")
                         .WithMany("Movimientos")
                         .HasForeignKey("ProductoVarianteId");
 
@@ -456,19 +599,19 @@ namespace ERP.DATA.Migrations
                     b.Navigation("ProductoVariante");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary.StockBodega", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary.StockBodega", b =>
                 {
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary.Bodega", "Bodega")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary.Bodega", "Bodega")
                         .WithMany("StockProductos")
                         .HasForeignKey("BodegaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Producto", "Producto")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Producto", "Producto")
                         .WithMany("StockEnBodegas")
                         .HasForeignKey("ProductoId");
 
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.ProductoVariante", "ProductoVariante")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.ProductoVariante", "ProductoVariante")
                         .WithMany("StockEnBodegas")
                         .HasForeignKey("ProductoVarianteId");
 
@@ -479,15 +622,15 @@ namespace ERP.DATA.Migrations
                     b.Navigation("ProductoVariante");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Producto", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Producto", b =>
                 {
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Categoria", "Categoria")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Categoria", "Categoria")
                         .WithMany("Productos")
                         .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Proveedor", "Proveedor")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Proveedor", "Proveedor")
                         .WithMany("Productos")
                         .HasForeignKey("ProveedorId");
 
@@ -496,9 +639,9 @@ namespace ERP.DATA.Migrations
                     b.Navigation("Proveedor");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.ProductoVariante", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.ProductoVariante", b =>
                 {
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Producto", "Producto")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Producto", "Producto")
                         .WithMany("Variantes")
                         .HasForeignKey("ProductoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -507,35 +650,40 @@ namespace ERP.DATA.Migrations
                     b.Navigation("Producto");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary.Bodega", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary.Bodega", b =>
                 {
                     b.Navigation("Movimiento");
 
                     b.Navigation("StockProductos");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Categoria", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Categoria", b =>
                 {
                     b.Navigation("Productos");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Producto", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Producto", b =>
                 {
                     b.Navigation("StockEnBodegas");
 
                     b.Navigation("Variantes");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.ProductoVariante", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.ProductoVariante", b =>
                 {
                     b.Navigation("Movimientos");
 
                     b.Navigation("StockEnBodegas");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary.Proveedor", b =>
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary.Proveedor", b =>
                 {
                     b.Navigation("Productos");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores.Store", b =>
+                {
+                    b.Navigation("Bodegas");
                 });
 #pragma warning restore 612, 618
         }

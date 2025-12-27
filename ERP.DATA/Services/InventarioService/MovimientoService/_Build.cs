@@ -1,5 +1,5 @@
 ﻿using ERP.DATA.Repositories;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovimientos;
 using Microsoft.Extensions.Logging;
 

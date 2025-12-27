@@ -1,4 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using Microsoft.Extensions.Logging;
 
 namespace ERP.DATA.Services.InventarioService.CategoriaService;
@@ -9,14 +9,12 @@ public partial class CategoriaService
     {
         try
         {
-            // Validar el código recibido
             var codigo = string.IsNullOrWhiteSpace(categorias.Codigo)
                 ? $"CAT-{Guid.NewGuid().ToString("N")[..8].ToUpper()}" // genera uno nuevo
-                : $"CAT-{categorias.Codigo[..Math.Min(3, categorias.Codigo.Length)].ToUpper()}"; // evita errores si tiene menos de 3 chars
+                : $"CAT-{categorias.Codigo[..Math.Min(3, categorias.Codigo.Length)].ToUpper()}";
 
             var categoria = new Categoria
             {
-                Id = Guid.NewGuid(),
                 Codigo = codigo,
                 Nombre = categorias.Nombre,
                 Descripcion = categorias.Descripcion,

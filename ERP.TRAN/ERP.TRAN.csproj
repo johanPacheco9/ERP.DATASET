@@ -8,22 +8,27 @@
 
   <ItemGroup>
     <Compile Remove="CrossLayers\API\Inventario\Bodega\Services\**" />
+    <Compile Remove="CrossLayers\API\Inventario\Categoria\Services\**" />
     <Compile Remove="CrossLayers\API\Inventario\Movimientos\Services\**" />
     <EmbeddedResource Remove="CrossLayers\API\Inventario\Bodega\Services\**" />
+    <EmbeddedResource Remove="CrossLayers\API\Inventario\Categoria\Services\**" />
     <EmbeddedResource Remove="CrossLayers\API\Inventario\Movimientos\Services\**" />
     <None Remove="CrossLayers\API\Inventario\Bodega\Services\**" />
+    <None Remove="CrossLayers\API\Inventario\Categoria\Services\**" />
     <None Remove="CrossLayers\API\Inventario\Movimientos\Services\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="CrossLayers\API\Inventario\Auditorias\Responses\" />
-    <Folder Include="CrossLayers\API\Inventario\Auditorias\Request\" />
     <Folder Include="CrossLayers\API\Inventario\Categoria\Enums\" />
-    <Folder Include="CrossLayers\API\Inventario\Categoria\Services\" />
     <Folder Include="CrossLayers\API\Inventario\ProductoVariante\Enums\" />
-    <Folder Include="CrossLayers\API\Inventario\ProductoVariante\Responses\" />
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Enums\" />
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Services\" />
+    <Folder Include="CrossLayers\API\Pos\Clients\Responses\" />
+    <Folder Include="CrossLayers\API\Pos\Transactions\Responses\" />
+    <Folder Include="CrossLayers\API\Stores\Responses\" />
+    <Folder Include="CrossLayers\API\Stores\Requests\" />
+    <Folder Include="CrossLayers\Core\Agreggates\Pos\Ventas\" />
+    <Folder Include="CrossLayers\Core\Agreggates\Pos\Transfers\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Enums;
+using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -30,6 +31,10 @@ public sealed class CreateBodegaRequest : IValidatableRequest
 
     public bool EsActiva { get; set; } = true;
 
+    public WarehouseType TipoBodega { get; set; }
+
+    public int storeId { get; set; }
+    
     public bool ParametersAreValid(out string? errors)
     {
         errors = null!;

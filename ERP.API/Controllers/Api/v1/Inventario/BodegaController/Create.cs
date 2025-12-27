@@ -1,10 +1,8 @@
-﻿using ERP.API.Controllers.Api.v1.Inventario.MovimientosController;
-using ERP.DATA.Utilities.Providers;
+﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovimientos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.BodegaController;

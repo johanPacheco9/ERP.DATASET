@@ -2,14 +2,12 @@
 
 public record BodegaDetailDTO
 (
-    Guid Id,
+    int Id,
     string Nombre,
     string? Descripcion,
     string? Ubicacion,
     bool Activa,
     DateTime FechaCreacion,
     DateTime? FechaModificacion
-
-
 );
 

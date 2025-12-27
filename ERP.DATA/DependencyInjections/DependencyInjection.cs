@@ -2,9 +2,11 @@
 using ERP.DATA.Services.Inventario.ProveedorService;
 using ERP.DATA.Services.InventarioService.BodeegaService;
 using ERP.DATA.Services.InventarioService.CategoriaService;
+using ERP.DATA.Services.InventarioService.ProductoVarianteService;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices; // ✅ Namespace correcto
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ICategorias;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProductosVariantes;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProveedores;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IBodegaService, BodegaService>();
         services.AddScoped<ICategoriaService, CategoriaService>();
         services.AddScoped<IProveedorService, ProveedorService>();
+        services.AddTransient<IProductoVarianteService, ProductoVarianteService>();
         // services.AddScoped<IStockBodegaService, StockBodegaService>();
 
         return services;

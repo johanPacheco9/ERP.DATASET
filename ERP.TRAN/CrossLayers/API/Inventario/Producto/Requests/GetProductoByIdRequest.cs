@@ -10,12 +10,12 @@ public sealed class GetProductoByIdRequest : IValidatableRequest
     [FromRoute(Name = "id")]
     [DisplayName("Id Del Producto")]
 
-    public  Guid Id { get; init; }
+    public  int Id { get; init; }
 
     public bool ParametersAreValid(out string? errors)
     {
         errors = null;
-        if (Id == Guid.Empty)
+        if (Id == 0)
         {
             errors = "El Id del producto es obligatorio.";
             return false;

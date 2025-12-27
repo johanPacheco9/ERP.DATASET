@@ -1,0 +1,53 @@
+﻿.dashboard {
+    padding: 1.5rem;
+}
+
+.dashboard-title {
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+/* Cards */
+.dashboard-card,
+.stat-card {
+    border: 1px solid #e9ecef;
+    border-radius: .75rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+}
+
+    /* Stats */
+    .stat-card small {
+        font-size: .8rem;
+    }
+
+.stat-badge {
+    height: fit-content;
+    font-size: .75rem;
+    padding: .4em .6em;
+}
+
+/* Table */
+.table td,
+.table th {
+    vertical-align: middle;
+}
+
+/* Estados */
+.estado-badge {
+    padding: .45em .65em;
+    font-size: .75rem;
+    font-weight: 500;
+}
+
+.estado-completado {
+    background-color: #198754;
+}
+
+.estado-pendiente {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.estado-proceso {
+    background-color: #0d6efd;
+}

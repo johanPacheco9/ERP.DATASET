@@ -1,7 +1,8 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.AuditoriasInventary;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditoriasInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ERP.DATA.Repositories;
 
@@ -22,5 +23,7 @@ public partial class MainDataContext
     public DbSet<AuditoriaProductos> AuditoriaProductos{get; set;}
 
     public DbSet<ProductoAuditado> productosAuditados { get; set; }
+
+    public DbSet<ProductoVariante> ProductoVariantes { get; set; }
 }
 

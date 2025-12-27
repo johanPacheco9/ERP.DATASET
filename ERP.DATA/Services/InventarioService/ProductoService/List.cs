@@ -1,6 +1,7 @@
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,7 +47,19 @@ public partial class ProductoService
                 p.Proveedor != null ? p.Proveedor.Nombre : null,
                 p.Imagen_Url,
                 p.Tags,
-                p.Estado == ProductoEnumStatus.Activo
+                p.Estado == ProductoEnumStatus.Activo,
+                p.Variantes.Select(v => new ProductoVarianteDetailDto
+                (
+                    v.Id,
+                    v.CodigoVariante,
+                    v.Atributos,
+                    v.Precio_Venta,
+                    v.Costo_Unitario,
+                    v.StockEnBodegas.Sum(sb => sb.StockMaximo),
+                    v.StockEnBodegas.Sum(sb => sb.StockActual),
+                    v.Codigo_Barras,
+                    v.IsActive
+            )).ToList()
             ));
 
         return await PagedList<ProductoSummaryDto>.ToPagedListAsync(

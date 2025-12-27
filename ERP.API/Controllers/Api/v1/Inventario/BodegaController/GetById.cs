@@ -1,7 +1,7 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
 using Microsoft.AspNetCore.Mvc;
 

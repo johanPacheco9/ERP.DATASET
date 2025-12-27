@@ -1,7 +1,7 @@
 ﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProveedores;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,7 +30,6 @@ public sealed class CreateProveedorEndpoint : BaseCreateEndpoint<CreateProveedor
 
         var proveedor = new Proveedor
         {
-            Id = Guid.NewGuid(),
             Nombre = request.Nombre,
             Nit = request.Nit,
             Direccion = request.Direccion,

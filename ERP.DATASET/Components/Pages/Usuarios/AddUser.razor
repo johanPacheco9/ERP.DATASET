@@ -1,0 +1,134 @@
+﻿<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg rounded-4">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold">Nuevo Usuario</h5>
+                    <small class="text-muted">
+                        Crea una nueva cuenta de usuario para el sistema ERP
+                    </small>
+                </div>
+                <button type="button" class="btn-close" @onclick="Cerrar"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <div class="container-fluid">
+
+                    <!-- Nombre / Email -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nombre Completo</label>
+                            <input class="form-control form-control-lg"
+                                   placeholder="Juan Pérez"
+                                   @bind="User.Nombre" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email"
+                                   class="form-control form-control-lg"
+                                   placeholder="juan.perez@dataset.com"
+                                   @bind="User.Email" />
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Contraseña</label>
+                            <input type="password"
+                                   class="form-control form-control-lg"
+                                   placeholder="••••••••"
+                                   @bind="User.Password" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Confirmar Contraseña</label>
+                            <input type="password"
+                                   class="form-control form-control-lg"
+                                   placeholder="••••••••"
+                                   @bind="User.ConfirmPassword" />
+                        </div>
+                    </div>
+
+                    <!-- Rol / Bodega -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Rol</label>
+                            <select class="form-select form-select-lg"
+                                    @bind="User.Rol">
+                                <option value="">Seleccionar rol</option>
+                                <option value="admin">Administrador</option>
+                                <option value="supervisor">Supervisor</option>
+                                <option value="operator">Operador</option>
+                                <option value="viewer">Visualizador</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Bodega Asignada</label>
+                            <select class="form-select form-select-lg"
+                                    @bind="User.Bodega">
+                                <option value="">Seleccionar bodega</option>
+                                <option value="all">Todas las bodegas</option>
+                                <option value="central">Bodega Central</option>
+                                <option value="norte">Bodega Norte</option>
+                                <option value="sur">Bodega Sur</option>
+                                <option value="este">Bodega Este</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Permisos -->
+                    <div class="border rounded-3 p-4 mb-4">
+                        <h6 class="fw-semibold mb-3">Permisos del Usuario</h6>
+
+                        @foreach (var permiso in Permisos)
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <div class="fw-normal">@permiso.Nombre</div>
+                                    <small class="text-muted">@permiso.Descripcion</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           @bind="permiso.Activo" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Activo -->
+                    <div class="border rounded-3 p-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-semibold">Usuario Activo</div>
+                            <small class="text-muted">
+                                El usuario puede iniciar sesión en el sistema
+                            </small>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   @bind="User.Activo" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" @onclick="Cerrar">
+                    Cancelar
+                </button>
+                <button class="btn btn-primary" @onclick="CrearUsuario">
+                    Crear Usuario
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+

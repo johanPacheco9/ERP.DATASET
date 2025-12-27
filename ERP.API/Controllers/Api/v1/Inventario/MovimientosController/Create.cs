@@ -1,7 +1,8 @@
 ﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos;
+using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovimientos;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,7 +38,6 @@ public sealed class CreateEntradaEndpoint : BaseCreateEndpoint<RegistrarMovimien
         }
         var movimiento = new Movimiento
         {
-            Id = Guid.NewGuid(),
             ProductoId = request.ProductoId,
             BodegaId = request.BodegaId,
             TipoMovimiento = TipoMovimiento.Entrada,
@@ -60,7 +60,6 @@ public sealed class CreateEntradaEndpoint : BaseCreateEndpoint<RegistrarMovimien
         if (!resultado)
             return StatusCode(500, "Error registrando movimiento de entrada.");
 
-        // Aquí podrías retornar el movimiento guardado
         return CreatedAtRoute("GetMovimientoById", new { id = movimiento.Id }, new
         {
             id = movimiento.Id,
