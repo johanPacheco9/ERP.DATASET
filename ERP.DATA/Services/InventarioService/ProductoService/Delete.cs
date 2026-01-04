@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 public partial class ProductoService
 {
-    public async Task<bool> DeleteProductoById(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteProductoById(int id, CancellationToken cancellationToken = default)
     {
         var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
         if (producto == null)

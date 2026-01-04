@@ -7,12 +7,12 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 public sealed class GetBodegaByIdRequest : IValidatableRequest
 {
     [FromRoute(Name = "id")]
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
     public bool ParametersAreValid(out string? errors)
     {
         errors = null!;
-       if (Id == Guid.Empty)
+       if (Id ==0)
         {
             errors = "El Id no puede estar vacío.";
             return false;

@@ -1,61 +1,64 @@
 ﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProductosVariantes;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
 
-public sealed class CreateProductoEndpoint : BaseCreateEndpoint<CreateProductoRequest, CreateProductoEndpoint>
+public sealed class CreateProductoEndpoint
+    : BaseCreateEndpoint<CreateProductoRequest, CreateProductoEndpoint>
 {
     private readonly IProductoService _productoService;
-    public CreateProductoEndpoint(ILogger<CreateProductoEndpoint> logger, IProductoService productoService)
+    private readonly IProductoVarianteService _productoVarianteService;
+
+    public CreateProductoEndpoint(
+        ILogger<CreateProductoEndpoint> logger,
+        IProductoService productoService, IProductoVarianteService productoVarianteService)
         : base(logger)
     {
         _productoService = productoService;
+        _productoVarianteService = productoVarianteService; 
     }
 
     [Tags("Inventario - Productos")]
     [HttpPost(ProductosEndpoints.List, Name = "CreateProducto")]
     public override async Task<ActionResult> HandleAsync(
         [FromBody] CreateProductoRequest request,
-        CancellationToken cancellationToken = new())
+        CancellationToken cancellationToken = default)
     {
         return await base.HandleAsync(request, cancellationToken);
     }
 
-    protected override async Task<ActionResult> CreateEntity(CreateProductoRequest request, CancellationToken cancellationToken)
+    protected override async Task<ActionResult> CreateEntity(
+        CreateProductoRequest request,
+        CancellationToken cancellationToken)
     {
         if (!request.ParametersAreValid(out var validationErrors))
         {
             return BadRequest(new { errors = validationErrors });
         }
-
-        var producto = new Producto
+        if (request.Variantes != null)
         {
-            Id = Guid.NewGuid(),
-            Codigo = request.Codigo,
-            Nombre = request.Nombre,
-            Descripcion = request.Descripcion,
-            Costo_Unitario = request.Costo_Unitario,
-            Precio_Venta = request.Precio_Venta,
-            CategoriaId = request.CategoriaId,
-            ProveedorId = request.ProveedorId,
-            Unidad_Medida = request.Unidad_Medida,
-            CreatedAt = DateTime.UtcNow,
-        };
+            _productoVarianteService.AddProductoVariantes(request.Variantes, cancellationToken);
+        }
 
-        var productoCreado = await _productoService.AddProductoAsync(producto, cancellationToken);
+        var productoId = await _productoService.AddProductoAsync(
+            request,
+            cancellationToken
+        );
 
-        TraceCreated(nameof(Producto), productoCreado.Id);
+        TraceCreated("Producto", productoId);
 
-        return CreatedAtRoute("GetProductoById", new { id = productoCreado.Id }, new
-        {
-            id = productoCreado.Id,
-            codigo = productoCreado.Codigo,
-            nombre = productoCreado.Nombre,
-            message = "Producto creado exitosamente"
-        });
+        return CreatedAtRoute(
+            "GetProductoById",
+            new { id = productoId },
+            new
+            {
+                id = productoId,
+                message = "Producto creado exitosamente"
+            }
+        );
     }
 }

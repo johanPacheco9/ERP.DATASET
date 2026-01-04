@@ -1,7 +1,7 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Categoria;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ICategorias;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,20 +28,18 @@ public sealed class GetCategoriaByIdEndpoint
     }
     protected override async Task<ActionResult<CategoriaDetailDto>> GetEntity(GetCategoriaByIdRequest request, CancellationToken cancellationToken)
     {
-        var categoria = await _categoriaService.GetCategoriaByIdAsync(request.Id, cancellationToken);
+        var categoria = await _categoriaService.GetById(request, cancellationToken);
         if (categoria == null)
         {
-            return NotFound($"Categoría con ID {request.Id} no encontrada");
+            return NotFound(new
+            {
+                success = false,
+                message = $"Categoría {request.Id} no encontrada",
+                code = "CATEGORIA_NOT_FOUND",
+                timestamp = DateTime.UtcNow
+            });
         }
-        var categoriaDto = new CategoriaDetailDto
-        (
-            categoria.Id,
-            categoria.Nombre,
-            categoria.Descripcion,
-            categoria.CreatedAt,
-            categoria.UpdatedAt
-        );
         TraceFound(nameof(Categoria), request.Id);
-        return Ok(categoriaDto);
+        return Ok(categoria);
     }
 }

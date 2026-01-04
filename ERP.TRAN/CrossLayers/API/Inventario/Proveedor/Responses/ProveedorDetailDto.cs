@@ -1,7 +1,7 @@
 ﻿namespace ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Responses;
 public record ProveedorDetailDto
     (
-    Guid? Id,
+     int? Id,
     string Nombre,
     string? Nit,
     string? Direccion,

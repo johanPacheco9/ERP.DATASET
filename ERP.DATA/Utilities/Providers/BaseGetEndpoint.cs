@@ -41,7 +41,7 @@ public abstract class BaseGetEndpoint<TRequest, TClass, TResponse> :
 
     protected abstract Task<ActionResult<TResponse>> GetEntity(TRequest request, CancellationToken cancellationToken);
 
-    protected ActionResult EntityNotFound(string entityName, Guid identifier)
+    protected ActionResult EntityNotFound(string entityName,int  identifier)
     {
         var error = $"No se encontró la entidad: {entityName} con id: {identifier}";
         Logger.LogTrace(error);
@@ -55,7 +55,7 @@ public abstract class BaseGetEndpoint<TRequest, TClass, TResponse> :
         return NotFound(error);
     }
 
-    protected void TraceFound(string entityName, Guid primaryKey)
+    protected void TraceFound(string entityName, int primaryKey)
     {
         Logger.LogTrace($"La entidad '{entityName}' con PK: {primaryKey} se retornó satisfactoriamente.");
     }

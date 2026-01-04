@@ -1,8 +1,8 @@
 ﻿using ERP.DATA.Repositories;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ICategorias;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ERP.DATA.Services.InventarioService.BodeegaService;
@@ -18,17 +18,13 @@ public partial class BodegaService : IBodegaService
         _context = context;
     }
 
-    public Task<bool> BodegaExistsAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> BodegaExistsAsync(int id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return await _context.Bodegas
+            .AnyAsync(b => b.Id == id, cancellationToken);
     }
 
     public Task<bool> ExisteBodegaPorCodigoAsync(string codigo, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Bodega> GetBodegaByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

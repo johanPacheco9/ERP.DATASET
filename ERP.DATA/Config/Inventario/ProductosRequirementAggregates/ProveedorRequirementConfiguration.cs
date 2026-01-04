@@ -1,4 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

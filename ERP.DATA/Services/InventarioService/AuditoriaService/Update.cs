@@ -1,4 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.AuditoriasInventary;
+﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditoriasInventary;
 
 namespace ERP.DATA.Services.InventarioService.AuditoriaService;
 

@@ -1,0 +1,480 @@
+﻿@using ERP.DATASET.Components
+@rendermode InteractiveServer
+
+<div class="w-75 mx-auto p-3">
+
+    @* PASO 1: CREAR PRODUCTO *@
+    @if (_paso == 1)
+    {
+        <div class="p-3" style="">
+            <div class="card shadow-lg">
+                <div class="text-center mb-5">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 80px; height: 80px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-fill" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M15.528 2.973a.75.75 0 0 1 .472.696v8.662a.75.75 0 0 1-.472.696l-7.25 2.9a.75.75 0 0 1-.557 0l-7.25-2.9A.75.75 0 0 1 0 12.331V3.669a.75.75 0 0 1 .471-.696L7.443.184l.004-.001.274-.11a.75.75 0 0 1 .558 0l.274.11.004.001zm-1.374.527L8 5.962 1.846 3.5 1 3.839v.4l6.5 2.6v7.922l.5.2.5-.2V6.84l6.5-2.6v-.4l-.846-.339Z" />
+                        </svg>
+                    </div>
+                    <h2 class="fw-bold">Crear Producto</h2>
+                    <p class="text-muted">Completa la información básica</p>
+                </div>
+                <div class="row">
+                    <div class="col-4 mb-3">
+                        <label class="form-label fw-semibold">
+                            Código del Producto <span class="text-danger">*</span>
+                        </label>
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               @bind="_producto.Codigo"
+                               placeholder="Ej: SAM-S25, TORN-M6, CAM-01" />
+                    </div>
+
+                    <div class="col-4 mb-3">
+                        <label class="form-label fw-semibold">
+                            Nombre del Producto <span class="text-danger">*</span>
+                        </label>
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               @bind="_producto.Nombre"
+                               placeholder="Ej: Galaxy S25, Tornillo M6, Camiseta Polo" />
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label class="form-label fw-semibold">
+                            Categoría <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select form-select-lg" @bind="_producto.CategoriaId">
+                            <option value="">Seleccionar...</option>
+                            @if (_categorias != null)
+                            {
+                                @foreach (var cat in _categorias)
+                                {
+                                    <option value="@cat.Id">@cat.Nombre</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+              
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label class="form-label fw-semibold">Costo Unitario</label>
+                        <input type="number"
+                               class="form-control form-control-lg"
+                               @bind="_producto.Costo_Unitario"
+                               placeholder="0.00"
+                               step="0.01" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Precio de Venta</label>
+                        <input type="number"
+                               class="form-control form-control-lg"
+                               @bind="_producto.Precio_Venta"
+                               placeholder="0.00"
+                               step="0.01" />
+                    </div>
+                </div>
+
+                <div class="alert alert-primary d-flex align-items-start" role="alert">
+                    <i class="bi bi-info-circle-fill me-3 flex-shrink-0 fs-5"></i>
+                    <div>
+                        <h6 class="alert-heading mb-1">💡 ¿Qué pasará?</h6>
+                        <p class="mb-0 small">
+                            Se creará el producto base. Luego podrás decidir si tiene variantes o no.
+                        </p>
+                    </div>
+                </div>
+
+                @if (_errores.Any())
+                {
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach (var error in _errores)
+                            {
+                                <li>@error</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <button class="btn btn-primary btn-lg w-100 mt-3"
+                        @onclick="CrearProducto"
+                        disabled="@_isLoading">
+                    @if (_isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <span>Creando...</span>
+                    }
+                    else
+                    {
+                        <span>Crear Producto</span>
+                    }
+                </button>
+            </div>
+        </div>
+    }
+
+    @* PASO 2: ¿TIENE VARIANTES? *@
+    @if (_paso == 2)
+    {
+        <div class="w-100" style="">
+            <div class="card shadow-lg">
+                <div class="text-center mb-5">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 80px; height: 80px;">
+                        <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+                    </div>
+                    <h2 class="fw-bold">¡Producto Creado!</h2>
+                    <p class="text-muted mb-0">
+                        <strong>@_producto.Nombre</strong>
+                    </p>
+                    <p class="text-muted">
+                        Código: <code class="bg-light px-2 py-1 rounded">@_producto.Codigo</code>
+                    </p>
+                </div>
+
+                <div class="card border-primary border-2 bg-light mb-4">
+                    <div class="card-body p-4">
+                        <h4 class="card-title fw-bold mb-3">
+                            ¿Este producto tiene variantes?
+                        </h4>
+                        <p class="card-text text-muted mb-4">
+                            Por ejemplo: colores, tallas, capacidades, sabores, etc.
+                        </p>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <button class="btn btn-outline-success w-100 py-4 @(_quiereVariantes == false ? "active" : "")"
+                                        @onclick="() => _quiereVariantes = false">
+                                    <div class="fs-1 mb-2">✅</div>
+                                    <div class="fw-bold">NO</div>
+                                    <small class="text-muted">Es un producto estándar</small>
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-outline-primary w-100 py-4 @(_quiereVariantes == true ? "active" : "")"
+                                        @onclick="() => _quiereVariantes = true">
+                                    <div class="fs-1 mb-2">🎨</div>
+                                    <div class="fw-bold">SÍ</div>
+                                    <small class="text-muted">Tiene colores, tallas, etc.</small>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* OPCIÓN NO *@
+                @if (_quiereVariantes == false)
+                {
+                    <div class="alert alert-success">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3 fs-4 flex-shrink-0"></i>
+                            <div class="flex-grow-1">
+                                <h5 class="alert-heading">Perfecto, creando SKU único...</h5>
+                                <p class="mb-0">
+                                    Se está creando automáticamente un <strong>SKU único</strong> para este producto.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success btn-lg"
+                                @onclick="CrearVarianteUnica"
+                                disabled="@_isLoading">
+                            @if (_isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>Creando SKU...</span>
+                            }
+                            else
+                            {
+                                <span>Continuar <i class="bi bi-arrow-right"></i></span>
+                            }
+                        </button>
+                        <button class="btn btn-outline-secondary" @onclick="() => _quiereVariantes = null">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </button>
+                    </div>
+                }
+
+                @* OPCIÓN SÍ *@
+                @if (_quiereVariantes == true)
+                {
+                    <div class="alert alert-primary">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-plus-circle-fill me-3 fs-4 flex-shrink-0"></i>
+                            <div class="flex-grow-1">
+                                <h5 class="alert-heading">Agregar variantes</h5>
+                                <p class="mb-3">
+                                    Ahora podrás definir las variantes específicas. Por ejemplo:
+                                </p>
+                                <div class="bg-white border border-primary rounded p-3">
+                                    <div class="fw-semibold mb-2">Ejemplos de variantes:</div>
+                                    <div class="row g-2 small">
+                                        <div class="col-6">• Color: Rojo, Azul, Negro</div>
+                                        <div class="col-6">• Talla: S, M, L, XL</div>
+                                        <div class="col-6">• Capacidad: 128GB, 256GB</div>
+                                        <div class="col-6">• Sabor: Fresa, Vainilla</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-lg" @onclick="IrADefinirVariantes">
+                            Definir Variantes <i class="bi bi-arrow-right"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary" @onclick="() => _quiereVariantes = null">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @* PASO 3: DEFINIR VARIANTES *@
+    @if (_paso == 3)
+    {
+        <div class="mx-auto" style="max-width: 900px;">
+            <div class="card shadow-lg">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 80px; height: 80px;">
+                        <i class="bi bi-palette fs-1 text-primary"></i>
+                    </div>
+                    <h2 class="fw-bold">Definir Variantes</h2>
+                    <p class="text-muted mb-0">Producto: <strong>@_producto.Nombre</strong></p>
+                    <p class="text-muted small">Código base: @_producto.Codigo</p>
+                </div>
+
+                @* Lista de variantes agregadas *@
+                @if (_variantesTemp.Any())
+                {
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">
+                                <i class="bi bi-list-check"></i> Variantes agregadas (@_variantesTemp.Count)
+                            </h5>
+                            <div class="list-group">
+                                @foreach (var (variante, index) in _variantesTemp.Select((v, i) => (v, i)))
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-primary me-2">@variante.CodigoVariante</span>
+                                            <span class="fw-semibold">@variante.Atributos</span>
+                                            <div class="small text-muted mt-1">
+                                                Precio: $@variante.Precio_Venta.ToString("N2") |
+                                                Costo: $@variante.Costo_Unitario.ToString("N2")
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => EliminarVariante(index)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @* Formulario para nueva variante *@
+                <div class="card border-primary mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-plus-circle"></i> Nueva Variante
+                        </h5>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Código de Variante <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">@_producto.Codigo-</span>
+                                <input type="text"
+                                       class="form-control"
+                                       @bind="_nuevaVariante.CodigoSufijo"
+                                       placeholder="Ej: ROJO, M, 128GB"
+                                       @oninput="GenerarCodigoCompleto" />
+                            </div>
+                            <small class="text-muted">SKU final: @_producto.Codigo-@_nuevaVariante.CodigoSufijo</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Descripción de Atributos <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   @bind="_nuevaVariante.Atributos"
+                                   placeholder="Ej: Color Rojo, Talla M, 128GB" />
+                            <small class="text-muted">Describe las características de esta variante</small>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Precio de Venta</label>
+                                <input type="number"
+                                       class="form-control"
+                                       @bind="_nuevaVariante.Precio_Venta"
+                                       placeholder="0.00"
+                                       step="0.01" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Costo Unitario</label>
+                                <input type="number"
+                                       class="form-control"
+                                       @bind="_nuevaVariante.Costo_Unitario"
+                                       placeholder="0.00"
+                                       step="0.01" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Código de Barras (Opcional)</label>
+                            <input type="text"
+                                   class="form-control"
+                                   @bind="_nuevaVariante.Codigo_Barras"
+                                   placeholder="Ej: 7501234567890" />
+                        </div>
+
+                        <button class="btn btn-primary w-100" @onclick="AgregarVariante">
+                            <i class="bi bi-plus-lg"></i> Agregar Variante
+                        </button>
+                    </div>
+                </div>
+
+                @if (_errores.Any())
+                {
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach (var error in _errores)
+                            {
+                                <li>@error</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @* Botones de acción *@
+                <div class="d-grid gap-2">
+                    @if (_variantesTemp.Any())
+                    {
+                        <button class="btn btn-success btn-lg"
+                                @onclick="GuardarTodasLasVariantes"
+                                disabled="@_isLoading">
+                            @if (_isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar Todas las Variantes (@_variantesTemp.Count)</span>
+                            }
+                        </button>
+                    }
+                    <button class="btn btn-outline-secondary" @onclick="() => _paso = 2">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* PASO 4: ÉXITO FINAL *@
+    @if (_paso == 4)
+    {
+        <div class="mx-auto" style="">
+            <div class="card shadow-lg">
+                <div class="text-center mb-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 100px; height: 100px;">
+                        <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+                    </div>
+                    <h2 class="fw-bold text-success">¡Todo Listo!</h2>
+                    <p class="text-muted">Producto y variantes creados exitosamente</p>
+                </div>
+
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h5 class="mb-3">📦 Resumen del producto</h5>
+                        <div class="mb-2">
+                            <strong>Producto:</strong> @_producto.Nombre
+                        </div>
+                        <div class="mb-2">
+                            <strong>Código:</strong> @_producto.Codigo
+                        </div>
+                        <div class="mb-3">
+                            <strong>SKUs creados:</strong> @_totalSkusCreados
+                        </div>
+
+                        @if (_skusCreados.Any())
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var sku in _skusCreados)
+                                {
+                                    <div class="list-group-item px-0">
+                                        <span class="badge bg-success me-2">@sku</span>
+                                        <span class="text-muted small">Stock: 0 unidades</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Registrar Ingreso a Bodega
+                    </button>
+                    <button class="btn btn-outline-success" @onclick="Reiniciar">
+                        <i class="bi bi-plus-circle"></i> Crear Otro Producto
+                    </button>
+                    <button class="btn btn-outline-secondary">
+                        <i class="bi bi-list"></i> Ver Todos los Productos
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Panel informativo *@
+    <div class="mx-auto" style="max-width: 900px;">
+        <div class="card shadow-lg">
+            <div class="card border-info bg-info bg-opacity-10">
+                <div class="card-body">
+                    <h5 class="card-title d-flex align-items-center gap-2">
+                        <i class="bi bi-info-circle-fill text-info"></i>
+                        ¿Cómo funciona este flujo?
+                    </h5>
+                    <div class="vstack gap-3 small">
+                        <div class="d-flex gap-3">
+                            <span class="badge bg-info">1</span>
+                            <div>
+                                <strong>Creas el producto base</strong> con la información básica
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <span class="badge bg-info">2</span>
+                            <div>
+                                <strong>El sistema pregunta si tiene variantes:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li><strong>NO:</strong> Se crea 1 SKU automático → Listo para usar ✅</li>
+                                    <li><strong>SÍ:</strong> Defines variantes específicas → Cada una tendrá su SKU</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <span class="badge bg-info">3</span>
+                            <div>
+                                <strong>Resultado:</strong> Siempre tendrás al menos 1 SKU para registrar stock
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -2,10 +2,10 @@
 
 public record CategoriaDetailDto
 (
-    Guid Id,
+    int Id,
     string Nombre,
     string? Descripcion, 
-    DateTime FechaCreacion, 
+    DateTime? FechaCreacion, 
     DateTime? FechaModificacion 
 );
 

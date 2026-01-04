@@ -8,7 +8,6 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 
 public sealed class CreateProductoRequest : BaseCreateRequest, IValidatableRequest
 {
-    // ──────────────── Identificación ────────────────
     [Required(ErrorMessage = "El código del producto es obligatorio.")]
     [MaxLength(12, ErrorMessage = "El código no puede tener más de 12 caracteres.")]
     [MinLength(3, ErrorMessage = "El código debe tener al menos 3 caracteres.")]
@@ -50,9 +49,9 @@ public sealed class CreateProductoRequest : BaseCreateRequest, IValidatableReque
 
     // ──────────────── Relaciones ────────────────
     [Required(ErrorMessage = "Debe asignar una categoría al producto.")]
-    public Guid CategoriaId { get; set; }
+    public int CategoriaId { get; set; }
 
-    public Guid? ProveedorId { get; set; }
+    public int? ProveedorId { get; set; }
 
     // ──────────────── Unidad y Atributos físicos ────────────────
     [MaxLength(50)]
@@ -81,8 +80,10 @@ public sealed class CreateProductoRequest : BaseCreateRequest, IValidatableReque
 
     [Required(ErrorMessage = "El estado del producto es obligatorio.")]
     public ProductoEnumStatus Estado { get; set; } = ProductoEnumStatus.Activo;
+    public bool hasVariantes { get; set; }
+    public bool Es_Perecedero { get; set; }
 
-
+    public DateTime? fechaCaducidad { get; set; }
     // ──────────────── Variantes ────────────────
     public List<CreateProductoVarianteRequest>? Variantes { get; set; }
 
@@ -103,7 +104,7 @@ public sealed class CreateProductoRequest : BaseCreateRequest, IValidatableReque
             return false;
         }
 
-        if (CategoriaId == Guid.Empty)
+        if (CategoriaId == 0)
         {
             errors = "Debe asignar una categoría al producto.";
             return false;

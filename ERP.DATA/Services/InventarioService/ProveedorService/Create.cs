@@ -1,7 +1,7 @@
 ﻿namespace ERP.DATA.Services.Inventario.ProveedorService;
 
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +12,6 @@ public partial class ProveedorService
     {
         proveedor = new Proveedor
         {
-            Id = Guid.NewGuid(),
             Nombre = proveedor.Nombre,
             Nit = proveedor.Nit,
             Direccion = proveedor.Direccion,

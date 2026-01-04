@@ -1,4 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
+﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 namespace ERP.DATA.Services.InventarioService.MovimientoService;
 
 public partial class MovimientoService

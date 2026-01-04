@@ -1,0 +1,178 @@
+﻿@inject NavigationManager NavManager
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        @foreach (var item in BreadcrumbItems)
+        {
+            @if (item.IsActive)
+            {
+                <li class="breadcrumb-item active" aria-current="page">@item.Text</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item">
+                    <a href="@item.Url">@item.Text</a>
+                </li>
+            }
+        }
+    </ol>
+</nav>
+
+<style>
+    .breadcrumb {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        list-style: none;
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+    }
+
+    .breadcrumb-item + .breadcrumb-item {
+        padding-left: 0.5rem;
+    }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            display: inline-block;
+            padding-right: 0.5rem;
+            color: #6c757d;
+            content: "/";
+        }
+
+    .breadcrumb-item.active {
+        color: #6c757d;
+    }
+
+    .breadcrumb-item a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+        .breadcrumb-item a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+</style>
+
+@code {
+    private List<BreadcrumbItem> BreadcrumbItems = new();
+
+    /// <summary>
+    /// Si es true, incluye "Inicio" como primer elemento
+    /// </summary>
+    [Parameter]
+    public bool IncludeHome { get; set; } = true;
+
+    /// <summary>
+    /// Texto para el enlace de inicio
+    /// </summary>
+    [Parameter]
+    public string HomeText { get; set; } = "Inicio";
+
+    /// <summary>
+    /// URL para el enlace de inicio
+    /// </summary>
+    [Parameter]
+    public string HomeUrl { get; set; } = "/";
+
+    protected override void OnInitialized()
+    {
+        BuildBreadcrumb();
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        BuildBreadcrumb();
+        StateHasChanged();
+    }
+
+    private void BuildBreadcrumb()
+    {
+        BreadcrumbItems.Clear();
+
+        // Agregar Inicio si está habilitado
+        if (IncludeHome)
+        {
+            BreadcrumbItems.Add(new BreadcrumbItem
+            {
+                Text = HomeText,
+                Url = HomeUrl,
+                IsActive = false
+            });
+        }
+
+        var uri = new Uri(NavManager.Uri);
+        var path = uri.LocalPath.Trim('/');
+
+        if (string.IsNullOrEmpty(path))
+        {
+            if (BreadcrumbItems.Count > 0)
+            {
+                BreadcrumbItems[0].IsActive = true;
+            }
+            return;
+        }
+
+        // Dividir la ruta en segmentos
+        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        var currentPath = "";
+        for (int i = 0; i < segments.Length; i++)
+        {
+            currentPath += "/" + segments[i];
+            var isLast = i == segments.Length - 1;
+
+            var displayText = FormatSegment(segments[i]);
+
+            BreadcrumbItems.Add(new BreadcrumbItem
+            {
+                Text = displayText,
+                Url = currentPath,
+                IsActive = isLast
+            });
+        }
+    }
+
+    private string FormatSegment(string segment)
+    {
+        // Decodificar URL
+        segment = Uri.UnescapeDataString(segment);
+
+        // Si es un GUID, dejarlo como está
+        if (Guid.TryParse(segment, out _))
+        {
+            return segment;
+        }
+
+        // Si es un número, dejarlo como está
+        if (int.TryParse(segment, out _))
+        {
+            return segment;
+        }
+
+        // Reemplazar guiones y guiones bajos con espacios
+        segment = segment.Replace("-", " ").Replace("_", " ");
+
+        // Capitalizar primera letra de cada palabra
+        var words = segment.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var result = string.Join(" ", words.Select(w =>
+            char.ToUpper(w[0]) + w.Substring(1).ToLower()
+        ));
+
+        return result;
+    }
+
+    public void Dispose()
+    {
+        NavManager.LocationChanged -= OnLocationChanged;
+    }
+
+    private class BreadcrumbItem
+    {
+        public string Text { get; set; } = "";
+        public string Url { get; set; } = "";
+        public bool IsActive { get; set; }
+    }
+}

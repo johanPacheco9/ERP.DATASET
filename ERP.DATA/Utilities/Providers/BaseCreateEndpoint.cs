@@ -83,7 +83,7 @@ public abstract class BaseCreateEndpoint<TRequest, TClass> : EndpointBaseAsync
     /// </summary>
     /// <param name="entityName">Nombre de la entidad creada</param>
     /// <param name="primaryKey">PK de la entidad creada</param>
-    protected void TraceCreated(string entityName, Guid primaryKey)
+    protected void TraceCreated(string entityName, int primaryKey)
     {
         Logger.LogTrace($"La entidad '{entityName}' se agregó satisfactoriamente, con PK: {primaryKey}");
     }

@@ -1,6 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.BodegasInventary;
-using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
-using ERP.TRAN.CrossLayers.Utilities.Base.Requests;
+﻿using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,12 +7,12 @@ public class RegistrarMovimientoEntradaRequest : IValidatableRequest
 {
     [DisplayName("El id del producto a ingresar")]
     [Required(ErrorMessage = "El ProductoId es obligatorio")]
-    public Guid ProductoId { get; set; }
+    public int ProductoId { get; set; }
 
 
     [DisplayName("El id de la bodega a agregar stock")]
     [Required(ErrorMessage = "El BodegaId es obligatorio")]
-    public Guid BodegaId { get; set; }
+    public int BodegaId { get; set; }
 
 
     [DisplayName("Cantidad de productos a ingresar")]
@@ -27,7 +25,7 @@ public class RegistrarMovimientoEntradaRequest : IValidatableRequest
     public decimal CostoUnitario { get; set; }
 
     // Referencias a otros módulos (opcionales)
-    public Guid? ReferenciaId { get; set; }
+    public int? ReferenciaId { get; set; }
     public string? ReferenciaTipo { get; set; } // 'compra','venta','ajuste_manual', etc.
 
     // Lote / vencimiento
@@ -42,10 +40,10 @@ public class RegistrarMovimientoEntradaRequest : IValidatableRequest
     {
         var errorList = new List<string>();
 
-        if (ProductoId == Guid.Empty)
+        if (ProductoId == 0 )
             errorList.Add("El ProductoId es obligatorio");
 
-        if (BodegaId == Guid.Empty)
+        if (BodegaId == 0)
             errorList.Add("El BodegaId es obligatorio");
 
         if (Cantidad <= 0)

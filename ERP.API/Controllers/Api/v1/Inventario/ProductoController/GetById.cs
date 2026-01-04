@@ -1,7 +1,7 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Producto;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices;
 using Microsoft.AspNetCore.Mvc;
 

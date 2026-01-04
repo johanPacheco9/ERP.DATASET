@@ -1,0 +1,190 @@
+﻿@page "/ProductosDashboard"
+@using ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos
+@using ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos.Movimientos
+@rendermode InteractiveServer
+<PageTitle>Productos - ERP</PageTitle>
+
+<div class="minimal-container">
+    <!-- Header Minimalista -->
+    <div class="minimal-header">
+        <div class="header-content">
+            <h1 class="minimal-title">Productos</h1>
+            <p class="minimal-subtitle">Gestión de inventario</p>
+        </div>
+        <button @onclick="@NuevoProducto" uc class="minimal-btn primary">
+            <span class="btn-icon">+</span>
+            Nuevo Producto
+        </button>
+    </div>
+    <div class="row g-2 align-items-center mb-3">
+
+        <!-- Buscar -->
+        <div class="col-12 col-md">
+            <div class="position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+                    🔍
+                </span>
+                <input type="text"
+                       class="form-control ps-5 minimal-input"
+                       placeholder="Buscar productos..."
+                       @bind="_searchText"
+                       @bind:event="oninput" />
+            </div>
+        </div>
+
+        <!-- Categoría -->
+        <div class="col-12 col-md-auto">
+            <select class="form-select minimal-select"
+                    @bind="_selectedCategory">
+                <option value="">Categoría</option>
+                <option value="Computadoras">Computadoras</option>
+                <option value="Periféricos">Periféricos</option>
+                <option value="Accesorios">Accesorios</option>
+                <option value="Impresoras">Impresoras</option>
+            </select>
+        </div>
+
+        <!-- Estado -->
+        <div class="col-12 col-md-auto">
+            <select class="form-select minimal-select"
+                    @bind="_stockFilter">
+                <option value="">Estado</option>
+                <option value="low">Stock Bajo</option>
+                <option value="normal">Normal</option>
+            </select>
+        </div>
+
+        <!-- Limpiar -->
+        <div class="col-12 col-md-auto">
+            <button class="btn btn-outline-secondary w-100 minimal-btn"
+                    @onclick="ClearFilters">
+                ↺ Limpiar
+            </button>
+        </div>
+
+    </div>
+
+
+    <div class="minimal-table-container">
+        <table class="minimal-table">
+            <thead>
+                <tr>
+                    <th class="text-left">SKU</th>
+                    <th class="text-left">Producto</th>
+                    <th class="text-center">Categoría</th>
+                    <th class="text-right">Precio</th>
+                    <th class="text-center">Stock</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in productos)
+                {
+                    var totalStock = product.ProductoVariantes.Sum(v => v.Stock);
+                    var totalMinStock = product.ProductoVariantes.Sum(v => v.StockMinimo);
+                    var isLowStock = totalStock < totalMinStock;
+
+                    <tr class="@(isLowStock ? "low-stock-row" : "")">
+                        <td class="sku-cell">
+                            <span class="sku-code">@product.Codigo</span>
+                        </td>
+
+                        <td class="product-cell">
+                            <div class="product-info">
+                                <div class="product-name">@product.Nombre</div>
+                                <div class="product-id">ID: @product.Id</div>
+                            </div>
+                        </td>
+
+                        <td class="category-cell">
+                            <span class="category-tag">@product.CategoriaNombre</span>
+                        </td>
+
+                        <td class="price-cell">
+                            <span class="price-value">
+                                @product.PrecioVenta.ToString("C2")
+                            </span>
+                        </td>
+
+                        <td class="stock-cell">
+                            <div class="stock-info">
+                                <div class="stock-amount">@totalStock</div>
+                                <div class="stock-indicator @(isLowStock ? "low" : "normal")"></div>
+                                <div class="stock-min">Min: @totalMinStock</div>
+                            </div>
+                        </td>
+
+                        <td class="status-cell">
+                            <span class="status-badge @(isLowStock ? "warning" : "success")">
+                                @(isLowStock ? "Bajo Stock" : "Normal")
+                            </span>
+                        </td>
+
+                        <td class="actions-cell">
+                            <div class="actions-menu">
+                                <button class="icon-btn" @onclick="() => Ver(product)" title="Ver">
+                                    👁️
+                                </button>
+                                <button class="icon-btn" @onclick="() => Editar(product)" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="icon-btn danger" @onclick="() => Eliminar(product)" title="Eliminar">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación Minimalista -->
+    <div class="pagination-section">
+        <div class="pagination-info">
+            Mostrando <strong>@productos.Count</strong> productos
+        </div>
+        <div class="pagination-controls">
+            <button class="pagination-btn @(_currentPage == 1 ? "disabled" : "")"
+                    @onclick="() => ChangePage(_currentPage - 1)"
+                    disabled="@(_currentPage == 1)">
+                ←
+            </button>
+
+            @for (int i = 1; i <= TotalPages; i++)
+            {
+                <button class="pagination-btn @(_currentPage == i ? "active" : "")"
+                        @onclick="() => ChangePage(i)">
+                    @i
+                </button>
+            }
+
+            <button class="pagination-btn @(_currentPage == TotalPages ? "disabled" : "")"
+                    @onclick="() => ChangePage(_currentPage + 1)"
+                    disabled="@(_currentPage == TotalPages)">
+                →
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (_nuevoProductoModal)
+{
+    <div class="modal d-block mt-0" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="">
+                <div class="modal-header border-0">
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                </div>
+                <div class="w-100 p-0">
+                    <div class="container-fluid p-0">
+                        <CrearIngresoProductos OnClose="CerrarModal" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}

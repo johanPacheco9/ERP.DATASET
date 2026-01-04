@@ -52,7 +52,7 @@ public abstract class BaseDeleteEndpoint<TRequest, TClass, TService>(TService se
         return NotFound(error);
     }
 
-    protected void TraceDeleted(string entityName, Guid primaryKey)
+    protected void TraceDeleted(string entityName,int primaryKey)
     {
         Logger.LogTrace($"La entidad '{entityName}', con PK: {primaryKey}, se eliminó satisfactoriamente.");
     }

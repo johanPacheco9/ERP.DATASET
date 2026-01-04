@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
 public sealed class CreateProductoVarianteRequest : IValidatableRequest
 {
+    public int ProductoId { get; set; }
     [Required]
     [MaxLength(50)]
     public string CodigoVariante { get; set; } = null!; // SKU
@@ -26,6 +27,8 @@ public sealed class CreateProductoVarianteRequest : IValidatableRequest
     /// JSON o texto con atributos personalizados: {"Color": "Rojo", "Talla": "M"}
     /// </summary>
     public string? Atributos { get; set; }
+
+    public List<CreateProductoVarianteRequest> variantesRequest { get; set; } = [];
 
     public bool ParametersAreValid(out string? errors)
     {

@@ -2,7 +2,7 @@
 public class EntityWithtraceability
 {
 
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public int Id { get; set; }
     public string CreatedBy { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

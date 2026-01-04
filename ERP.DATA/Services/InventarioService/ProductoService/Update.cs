@@ -1,6 +1,6 @@
 ﻿namespace ERP.DATA.Services.Inventario.ProductoService;
 
-using ERP.TRAN.CrossLayers.Core.Agreggates.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 
 public partial class ProductoService
 {
-     public Task<Producto> UpdateProducto(Guid id, CancellationToken cancellationToken)
+     public Task<Producto> UpdateProducto(int id, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
-    public async Task<Producto> UpdateProducto(Guid id, Producto updatedProducto, CancellationToken cancellationToken = default)
+    public async Task<Producto> UpdateProducto(int id, Producto updatedProducto, CancellationToken cancellationToken = default)
     {
-        // Buscar producto existente
         var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
         if (producto == null)
