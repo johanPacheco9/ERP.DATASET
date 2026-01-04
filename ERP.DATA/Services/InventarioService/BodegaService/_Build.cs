@@ -1,6 +1,6 @@
 ﻿using ERP.DATA.Repositories;
+using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -28,26 +28,6 @@ public partial class BodegaService : IBodegaService
     {
         throw new NotImplementedException();
     }
-
-    public async Task<BodegaDetailDTO?> GetBodegaByIdAsync(
-    int id,
-    CancellationToken cancellationToken)
-    {
-        return await _context.Bodegas
-            .AsNoTracking()
-            .Where(b => b.Id == id)
-            .Select(b => new BodegaDetailDTO(
-                b.Id,
-                b.Codigo,
-                b.Descripcion,
-                b.Ubicacion,
-                b.IsActive,
-                b.CreatedAt,
-                b.UpdatedAt
-            ))
-            .FirstOrDefaultAsync(cancellationToken);
-    }
-
 }
 
 

@@ -25,5 +25,9 @@ public partial class MainDataContext
     public DbSet<ProductoAuditado> productosAuditados { get; set; }
 
     public DbSet<ProductoVariante> ProductoVariantes { get; set; }
+
+    public DbSet<UnitProduct> UnitProduct { get; set; }
+
+    public DbSet<UnitProductMovement> UnitProductMovements { get; set; }
 }
 

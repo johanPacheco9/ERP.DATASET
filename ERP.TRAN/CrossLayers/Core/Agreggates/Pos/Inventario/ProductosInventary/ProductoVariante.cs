@@ -1,4 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Enums;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 using System.ComponentModel;
 
@@ -20,6 +21,9 @@ public class ProductoVariante : EntityWithtraceability
     //Costos y precios específicos de la variante
     public decimal? Precio_Venta { get; set; }
     public decimal? Costo_Unitario { get; set; }
+
+    //
+    public ProductStatusEnum Status { get; set; }
 
     //Atributos dinámicos (color, talla, sabor, material, etc.)
     public string? Atributos { get; set; } // JSON o string tipo "Color=Rojo;Talla=M"

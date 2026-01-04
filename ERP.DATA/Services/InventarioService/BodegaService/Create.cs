@@ -17,7 +17,9 @@ public partial class BodegaService
                 Descripcion = bodega.Descripcion,
                 Capacidad_Maxima = bodega.CapacidadMaxima,
                 TipoBodega = bodega.TipoBodega,
-                StoreId = bodega.storeId
+                StoreId = bodega.storeId,
+                CreatedBy = "SYSTEMUSER",
+                CreatedAt = DateTime.UtcNow
             };
 
             await _context.Bodegas.AddAsync(entity, cancellationToken);

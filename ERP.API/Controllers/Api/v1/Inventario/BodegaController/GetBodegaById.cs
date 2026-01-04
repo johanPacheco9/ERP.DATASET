@@ -16,7 +16,7 @@ public sealed class GetBodegaByIdEndpoint : BaseGetEndpoint<GetBodegaByIdRequest
     }
 
     [Tags("Inventario - Bodegas")]
-    [HttpGet(BodegasEndpoints.Get, Name = "GetBodegaByIdRequest")]
+    [HttpGet(BodegasEndpoints.Get, Name = "GetBodegaById")]
     public override async Task<ActionResult<BodegaDetailDTO>> HandleAsync(
         [FromRoute] GetBodegaByIdRequest request,
         CancellationToken cancellationToken = new())
@@ -41,9 +41,9 @@ public sealed class GetBodegaByIdEndpoint : BaseGetEndpoint<GetBodegaByIdRequest
             bodega.Nombre,
             bodega.Descripcion,
             bodega.Ubicacion,
-            bodega.IsActive,
-            bodega.CreatedAt,
-            bodega.UpdatedAt
+            bodega.Activa,
+            bodega.FechaCreacion,
+            bodega.FechaModificacion
         );
 
         TraceFound(nameof(Bodega), bodega.Id);

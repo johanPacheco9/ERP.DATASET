@@ -20,9 +20,10 @@
 
   <ItemGroup>
     <Folder Include="CrossLayers\API\Inventario\Categoria\Enums\" />
-    <Folder Include="CrossLayers\API\Inventario\ProductoVariante\Enums\" />
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Enums\" />
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Services\" />
+    <Folder Include="CrossLayers\API\Inventario\UnitProduct\Request\" />
+    <Folder Include="CrossLayers\API\Inventario\UnitProduct\Responses\" />
     <Folder Include="CrossLayers\API\Pos\Clients\Responses\" />
     <Folder Include="CrossLayers\API\Pos\Transactions\Responses\" />
     <Folder Include="CrossLayers\API\Stores\Responses\" />

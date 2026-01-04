@@ -6,7 +6,7 @@ namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 
 public class Movimiento : EntityWithtraceability
 {
-    public int? ProductoVarianteId { get; set; }
+    public int ProductoVarianteId { get; set; }
 
     public int? ProductoId { get; set; }
     public int BodegaId { get; set; }

@@ -1,7 +1,6 @@
 ﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,34 +27,17 @@ public sealed class CreateBodegaEndpoint : BaseCreateEndpoint<CreateBodegaReques
 
     protected override async Task<ActionResult> CreateEntity(CreateBodegaRequest request, CancellationToken cancellationToken)
     {
-        // 1. Validar el request
+     
         if (!request.ParametersAreValid(out var validationErrors))
         {
             return BadRequest(new { errors = validationErrors });
         }
-
-        // 2. MAPEAR Request DTO → Entidad de Dominio
-        var bodega = new Bodega
-        {
-            // Asumo las propiedades de tu entidad Bodega
-            Nombre = request.Nombre,
-            Codigo = request.Code, // Si la entidad usa "Codigo" y el request "Code"
-            Descripcion = request.Descripcion,
-            Ubicacion = request.Ubicacion,
-            Capacidad_Maxima = request.CapacidadMaxima,
-            IsActive = request.EsActiva,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            CreatedBy = "01"
-        };
-        var bodegaId = await _bodegaService.AddBodegaAsync(bodega, cancellationToken);
+        var bodegaId = await _bodegaService.AddBodegaAsync(request, cancellationToken);
 
         // 4. Retornar respuesta
         return CreatedAtRoute("GetBodegaById", new { id = bodegaId }, new
         {
             id = bodegaId,
-            nombre = bodega.Nombre,
-            codigo = bodega.Codigo,
             message = "Bodega creada exitosamente"
         });
     }

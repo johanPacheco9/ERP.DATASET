@@ -25,8 +25,7 @@ public class MovimientoRequirementConfiguration : IEntityTypeConfiguration<Movim
         // Tipo de movimiento (enum → int)
         builder.Property(m => m.TipoMovimiento)
             .IsRequired()
-            .HasConversion<int>()
-            .HasColumnName("TipoMovimiento");
+            .HasConversion<int>();
 
         builder.Property(m => m.Cantidad)
             .IsRequired();
@@ -35,11 +34,12 @@ public class MovimientoRequirementConfiguration : IEntityTypeConfiguration<Movim
             .IsRequired()
             .HasColumnType("DECIMAL(15,4)");
 
-        // 💡 No se guarda como columna real, se calcula en memoria.
+        // 💡 Calculado en memoria
         builder.Ignore(m => m.CostoTotal);
 
         // Referencias externas
         builder.Property(m => m.ReferenciaId);
+
         builder.Property(m => m.ReferenciaTipo)
             .HasMaxLength(50);
 
@@ -88,9 +88,7 @@ public class MovimientoRequirementConfiguration : IEntityTypeConfiguration<Movim
 
         builder.HasOne(m => m.Bodega)
             .WithMany(b => b.Movimiento)
-            .HasForeignKey(m => m.Bodega)
+            .HasForeignKey(m => m.BodegaId)
             .OnDelete(DeleteBehavior.Restrict);
-
-
     }
 }

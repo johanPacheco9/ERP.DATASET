@@ -1,12 +1,14 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
+using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Responses;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
 
 namespace ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovimientos;
 
 public interface IMovimientoService
 {
-    Task<bool> RegistrarEntradaAsync(Movimiento entrada, CancellationToken cancellationToken);
+    Task<int> RegistrarEntradaAsync(CreateEntryMovementRequest createEntry, CancellationToken cancellationToken);
 
-    Task<bool> RegistrarSalidaAsync(Movimiento salida, CancellationToken cancellationToken);
+    Task<MovimientoDetailDto> RegistrarSalidaAsync(CreateExitMovementRequest exitMovementRequest, CancellationToken cancellationToken);
 
     Task<bool> RegistrarTranspasoEntreBodegas(Movimiento Origen, Movimiento Destino, CancellationToken cancellationToken);
     Task<bool> MovimientoExistsAsync(Guid id, CancellationToken cancellationToken);

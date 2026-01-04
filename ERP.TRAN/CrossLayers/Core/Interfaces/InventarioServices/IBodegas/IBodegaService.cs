@@ -10,4 +10,5 @@ public interface IBodegaService
     Task<BodegaDetailDTO> GetBodegaByIdAsync(int id, CancellationToken cancellationToken);
     Task<int> AddBodegaAsync(CreateBodegaRequest bodegarequest, CancellationToken cancellationToken);
     Task<bool> ExisteBodegaPorCodigoAsync(string codigo, CancellationToken cancellationToken);
+    Task<BodegaDetailDTO> UpdateBodega(UpdateBodegaRequest request, CancellationToken cancellationToken);
 }

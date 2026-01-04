@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
+namespace ERP.DATA.Services.InventarioService.BodeegaService;
 
-namespace ERP.DATA.Services.InventarioService.BodegaService
+public partial class BodegaService
 {
-    internal class List
-    {
-    }
+
 }

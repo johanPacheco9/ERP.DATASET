@@ -14,7 +14,6 @@ public partial class ProductoService
     }
     public async Task<Producto> UpdateProducto(int id, Producto updatedProducto, CancellationToken cancellationToken = default)
     {
-        // Buscar producto existente
         var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
         if (producto == null)

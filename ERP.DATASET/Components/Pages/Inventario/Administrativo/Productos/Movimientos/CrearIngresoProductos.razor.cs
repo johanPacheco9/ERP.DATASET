@@ -15,6 +15,7 @@ public partial class CrearIngresoProductos : ComponentBase
     [Inject] public IProductoService productoService { get; set; } = null!;
     [Inject] public IProductoVarianteService productoVarianteService { get; set; } = null!;
     [Parameter] public EventCallback OnClose { get; set; }
+
     private int _paso = 1;
     private bool? _quiereVariantes = null;
     private CreateProductoRequest _producto = new();
@@ -23,11 +24,9 @@ public partial class CrearIngresoProductos : ComponentBase
     private List<string> _errores = new();
     private int? _productoIdCreado = null;
 
-    // Para el paso 3 - Variantes
     private List<VarianteTemp> _variantesTemp = new();
     private VarianteTemp _nuevaVariante = new();
 
-    // Para el paso 4 - Resumen
     private List<string> _skusCreados = new();
     private int _totalSkusCreados = 0;
 
@@ -74,7 +73,6 @@ public partial class CrearIngresoProductos : ComponentBase
     {
         _errores.Clear();
 
-        // Validaciones
         if (string.IsNullOrWhiteSpace(_producto.Codigo))
             _errores.Add("El código es requerido");
         if (string.IsNullOrWhiteSpace(_producto.Nombre))
@@ -91,19 +89,13 @@ public partial class CrearIngresoProductos : ComponentBase
         try
         {
             _isLoading = true;
-
             _producto.hasVariantes = false;
-            
+
             _productoIdCreado = await productoService.AddProductoAsync(_producto, CancellationToken.None);
-
-            Console.WriteLine($"Producto creado exitosamente con ID: {_productoIdCreado}");
-
-            // Ir al paso 2
             _paso = 2;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error guardando producto: {ex.Message}");
             _errores.Add($"Error del servidor: {ex.Message}");
         }
         finally
@@ -118,23 +110,27 @@ public partial class CrearIngresoProductos : ComponentBase
         {
             _isLoading = true;
             _errores.Clear();
-
-            var variante = new CreateProductoVarianteRequest
+            var variantes = new List<CreateProductoVarianteRequest>
             {
-                ProductoId = _productoIdCreado!.Value,
-                CodigoVariante = _producto.Codigo,
-                Atributos = null,
-                PrecioVenta = _producto.Precio_Venta,
-                CostoUnitario = _producto.Costo_Unitario,
-                CodigoBarras = _producto.Codigo
+                new CreateProductoVarianteRequest
+                {
+                    ProductoId = _productoIdCreado!.Value,
+                    CodigoVariante = _producto.Codigo,
+                    Atributos = null,
+                    PrecioVenta = _producto.Precio_Venta,
+                    CostoUnitario = _producto.Costo_Unitario,
+                    CodigoBarras = _producto.Codigo
+                }
             };
 
-            await productoVarianteService.AddProductoVariante(variante, CancellationToken.None);
+            var ids = await productoVarianteService.AddProductoVariantes(
+                variantes,
+                CancellationToken.None
+            );
 
             _skusCreados.Add(_producto.Codigo);
             _totalSkusCreados = 1;
 
-            // Ir al paso 4 (éxito)
             _paso = 4;
         }
         catch (Exception ex)
@@ -156,7 +152,6 @@ public partial class CrearIngresoProductos : ComponentBase
 
     private void GenerarCodigoCompleto()
     {
-        // Este método se llama cuando el usuario escribe el sufijo
         StateHasChanged();
     }
 
@@ -164,7 +159,6 @@ public partial class CrearIngresoProductos : ComponentBase
     {
         _errores.Clear();
 
-        // Validaciones
         if (string.IsNullOrWhiteSpace(_nuevaVariante.CodigoSufijo))
         {
             _errores.Add("El código de variante es requerido");
@@ -177,15 +171,12 @@ public partial class CrearIngresoProductos : ComponentBase
             return;
         }
 
-        // Verificar duplicados
         var codigoCompleto = $"{_producto.Codigo}-{_nuevaVariante.CodigoSufijo.Trim().ToUpper()}";
         if (_variantesTemp.Any(v => v.CodigoVariante == codigoCompleto))
         {
             _errores.Add($"Ya existe una variante con el código {codigoCompleto}");
             return;
         }
-
-        // Agregar a la lista temporal
         _variantesTemp.Add(new VarianteTemp
         {
             CodigoVariante = codigoCompleto,
@@ -195,8 +186,6 @@ public partial class CrearIngresoProductos : ComponentBase
             Costo_Unitario = _nuevaVariante.Costo_Unitario,
             Codigo_Barras = _nuevaVariante.Codigo_Barras?.Trim()
         });
-
-        // Limpiar formulario
         _nuevaVariante = new VarianteTemp();
     }
 
@@ -220,11 +209,8 @@ public partial class CrearIngresoProductos : ComponentBase
                 _errores.Add("Debe agregar al menos una variante");
                 return;
             }
-
-            // Guardar cada variante
-            foreach (var variante in _variantesTemp)
-            {
-                var request = new CreateProductoVarianteRequest
+            var variantesRequests = _variantesTemp.Select(variante =>
+                new CreateProductoVarianteRequest
                 {
                     ProductoId = _productoIdCreado!.Value,
                     CodigoVariante = variante.CodigoVariante,
@@ -232,13 +218,18 @@ public partial class CrearIngresoProductos : ComponentBase
                     PrecioVenta = variante.Precio_Venta,
                     CostoUnitario = variante.Costo_Unitario,
                     CodigoBarras = variante.Codigo_Barras
-                };
+                }
+            ).ToList();
 
-                await productoVarianteService.AddProductoVariante(request, CancellationToken.None);
-                _skusCreados.Add(variante.CodigoVariante);
-            }
+            var idsCreados = await productoVarianteService.AddProductoVariantes(
+                variantesRequests,
+                CancellationToken.None
+            );
 
-            _totalSkusCreados = _skusCreados.Count;
+            _skusCreados = _variantesTemp.Select(v => v.CodigoVariante).ToList();
+            _totalSkusCreados = idsCreados.Count;
+
+            Console.WriteLine($"Variantes creadas: {_totalSkusCreados}");
 
             // Ir al paso 4 (éxito)
             _paso = 4;
@@ -274,6 +265,6 @@ public partial class CrearIngresoProductos : ComponentBase
         public string Atributos { get; set; } = string.Empty;
         public decimal Precio_Venta { get; set; }
         public decimal Costo_Unitario { get; set; }
-        public string Codigo_Barras { get; set; }
+        public string? Codigo_Barras { get; set; }
     }
 }

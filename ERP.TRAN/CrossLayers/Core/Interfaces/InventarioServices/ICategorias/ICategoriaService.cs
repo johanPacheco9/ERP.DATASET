@@ -9,7 +9,7 @@ namespace ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ICategorias;
 public interface ICategoriaService
 {
     Task<Categoria> AddCategoriasAsync(Categoria categorias);
-    Task<Categoria> GetCategoriaByIdAsync(int id, CancellationToken cancellationToken);
+    Task<CategoriaDetailDto> GetById(GetCategoriaByIdRequest  request, CancellationToken cancellationToken);
     Task<PagedList<CategoriaDetailDto>> ListAsync(ListCategoriasRequest request, CancellationToken cancellationToken);
     Task<Categoria> UpdateCategoriaAsync(Categoria categoria, CancellationToken cancellationToken);
     Task<bool> DeleteCategoriaAsync(int id, CancellationToken cancellationToken);

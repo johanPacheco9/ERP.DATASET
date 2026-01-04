@@ -29,7 +29,7 @@ public sealed class CreateBodegaRequest : IValidatableRequest
     public int CapacidadMaxima { get; set; }
 
 
-    public bool EsActiva { get; set; } = true;
+    public bool IsActive { get; set; } = true;
 
     public WarehouseType TipoBodega { get; set; }
 
@@ -58,6 +58,11 @@ public sealed class CreateBodegaRequest : IValidatableRequest
         {
             errors = "El código es obligatorio.";
             return false;
+        }
+        if (storeId == 0)
+        {
+            errors = "La tienda de origen es obligatoria";
+            return false ;
         }
         return true;
     }

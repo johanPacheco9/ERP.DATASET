@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 public partial class ProductoService
 {
+    /// <summary>
+    /// Se usa para crear el cátalogo, no las unidades del producto.
+    /// </summary>
+    /// <param name="request"></param>enton
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     public async Task<int> AddProductoAsync(
         CreateProductoRequest request,
         CancellationToken cancellationToken = default)

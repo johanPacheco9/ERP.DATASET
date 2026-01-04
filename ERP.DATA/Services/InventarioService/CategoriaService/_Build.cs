@@ -20,12 +20,6 @@ public partial class CategoriaService : ICategoriaService
     {
         throw new NotImplementedException();
     }
-
-    public Task<Categoria> GetCategoriaByIdAsync(int id, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<Categoria> UpdateCategoriaAsync(Categoria categoria, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();

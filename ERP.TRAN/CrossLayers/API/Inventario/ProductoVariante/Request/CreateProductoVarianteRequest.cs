@@ -28,6 +28,8 @@ public sealed class CreateProductoVarianteRequest : IValidatableRequest
     /// </summary>
     public string? Atributos { get; set; }
 
+    public List<CreateProductoVarianteRequest> variantesRequest { get; set; } = [];
+
     public bool ParametersAreValid(out string? errors)
     {
         errors = null;

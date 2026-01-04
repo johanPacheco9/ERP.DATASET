@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 
 namespace ERP.DATA.Services.InventarioService.CategoriaService;
-
+//Cambiar a request, solo trabajar con dtos.
 public partial class CategoriaService
 {
     public async Task<Categoria> AddCategoriasAsync(Categoria categorias)
@@ -10,7 +10,7 @@ public partial class CategoriaService
         try
         {
             var codigo = string.IsNullOrWhiteSpace(categorias.Codigo)
-                ? $"CAT-{Guid.NewGuid().ToString("N")[..8].ToUpper()}" // genera uno nuevo
+                ? $"CAT-{Guid.NewGuid().ToString("N")[..8].ToUpper()}"
                 : $"CAT-{categorias.Codigo[..Math.Min(3, categorias.Codigo.Length)].ToUpper()}";
 
             var categoria = new Categoria
@@ -20,7 +20,7 @@ public partial class CategoriaService
                 Descripcion = categorias.Descripcion,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
-                CreatedBy = "01", // TODO: usuario autenticado
+                CreatedBy = "01",
                 UpdatedBy = null,
                 UpdatedAt = null
             };

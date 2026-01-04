@@ -7,5 +7,6 @@ namespace ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProductosVari
 
 public interface IProductoVarianteService
 {
-   Task<int> AddProductoVariante(CreateProductoVarianteRequest request, CancellationToken cancellationToken);
+    Task<List<int>>AddProductoVariantes(List<CreateProductoVarianteRequest> request, CancellationToken cancellationToken);
+   
 }

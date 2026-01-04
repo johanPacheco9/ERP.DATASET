@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Components\Pages\Inventario\Parametrizacion\" />
     <Folder Include="Components\Pages\NewFolder\" />
   </ItemGroup>
 
