@@ -19,15 +19,6 @@ public sealed class CreateExitMovementRequest : IValidatableRequest
     [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
     public int Cantidad { get; set; }
 
-    [DisplayName("Tipo de referencia")]
-    [Required(ErrorMessage = "El tipo de referencia es obligatorio")]
-    [MaxLength(50)]
-    public string ReferenciaTipo { get; set; } = null!;
-    // venta, ajuste, perdida, traslado, etc.
-
-    [DisplayName("Id de referencia externa")]
-    public int? ReferenciaId { get; set; }
-
     [DisplayName("Motivo de la salida")]
     [Required(ErrorMessage = "El motivo de la salida es obligatorio")]
     [MaxLength(500)]
@@ -51,9 +42,6 @@ public sealed class CreateExitMovementRequest : IValidatableRequest
 
         if (Cantidad <= 0)
             errorList.Add("La cantidad debe ser mayor a 0");
-
-        if (string.IsNullOrWhiteSpace(ReferenciaTipo))
-            errorList.Add("El tipo de referencia es obligatorio");
 
         if (string.IsNullOrWhiteSpace(Motivo))
             errorList.Add("El motivo es obligatorio");

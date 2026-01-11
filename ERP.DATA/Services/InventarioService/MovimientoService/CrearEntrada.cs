@@ -125,7 +125,7 @@ public partial class MovimientoService
                     ProductoUnidadId = unidad.Id,
                     TipoMovimiento = TipoMovimiento.Entrada,
                     BodegaDestinoId = createEntry.BodegaId,
-                    BodegaOrigenId = 0,
+                    BodegaOrigenId = 8,
                     Motivo = createEntry.Motivo,
                     Observaciones = $"Entrada por movimiento #{movimiento.Id}"
                 };
