@@ -3,6 +3,9 @@ using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 
+/// <summary>
+/// Clase para el registro de movimientos por unidad de producto
+/// </summary>
 public class UnitProductMovement
 {
     public int Id { get; set; }

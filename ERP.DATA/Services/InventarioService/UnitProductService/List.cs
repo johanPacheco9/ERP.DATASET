@@ -1,5 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
