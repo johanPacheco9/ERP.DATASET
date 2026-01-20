@@ -11,7 +11,7 @@ public interface IProductoService
     Task<int> AddProductoAsync(CreateProductoRequest createProductoRequest, CancellationToken cancellationToken);
     Task<bool> DeleteProductoById(int id, CancellationToken cancellationToken);
     Task<Producto> UpdateProducto(int id, CancellationToken cancellationToken);
-    Task<Producto?> GetProductoById(int id, CancellationToken cancellationToken);
+    Task<ProductoBaseDto?> GetProductoById(int id, CancellationToken cancellationToken);
     Task<PagedList<ProductoSummaryDto>> ListAsync(ListProductRequest request,CancellationToken cancellationToken);
 }
 

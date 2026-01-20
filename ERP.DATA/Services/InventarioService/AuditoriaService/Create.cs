@@ -3,7 +3,7 @@
 namespace ERP.DATA.Services.InventarioService.AuditoriaService;
 public partial class AuditoriaService
 {
-    public Task<AuditoriaProductos> CreateAudit(AuditoriaProductos auditoriaProductos)
+    public Task<UnitProductAudit> CreateAudit(UnitProductAudit auditoriaProductos)
     {
         throw new NotImplementedException();
     }

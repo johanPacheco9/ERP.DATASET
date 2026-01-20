@@ -20,7 +20,7 @@ public partial class MainDataContext
 
     public DbSet<Movimiento> Movimientos { get; set; }
 
-    public DbSet<AuditoriaProductos> AuditoriaProductos{get; set;}
+    public DbSet<UnitProductAudit> AuditoriaProductos{get; set;}
 
     public DbSet<ProductoAuditado> productosAuditados { get; set; }
 

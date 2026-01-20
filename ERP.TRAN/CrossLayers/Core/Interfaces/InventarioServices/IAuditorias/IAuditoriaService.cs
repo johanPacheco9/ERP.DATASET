@@ -4,9 +4,9 @@ namespace ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IAuditorias;
 
 public interface IAuditoriaService
 {
-    Task<AuditoriaProductos> CreateAudit(AuditoriaProductos auditoriaProductos);
+    Task<UnitProductAudit> CreateAudit(UnitProductAudit auditoriaProductos);
 
-    Task<bool> UpdateAuditoria(AuditoriaProductos auditoriaProductos);
+    Task<bool> UpdateAuditoria(UnitProductAudit auditoriaProductos);
 
-    Task<List<AuditoriaProductos>> ListAuditorias();
+    Task<List<UnitProductAudit>> ListAuditorias();
 }

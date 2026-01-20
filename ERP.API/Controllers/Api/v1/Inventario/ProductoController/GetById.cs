@@ -35,24 +35,9 @@ public sealed class GetProductoByIdEndpoint : BaseGetEndpoint<GetProductoByIdReq
 
         if (producto is null)
             return NotFound();
-
-        var productobaseDTO = new ProductoBaseDto
-        (
-            Id: producto.Id,
-            Codigo: producto.Codigo,
-            Nombre: producto.Nombre,
-            Descripcion: producto.Descripcion,
-            CategoriaId: producto.CategoriaId,
-            ProveedorId: producto.ProveedorId,
-            UnidadMedida: producto.Unidad_Medida,
-            ImagenUrl: producto.Imagen_Url,
-            Tags: producto.Tags,
-            Activo: producto.IsActive
-        );
-
         TraceFound(nameof(Producto), request.Id);
 
-        return productobaseDTO;
+        return producto;
     }
 }
 
