@@ -1,30 +1,29 @@
-﻿using ERP.DATA.Utilities.Providers;
-using ERP.TRAN.CrossLayers.API.Inventario.Producto;
+﻿using ERP.DATA.Services.InventarioService.UnitProductService;
+using ERP.DATA.Utilities.Providers;
+using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IUnitProduct;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.UnitProductController;
 
 public sealed class List
-    : BaseListEndpoint<ListUnitProductRequest, List, PagedList<UnitProductDetailDto>>
+    : BaseListEndpoint<ListUnitProductRequest, List, PagedList<AuditDetailDto>>
 {
-    private readonly IUnitProductService _unitProductService;
+    private readonly UnitProductService _unitProductService;
 
     public List(
         ILogger<List> logger,
-        IUnitProductService unitProductService
+        UnitProductService unitProductService
     ) : base(logger)
     {
         _unitProductService = unitProductService;
     }
 
-    [Tags("Inventario -UnitProduct")]
+    [Tags("Inventario -UnitProducts")]
     [HttpGet(UnitProductEndpoints.List, Name = "List UnitProducts")]
-    public override async Task<ActionResult<PagedList<UnitProductDetailDto>>> HandleAsync(
+    public override async Task<ActionResult<PagedList<AuditDetailDto>>> HandleAsync(
         [FromQuery] ListUnitProductRequest request,
         CancellationToken cancellationToken = default
     )
@@ -35,7 +34,7 @@ public sealed class List
     /// <summary>
     /// Lógica para listar unidades de producto desde la base de datos.
     /// </summary>
-    protected override async Task<ActionResult<PagedList<UnitProductDetailDto>>> ListEntity(
+    protected async override Task<ActionResult<PagedList<AuditDetailDto>>> ListEntity(
         ListUnitProductRequest request,
         CancellationToken cancellationToken
     )
@@ -47,7 +46,6 @@ public sealed class List
             {
                 return NotFound();
             }
-
             return Ok(result);
         }
         catch (Exception ex)

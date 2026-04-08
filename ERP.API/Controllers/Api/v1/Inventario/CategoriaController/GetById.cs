@@ -1,7 +1,7 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Categoria;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ICategorias;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,7 +39,7 @@ public sealed class GetCategoriaByIdEndpoint
                 timestamp = DateTime.UtcNow
             });
         }
-        TraceFound(nameof(Categoria), request.Id);
+        TraceFound(nameof(Category), request.Id);
         return Ok(categoria);
     }
 }

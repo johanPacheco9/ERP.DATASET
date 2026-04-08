@@ -1,9 +1,9 @@
-﻿using ERP.DATA.Utilities.Providers;
+﻿using ERP.DATA.Services.InventarioService.ProductService;
+using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Responses;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,18 +15,18 @@ namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
 public sealed class List
     : BaseListEndpoint<ListProductRequest, List, PagedList<ProductoSummaryDto>>
 {
-    private readonly IProductoService _productoService;
+    private readonly ProductService _productoService;
 
     public List(
         ILogger<List> logger,
-        IProductoService productoService
+        ProductService productoService
     ) : base(logger)
     {
         _productoService = productoService;
     }
 
     [Tags("Inventario - Productos")]
-    [HttpGet(ProductosEndpoints.List, Name = "List Productos")]
+    [HttpGet(ProductEndpoints.List, Name = "List Productos")]
     public override async Task<ActionResult<PagedList<ProductoSummaryDto>>> HandleAsync(
         [FromQuery] ListProductRequest request,
         CancellationToken cancellationToken = default

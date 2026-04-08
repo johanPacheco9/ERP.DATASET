@@ -2,14 +2,14 @@
 
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProveedores;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ISupplier;
 using Microsoft.AspNetCore.Mvc;
 
-public sealed class DeleteProveedorEndpoint(IProveedorService _proveedorService,ILogger<DeleteProductoEndpoint> logger)
-    : BaseDeleteEndpoint<DeleteProveedorByIdRequest, DeleteProveedorEndpoint, IProveedorService>(_proveedorService)
+public sealed class DeleteProveedorEndpoint(ISupplierService _proveedorService,ILogger<DeleteProductoEndpoint> logger)
+    : BaseDeleteEndpoint<DeleteProveedorByIdRequest, DeleteProveedorEndpoint, ISupplierService>(_proveedorService)
 {
     [Tags("Inventario - Proveedores")]
-    [HttpDelete(ProveedorEndpoints.List, Name = ("Delete Proveedor"))]
+    [HttpDelete(ProveedorEndpoints.List, Name = ("Delete Supplier"))]
     public override async Task<ActionResult> HandleAsync(
         [FromRoute] DeleteProveedorByIdRequest request,
         CancellationToken cancellationToken = new())
@@ -21,7 +21,7 @@ public sealed class DeleteProveedorEndpoint(IProveedorService _proveedorService,
     {
 
         await _proveedorService.DeleteProveedorById(request.Id, cancellationToken);
-        TraceDeleted("Proveedor eliminado correctamente", request.Id);
+        TraceDeleted("Supplier eliminado correctamente", request.Id);
         return Ok();
 
     }

@@ -1,7 +1,7 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Proveedor;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Responses;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProveedores;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ISupplier;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.ProveedorController;
@@ -9,8 +9,8 @@ namespace ERP.API.Controllers.Api.v1.Inventario.ProveedorController;
 public sealed class GetProveedorByIdEndpoint
     : BaseGetEndpoint<GetProveedorByIdRequest, GetProveedorByIdEndpoint, ProveedorDetailDto>
 {
-    private readonly IProveedorService _proveedorService;
-    public GetProveedorByIdEndpoint(IProveedorService proveedorService,ILogger<GetProveedorByIdEndpoint> logger) : base(logger)
+    private readonly ISupplierService _proveedorService;
+    public GetProveedorByIdEndpoint(ISupplierService proveedorService,ILogger<GetProveedorByIdEndpoint> logger) : base(logger)
     {
         _proveedorService = proveedorService;
     }
@@ -34,12 +34,12 @@ public sealed class GetProveedorByIdEndpoint
         var proveedorDto = new ProveedorDetailDto
         (
             Id : proveedor.Id,
-            Nombre :proveedor.Nombre,
+            Nombre :proveedor.Name,
             Nit :proveedor.Nit,
-            Direccion :proveedor.Direccion,
+            Direccion :proveedor.Address,
             FechaCreacion : proveedor.CreatedAt,
             FechaActualizacion : proveedor.UpdatedAt,
-            Telefono :proveedor.Telefono,
+            Telefono :proveedor.Phone,
             Activo :proveedor.IsActive
         );
 

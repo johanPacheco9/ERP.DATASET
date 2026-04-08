@@ -1,30 +1,25 @@
-﻿using ERP.DATA.Utilities.Providers;
+﻿using ERP.DATA.Services.InventarioService.MovimientoService;
+using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovimientos;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovement;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.MovimientosController;
 
-public sealed class CreateExitMovementEndpoint : BaseCreateEndpoint<CreateExitMovementRequest, CreateExitMovementEndpoint>
+public sealed class CreateExitMovementEndpoint(ILogger<CreateExitMovementEndpoint> logger, MovimientoService movimientoService)
+    : BaseCreateEndpoint<CreateExitMovementRequest, CreateExitMovementEndpoint>(logger)
 {
-    private readonly IMovimientoService _movimientoService;
-    public CreateExitMovementEndpoint(ILogger<CreateExitMovementEndpoint> logger, IMovimientoService movimientoService)
-        : base(logger)
-    {
-        _movimientoService = movimientoService;
-    }
-
     [Tags("Inventario - Movimientos")]
     [HttpPost(MovimientosEndpoints.ExitMovement)]
-    public override async Task<ActionResult> HandleAsync(
+    public async override Task<ActionResult> HandleAsync(
         [FromBody] CreateExitMovementRequest request,
         CancellationToken cancellationToken = new())
     {
         return await base.HandleAsync(request, cancellationToken);
     }
 
-    protected override async Task<ActionResult> CreateEntity(
+    protected async override Task<ActionResult> CreateEntity(
      CreateExitMovementRequest request,
      CancellationToken cancellationToken)
     {
@@ -33,10 +28,7 @@ public sealed class CreateExitMovementEndpoint : BaseCreateEndpoint<CreateExitMo
             return BadRequest(new { errors = validationErrors });
         }
 
-        var resultado = await _movimientoService.RegistrarSalidaAsync(request, cancellationToken);
-
-        if (resultado == null)
-            return StatusCode(500, "Error registrando movimiento de salida.");
+        var resultado = await movimientoService.RegistrarSalidaAsync(request, cancellationToken);
 
         return Ok(resultado);
     }

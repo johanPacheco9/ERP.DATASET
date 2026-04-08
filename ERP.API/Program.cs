@@ -1,3 +1,4 @@
+using ERP.DATA.Bogus;
 using ERP.DATA.DependencyInjections;
 using ERP.DATA.Repositories;
 using ERP.TRAN.CrossLayers.Core.Interfaces;
@@ -20,6 +21,15 @@ builder.Services.AddDbContext<MainDataContext>(options =>
 
 
 var app = builder.Build();
+
+
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<MainDataContext>();
+
+    await OneShotDatabaseSeeder.SeedAsync(context);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

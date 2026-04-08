@@ -1,14 +1,14 @@
 ﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProveedores;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ISupplier;
 using Microsoft.AspNetCore.Mvc;
 
 public sealed class CreateProveedorEndpoint : BaseCreateEndpoint<CreateProveedorRequest, CreateProveedorEndpoint>
 {
-    private readonly IProveedorService _proveedorService;
-    public CreateProveedorEndpoint(ILogger<CreateProveedorEndpoint> logger, IProveedorService proveedorService)
+    private readonly ISupplierService _proveedorService;
+    public CreateProveedorEndpoint(ILogger<CreateProveedorEndpoint> logger, ISupplierService proveedorService)
         : base(logger)
     {
         _proveedorService = proveedorService;
@@ -28,26 +28,26 @@ public sealed class CreateProveedorEndpoint : BaseCreateEndpoint<CreateProveedor
         if (!request.ParametersAreValid(out var validationErrors))
             return BadRequest(new { errors = validationErrors });
 
-        var proveedor = new Proveedor
+        var proveedor = new Supplier
         {
-            Nombre = request.Nombre,
+            Name = request.Nombre,
             Nit = request.Nit,
-            Direccion = request.Direccion,
-            Telefono = request.Telefono,
-            Activo = request.Activo,
+            Address = request.Direccion,
+            Phone = request.Telefono,
+            IsActive = request.Activo,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = "system"
         };
 
         var proveedorCreado = await _proveedorService.AddProveedorAsync(proveedor, cancellationToken);
 
-        TraceCreated(nameof(Proveedor), proveedorCreado.Id);
+        TraceCreated(nameof(Supplier), proveedorCreado.Id);
 
         return CreatedAtRoute("GetProveedorById", new { id = proveedorCreado.Id }, new
         {
             id = proveedorCreado.Id,
-            nombre = proveedorCreado.Nombre,
-            message = "Proveedor creado exitosamente"
+            nombre = proveedorCreado.Name,
+            message = "Supplier creado exitosamente"
         });
     }
 }

@@ -1,7 +1,7 @@
 ﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ICategorias;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,11 +30,11 @@ public sealed class CreateCategoriaEndpoint : BaseCreateEndpoint<CreateCategoria
             return BadRequest(new { errors = validationErrors });
 
         // Solo mapear del request a la entidad mínima
-        var categoria = new Categoria
+        var categoria = new Category
         {
-            Nombre = request.Nombre,
-            Descripcion = request.Descripcion,
-            Codigo = request.codigo // opcional, el servicio decide si genera uno
+            Name = request.Nombre,
+            Description = request.Descripcion,
+            Code = request.codigo // opcional, el servicio decide si genera uno
         };
 
         // Llamar al servicio
@@ -43,8 +43,8 @@ public sealed class CreateCategoriaEndpoint : BaseCreateEndpoint<CreateCategoria
         return CreatedAtRoute("GetCategoriaById", new { id = categoriaCreada.Id }, new
         {
             categoriaCreada.Id,
-            categoriaCreada.Codigo,
-            categoriaCreada.Nombre,
+            categoriaCreada.Code,
+            categoriaCreada.Name,
             message = "Categoría creada exitosamente"
         });
     }

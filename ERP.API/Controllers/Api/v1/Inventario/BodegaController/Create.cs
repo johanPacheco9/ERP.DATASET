@@ -1,19 +1,19 @@
 ﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IBodegas;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IWarehouse;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.BodegaController;
 
 public sealed class CreateBodegaEndpoint : BaseCreateEndpoint<CreateBodegaRequest, CreateBodegaEndpoint>
 {
-    private readonly IBodegaService _bodegaService;
+    private readonly IWarehouseService _warehouseService;
 
-    public CreateBodegaEndpoint(ILogger<CreateBodegaEndpoint> logger, IBodegaService bodegaService)
+    public CreateBodegaEndpoint(ILogger<CreateBodegaEndpoint> logger, IWarehouseService warehouseService)
        : base(logger)
     {
-        _bodegaService= bodegaService;
+        _warehouseService= warehouseService;
     }
 
     [Tags("Inventario - Bodegas")]
@@ -32,13 +32,13 @@ public sealed class CreateBodegaEndpoint : BaseCreateEndpoint<CreateBodegaReques
         {
             return BadRequest(new { errors = validationErrors });
         }
-        var bodegaId = await _bodegaService.AddBodegaAsync(request, cancellationToken);
+        var bodegaId = await _warehouseService.AddBodegaAsync(request, cancellationToken);
 
         // 4. Retornar respuesta
         return CreatedAtRoute("GetBodegaById", new { id = bodegaId }, new
         {
             id = bodegaId,
-            message = "Bodega creada exitosamente"
+            message = "Warehouse creada exitosamente"
         });
     }
 }
