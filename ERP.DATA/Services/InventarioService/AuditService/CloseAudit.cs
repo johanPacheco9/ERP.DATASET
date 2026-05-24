@@ -1,7 +1,10 @@
+using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
+using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
+using Microsoft.EntityFrameworkCore;
 
-namespace  Erp.Data.Services.WarehouseService;
+namespace ERP.DATA.Services.InventarioService.AuditService;
 public partial class AuditoriaService
 {
  /// <summary>
@@ -24,7 +27,7 @@ public partial class AuditoriaService
         if (audit.Status == AuditStatus.Completada)
             throw new InvalidOperationException("La auditoría ya fue cerrada.");
 
-        if (audit.Status == AuditStatus.Cancelada)
+        if (audit.Status == AuditStatus.RejectWithinconsistences)
             throw new InvalidOperationException("No se puede cerrar una auditoría cancelada.");
 
         // Calcular totales finales desde la tabla de detalle (fuente de verdad)
@@ -32,12 +35,12 @@ public partial class AuditoriaService
             .Where(u => u.AuditId == request.AuditId)
             .ToListAsync(cancellationToken);
 
-        audit.TotalExpectedUnits  = unitAudits.Count(u => u.Status != UnitProductAuditStatus.Surplus);
+        audit.TotalExpectedUnits  = unitAudits.Count(u => u.Status != UnitProductAuditStatus.ExcessProduct);
         audit.TotalCountedUnits   = unitAudits.Count(u => u.Status != UnitProductAuditStatus.NotFound);
         audit.TotalMatches        = unitAudits.Count(u => u.Status == UnitProductAuditStatus.Found);
         audit.TotalMissing        = unitAudits.Count(u => u.Status == UnitProductAuditStatus.NotFound);
-        audit.TotalSurplus        = unitAudits.Count(u => u.Status == UnitProductAuditStatus.Surplus);
-        audit.TotalLocationDifferences = unitAudits.Count(u => u.Status == UnitProductAuditStatus.LocationMismatch);
+        audit.TotalSurplus        = unitAudits.Count(u => u.Status == UnitProductAuditStatus.ExcessProduct);
+        audit.TotalLocationDifferences = unitAudits.Count(u => u.Status == UnitProductAuditStatus.StatusMismatch);
         audit.TotalStatusDifferences   = unitAudits.Count(u => u.Status == UnitProductAuditStatus.StatusMismatch);
 
         audit.Status       = AuditStatus.Completada;
@@ -52,6 +55,7 @@ public partial class AuditoriaService
             audit.Id,
             audit.StartDate,
             audit.EndDate,
+            audit.WarehouseId,
             audit.Warehouse?.Name,
             audit.Category?.Name,
             audit.ProductId,

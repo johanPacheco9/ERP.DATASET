@@ -1,20 +1,16 @@
-﻿namespace ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+namespace ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
 
 public record UnitProductDetailDto(
     int Id,
     string Serial,
-    string Estado,
-    DateTime FechaIngreso,
-
-    // Información esencial del producto
+    ProductoStatus Status,
+    DateTime? FechaVencimiento,
     string productName,
     string? ProductoImagenUrl,
     string? ProductoCodigo,
-
-    // Información de la variante
-    string? VarianteNombre,
-    string? Atributos,  // "Rojo, Talla M"
+    string? CodigoVariante,
+    string? Atributos, 
     decimal? PrecioVenta,
-    // Ubicación actual
-    string BodegaNombre // "Estante A-5"
+    string BodegaNombre
 );

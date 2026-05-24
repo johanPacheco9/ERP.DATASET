@@ -6,14 +6,14 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 public class RegistrarMovimientoSalidaRequest : IValidatableRequest
 {
     [DisplayName("El id del producto a retirar")]
-    [Required(ErrorMessage = "El ProductoId es obligatorio")]
+    [Required(ErrorMessage = "El ProductId es obligatorio")]
     public Guid ProductoId { get; set; }
 
     [DisplayName("El id de la bodega a sacar del stock")]
-    [Required(ErrorMessage = "El BodegaId es obligatorio")]
+    [Required(ErrorMessage = "El WarehouseId es obligatorio")]
     public Guid BodegaId { get; set; }
 
-    [DisplayName("Cantidad de productos a retirar")]
+    [DisplayName("Quantity de productos a retirar")]
     [Required(ErrorMessage = "La cantidad para un movimiento de salida debe ser al menos de 1")]
     [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
     public int Cantidad { get; set; }
@@ -29,7 +29,7 @@ public class RegistrarMovimientoSalidaRequest : IValidatableRequest
     public string? Lote { get; set; }
     public DateTime? FechaVencimiento { get; set; }
 
-    // Motivo y observaciones
+    // Motive y observaciones
     public string Motivo { get; set; } = "Salida de inventario";
     public string? Observaciones { get; set; }
 
@@ -38,10 +38,10 @@ public class RegistrarMovimientoSalidaRequest : IValidatableRequest
         var errorList = new List<string>();
 
         if (ProductoId == Guid.Empty)
-            errorList.Add("El ProductoId es obligatorio");
+            errorList.Add("El ProductId es obligatorio");
 
         if (BodegaId == Guid.Empty)
-            errorList.Add("El BodegaId es obligatorio");
+            errorList.Add("El WarehouseId es obligatorio");
 
         if (Cantidad <= 0)
             errorList.Add("La cantidad debe ser mayor a 0");

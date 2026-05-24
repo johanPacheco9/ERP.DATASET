@@ -1,0 +1,61 @@
+@page "/proveedores"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Proveedores</h1>
+            <p class="inv-subtitle">Maestro de proveedores del catálogo</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger small">@_error</div>
+    }
+    else if (_loading)
+    {
+        <div class="inv-loading">Cargando…</div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="inv-card inv-empty">No hay proveedores registrados.</div>
+    }
+    else
+    {
+        <div class="inv-card">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>NIT</th>
+                        <th>Teléfono</th>
+                        <th>Dirección</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in _items)
+                    {
+                        <tr>
+                            <td class="fw-medium">@p.Name</td>
+                            <td class="text-muted">@p.Nit</td>
+                            <td class="text-muted">@(p.Phone ?? "—")</td>
+                            <td class="text-muted small">@(p.Address ?? "—")</td>
+                            <td>
+                                @if (p.IsActive)
+                                {
+                                    <span class="inv-badge inv-badge--ok">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="inv-badge inv-badge--muted">Inactivo</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

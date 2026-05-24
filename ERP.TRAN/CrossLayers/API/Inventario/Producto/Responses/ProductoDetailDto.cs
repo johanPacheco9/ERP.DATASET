@@ -1,5 +1,5 @@
 ﻿namespace ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
-public record ProductoBaseDto
+public record BaseProductDto
 (
     int Id,
     string Codigo,

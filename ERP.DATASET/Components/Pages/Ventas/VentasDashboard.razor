@@ -1,0 +1,66 @@
+@page "/ventas"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Ventas</h1>
+            <p class="inv-subtitle">Cada venta genera salidas de inventario automáticas</p>
+        </div>
+        <a href="/ventas/nueva" class="btn btn-primary btn-sm">
+            <i class="bi bi-cart-plus me-1"></i>Nueva venta
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger small">@_error</div>
+    }
+    else if (_loading)
+    {
+        <div class="inv-loading">Cargando…</div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="inv-card inv-empty">
+            No hay ventas registradas.
+            <div class="mt-2"><a href="/ventas/nueva">Registrar la primera venta</a></div>
+        </div>
+    }
+    else
+    {
+        <div class="inv-card">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Bodega</th>
+                        <th class="text-end">Total</th>
+                        <th>Estado</th>
+                        <th>Pago</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in _items)
+                    {
+                        <tr>
+                            <td><code class="small">@v.SaleNumber</code></td>
+                            <td class="text-muted small">@v.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@v.ClientName</td>
+                            <td class="text-muted">@v.WarehouseName</td>
+                            <td class="text-end fw-semibold">@v.Total.ToString("C2")</td>
+                            <td><span class="inv-badge inv-badge--ok">@v.StatusDisplay</span></td>
+                            <td><span class="inv-badge inv-badge--info">@v.PaymentStatusDisplay</span></td>
+                            <td class="text-end">
+                                <a href="/ventas/@v.Id" class="btn btn-sm btn-outline-secondary">Detalle</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

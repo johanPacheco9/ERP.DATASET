@@ -8,24 +8,26 @@ namespace ERP.DATA.Services.InventarioService.CategoriaService;
 
 public partial class CategoriaService
 {
-    public async Task<PagedList<CategoriaDetailDto>> ListAsync(
+    public async Task<PagedList<CategoriaDetailDto>> List(
         ListCategoriasRequest request,
         CancellationToken cancellationToken)
     {
 		try
 		{
 
-            var query = _context.Categorias
+            var query = context.Category
            .AsNoTracking()
            .AsQueryable();
 
-            query = request.OrderBy?.ToLower() switch
+            var orderBy = request.OrderBy?.ToLower() ?? "id";
+
+            query = orderBy switch
             {
                 var o when o.Contains("nombre") && o.Contains("desc")
-                    => query.OrderByDescending(p => p.Nombre),
+                    => query.OrderByDescending(p => p.Name),
 
                 var o when o.Contains("nombre")
-                    => query.OrderBy(p => p.Nombre),
+                    => query.OrderBy(p => p.Name),
 
                 var o when o.Contains("id") && o.Contains("desc")
                     => query.OrderByDescending(p => p.Id),
@@ -44,22 +46,27 @@ public partial class CategoriaService
                 .Select(p => new CategoriaDetailDto
                 (
                     p.Id,
-                    p.Nombre,
-                    p.Descripcion,
+                    p.Name,
+                    p.Description,
                     p.CreatedAt,
                     p.UpdatedAt
                 ));
-
+            
+            if (request.PageSize == -1)
+            {
+                var items = await dtoQuery.ToListAsync(cancellationToken);
+                return new PagedList<CategoriaDetailDto>(items, items.Count, 1, items.Count);
+            }
             return await PagedList<CategoriaDetailDto>.ToPagedListAsync(
                 dtoQuery,
                 request.PageNumber,
                 request.PageSize
             );
         }
-		catch (Exception ex)
-		{
-           _logger.LogError(ex.Message);
-            return null;
-		}
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error en CategoriaService.List");
+            throw; // sin return null, que reviente y nos diga qué es
+        }
     }
 }

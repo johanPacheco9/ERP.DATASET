@@ -91,7 +91,7 @@ public abstract class BaseUpdateEndpoint<TRequest, TClass>
     /// <summary>
     /// Si no se encuentra la entidad en el repositorio, se retorna un error 404 luego de registrar el evento.
     /// </summary>
-    /// <param name="entityName">Nombre de la entidad buscada (para el log)</param>
+    /// <param name="entityName">Name de la entidad buscada (para el log)</param>
     /// <param name="identifier">PK de la entidad buscada (para el log)</param>
     /// <returns><c>NotFound</c> luego de registrar en el log</returns>
     protected ActionResult EntityNotFound(string entityName, int identifier)
@@ -104,7 +104,7 @@ public abstract class BaseUpdateEndpoint<TRequest, TClass>
     /// <summary>
     /// Registra en el log que la entidad especificada fue actualizada satisfactoriamente.
     /// </summary>
-    /// <param name="entityName">Nombre de la entidad actualizada</param>
+    /// <param name="entityName">Name de la entidad actualizada</param>
     /// <param name="primaryKey">PK de la entidad actualizada</param>
     protected void TraceUpdated(string entityName, int primaryKey)
     {

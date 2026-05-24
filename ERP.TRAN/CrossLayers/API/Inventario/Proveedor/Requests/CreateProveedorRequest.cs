@@ -6,7 +6,7 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests
     public sealed class CreateProveedorRequest : IValidatableRequest
     {
         /// <summary>
-        /// Nombre del proveedor
+        /// Name del proveedor
         /// </summary>
         [Required(ErrorMessage = "El nombre del proveedor es obligatorio.")]
         [MaxLength(150, ErrorMessage = "El nombre no puede tener más de 150 caracteres.")]
@@ -31,7 +31,7 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests
         public string? Telefono { get; set; }
 
         /// <summary>
-        /// Estado del proveedor (activo o inactivo)
+        /// Status del proveedor (activo o inactivo)
         /// </summary>
         public bool Activo { get; set; } = true;
 

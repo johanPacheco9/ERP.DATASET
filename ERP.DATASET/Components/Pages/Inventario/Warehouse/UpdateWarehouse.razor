@@ -1,0 +1,69 @@
+@page "/Warehouse"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Editar bodegas</h1>
+            <p class="inv-subtitle">Actualización en línea de código y capacidad</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/bodegas" class="btn btn-outline-secondary btn-sm">Ver listado</a>
+            <button type="button" class="btn btn-primary btn-sm" @onclick="SaveChanges" disabled="@_guardando">
+                @if (_guardando) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                Guardar cambios
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_mensaje))
+    {
+        <div class="alert alert-info small">@_mensaje</div>
+    }
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Capacity</th>
+            <th>Activo</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var row in _rows)
+        {
+            <tr>
+                <td colspan="5">
+
+                    <EditForm EditContext="row.Context"
+                              OnValidSubmit="() => OnRowValidSubmit(row)">
+
+                        <div class="d-flex gap-2">
+
+                            <InputText class="form-control"
+                                       @bind-Value="row.Form.Code" />
+
+                            <InputText class="form-control"
+                                       @bind-Value="row.Form.Name" />
+
+                            <InputText class="form-control"
+                                       @bind-Value="row.Form.Location" />
+
+                            <InputNumber class="form-control"
+                                         @bind-Value="row.Form.MaxCapacity" />
+
+                            <InputCheckbox @bind-Value="row.Form.IsActive" />
+
+                        </div>
+
+                    </EditForm>
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>

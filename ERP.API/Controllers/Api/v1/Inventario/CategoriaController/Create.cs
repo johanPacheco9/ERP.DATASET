@@ -18,23 +18,23 @@ public sealed class CreateCategoriaEndpoint : BaseCreateEndpoint<CreateCategoria
     [Tags("Inventario - Categorias")]
     [HttpPost(CategoriasEndpoints.List)]
     public override async Task<ActionResult> HandleAsync(
-        [FromBody] CreateCategoriaRequest request,
+        [FromBody] CreateCategoriaRequest form,
         CancellationToken cancellationToken = new())
     {
-        return await base.HandleAsync(request, cancellationToken);
+        return await base.HandleAsync(form, cancellationToken);
     }
 
-    protected override async Task<ActionResult> CreateEntity(CreateCategoriaRequest request, CancellationToken cancellationToken)
+    protected override async Task<ActionResult> CreateEntity(CreateCategoriaRequest form, CancellationToken cancellationToken)
     {
-        if (!request.ParametersAreValid(out var validationErrors))
+        if (!form.ParametersAreValid(out var validationErrors))
             return BadRequest(new { errors = validationErrors });
 
         // Solo mapear del request a la entidad mínima
         var categoria = new Category
         {
-            Name = request.Nombre,
-            Description = request.Descripcion,
-            Code = request.codigo // opcional, el servicio decide si genera uno
+            Name = form.Nombre,
+            Description = form.Descripcion,
+            Code = form.codigo // opcional, el servicio decide si genera uno
         };
 
         // Llamar al servicio

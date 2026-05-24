@@ -1,0 +1,201 @@
+/* Inventario — estilos compartidos */
+.inv-page {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.inv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.inv-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.inv-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0.25rem 0 0;
+}
+
+.inv-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.inv-card-header {
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.inv-table {
+    width: 100%;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.inv-table th {
+    padding: 0.625rem 1rem;
+    font-weight: 600;
+    color: #6b7280;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.inv-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.inv-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.inv-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.inv-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 4px;
+}
+
+.inv-badge--ok { background: #d1fae5; color: #065f46; }
+.inv-badge--warn { background: #fef3c7; color: #92400e; }
+.inv-badge--muted { background: #f3f4f6; color: #4b5563; }
+.inv-badge--info { background: #dbeafe; color: #1e40af; }
+
+.inv-stat {
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.inv-stat-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1.2;
+}
+
+.inv-stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.inv-module-card {
+    display: block;
+    padding: 1.25rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.inv-module-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+    color: inherit;
+}
+
+.inv-module-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.35rem;
+    color: #111827;
+}
+
+.inv-module-card p {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.inv-module-status {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.75rem;
+}
+
+.inv-module-status--ready { color: #059669; }
+.inv-module-status--partial { color: #d97706; }
+.inv-module-status--pending { color: #9ca3af; }
+
+.inv-empty {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.inv-loading {
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+.inv-progress {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.inv-progress-bar {
+    height: 100%;
+    background: #2563eb;
+    border-radius: 3px;
+    transition: width 0.3s;
+}
+
+.inv-roadmap-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 0.875rem;
+}
+
+.inv-roadmap-item:last-child { border-bottom: none; }
+
+.inv-roadmap-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 0.35rem;
+    flex-shrink: 0;
+}
+
+.inv-roadmap-dot--done { background: #10b981; }
+.inv-roadmap-dot--wip { background: #f59e0b; }
+.inv-roadmap-dot--todo { background: #d1d5db; }

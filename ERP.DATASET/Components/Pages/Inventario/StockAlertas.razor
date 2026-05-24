@@ -1,0 +1,79 @@
+@page "/stock-alertas"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Alertas de stock</h1>
+            <p class="inv-subtitle">Productos que llegaron o bajaron del minimo configurado por bodega</p>
+        </div>
+        <a href="/movimientos" class="btn btn-primary btn-sm">
+            <i class="bi bi-arrow-left-right me-1"></i>Movimientos
+        </a>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="inv-loading">Cargando...</div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="inv-card inv-empty">No hay alertas de stock activas.</div>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <div class="inv-card p-3">
+                    <span class="text-muted small">Productos en alerta</span>
+                    <div class="fs-4 fw-bold">@_items.Count</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="inv-card p-3">
+                    <span class="text-muted small">Unidades sugeridas</span>
+                    <div class="fs-4 fw-bold text-primary">@_items.Sum(i => i.ReorderQuantity)</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="inv-card p-3">
+                    <span class="text-muted small">Bodegas afectadas</span>
+                    <div class="fs-4 fw-bold">@_items.Select(i => i.WarehouseId).Distinct().Count()</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="inv-card">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Bodega</th>
+                        <th class="text-center">Actual</th>
+                        <th class="text-center">Minimo</th>
+                        <th class="text-center">Reservado</th>
+                        <th class="text-center">Sugerido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in _items)
+                    {
+                        <tr>
+                            <td>
+                                <span class="fw-semibold">@item.ProductName</span>
+                                <div><code class="small">@item.ProductCode</code></div>
+                            </td>
+                            <td>@item.WarehouseName</td>
+                            <td class="text-center fw-bold text-danger">@item.CurrentStock</td>
+                            <td class="text-center">@item.MinimumStock</td>
+                            <td class="text-center">@item.ReservedStock</td>
+                            <td class="text-center">
+                                <span class="badge bg-primary-subtle text-primary border">@item.ReorderQuantity</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

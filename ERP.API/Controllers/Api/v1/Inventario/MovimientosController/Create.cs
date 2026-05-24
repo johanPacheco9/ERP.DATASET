@@ -2,25 +2,24 @@
 using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovement;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.MovimientosController;
 
 public sealed class CreateEntradaEndpoint(ILogger<CreateEntradaEndpoint> logger, MovimientoService movimientoService)
-    : BaseCreateEndpoint<CreateEntryMovementRequest, CreateEntradaEndpoint>(logger)
+    : BaseCreateEndpoint<RegistrarMovimientoEntradaRequest, CreateEntradaEndpoint>(logger)
 {
     [Tags("Inventario - Movimientos")]
     [HttpPost(MovimientosEndpoints.List)]
     public async override Task<ActionResult> HandleAsync(
-        [FromBody] CreateEntryMovementRequest request,
+        [FromBody] RegistrarMovimientoEntradaRequest request,
         CancellationToken cancellationToken = new())
     {
         return await base.HandleAsync(request, cancellationToken);
     }
 
     protected async override Task<ActionResult> CreateEntity(
-     CreateEntryMovementRequest request,
+        RegistrarMovimientoEntradaRequest request,
      CancellationToken cancellationToken)
     {
         if (!request.ParametersAreValid(out var validationErrors))

@@ -1,39 +1,47 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using Microsoft.Extensions.Logging;
 
 namespace ERP.DATA.Services.InventarioService.CategoriaService;
-//Cambiar a request, solo trabajar con dtos.
+/// <summary>
+/// Si crece, manejar dtos.
+/// </summary>
 public partial class CategoriaService
 {
-    public async Task<Categoria> AddCategoriasAsync(Categoria categorias)
+    public async Task<Category?> AddCategoriasAsync(CreateCategoriaRequest request)
     {
+        if (!request.ParametersAreValid(out var validationError))
+        {
+            logger.LogWarning("Parámetros inválidos para categoría: {Error}", validationError);
+            return null;
+        }
+
         try
         {
-            var codigo = string.IsNullOrWhiteSpace(categorias.Codigo)
+            var codigoFinal = string.IsNullOrWhiteSpace(request.codigo)
                 ? $"CAT-{Guid.NewGuid().ToString("N")[..8].ToUpper()}"
-                : $"CAT-{categorias.Codigo[..Math.Min(3, categorias.Codigo.Length)].ToUpper()}";
+                : $"CAT-{request.codigo[..Math.Min(3, request.codigo.Length)].ToUpper()}";
 
-            var categoria = new Categoria
+            var categoria = new Category
             {
-                Codigo = codigo,
-                Nombre = categorias.Nombre,
-                Descripcion = categorias.Descripcion,
+                Code = codigoFinal,
+                Name = request.Nombre,             // Usamos 'Nombre' del DTO
+                Description = request.Descripcion, // Usamos 'Descripcion' del DTO
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
-                CreatedBy = "01",
-                UpdatedBy = null,
-                UpdatedAt = null
+                CreatedBy = "system",
+                UpdatedAt = null,
+                UpdatedBy = null
             };
 
-            _context.Categorias.Add(categoria);
-
-            await _context.SaveChangesAsync();
+            context.Category.Add(categoria);
+            await context.SaveChangesAsync();
 
             return categoria;
         }
         catch (Exception ex)
         {
-            _logger.LogTrace(ex.Message);
+            logger.LogError(ex, "Error al insertar categoría en la base de datos");
             return null;
         }
     }

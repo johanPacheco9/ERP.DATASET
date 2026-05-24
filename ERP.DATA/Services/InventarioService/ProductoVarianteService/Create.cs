@@ -1,10 +1,11 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERP.DATA.Services.InventarioService.ProductoVarianteService;
 
-public partial class ProductoVarianteService
+public partial class ProductVariantService
 {
     public async Task<List<int>> AddProductoVariantes(
        List<CreateProductoVarianteRequest> requests,
@@ -20,7 +21,7 @@ public partial class ProductoVarianteService
             throw new InvalidOperationException("Todas las variantes deben ser del mismo producto");
 
         // Verificar que el producto existe
-        var producto = await _context.Productos
+        var producto = await _context.LineaProductos
             .FirstOrDefaultAsync(p => p.Id == productoId, cancellationToken);
 
         if (producto == null)
@@ -42,9 +43,9 @@ public partial class ProductoVarianteService
                 $"Códigos duplicados en el request: {string.Join(", ", duplicadosEnRequest)}");
 
         // Verificar que no existan en la BD
-        var existentes = await _context.ProductoVariantes
-            .Where(v => codigosRequest.Contains(v.CodigoVariante))
-            .Select(v => v.CodigoVariante)
+        var existentes = await _context.Productos
+            .Where(v => codigosRequest.Contains(v.SKU))
+            .Select(v => v.SKU)
             .ToListAsync(cancellationToken);
 
         if (existentes.Any())
@@ -59,29 +60,29 @@ public partial class ProductoVarianteService
 
             foreach (var request in requests)
             {
-                var variante = new ProductoVariante
+                var variante = new Producto
                 {
-                    ProductoId = request.ProductoId,
-                    CodigoVariante = request.CodigoVariante.Trim().ToUpper(),
+                    LineaProductoId = request.ProductoId,
+                    SKU = request.CodigoVariante.Trim().ToUpper(),
                     Atributos = request.Atributos,
-                    Codigo_Barras = request.CodigoBarras,
-                    Precio_Venta = request.PrecioVenta,
-                    Costo_Unitario = request.CostoUnitario,
+                    CodigoBarras = request.CodigoBarras,
+                    PrecioVenta = request.PrecioVenta,
+                    CostoUnitario = request.CostoUnitario,
                     Lote = request.Lote,
-                    Fecha_Vencimiento = request.FechaVencimiento,
+                    FechaVencimiento = request.FechaVencimiento,
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = "SYSTEM",
                     IsActive = true
                 };
 
-                _context.ProductoVariantes.Add(variante);
+                _context.Productos.Add(variante);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
 
             // Obtener los IDs generados
-            variantesCreadas = await _context.ProductoVariantes
-                .Where(v => codigosRequest.Contains(v.CodigoVariante))
+            variantesCreadas = await _context.Productos
+                .Where(v => codigosRequest.Contains(v.SKU))
                 .Select(v => v.Id)
                 .ToListAsync(cancellationToken);
 

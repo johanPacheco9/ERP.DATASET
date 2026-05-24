@@ -81,7 +81,7 @@ public abstract class BaseCreateEndpoint<TRequest, TClass> : EndpointBaseAsync
     /// <summary>
     ///     Registra en el log que la entidad se creó correctamente.
     /// </summary>
-    /// <param name="entityName">Nombre de la entidad creada</param>
+    /// <param name="entityName">Name de la entidad creada</param>
     /// <param name="primaryKey">PK de la entidad creada</param>
     protected void TraceCreated(string entityName, int primaryKey)
     {

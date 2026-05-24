@@ -1,6 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
+using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
-using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,10 +8,10 @@ namespace ERP.DATA.Services.InventarioService.UnitProductService;
 public partial class UnitProductService
 {
     public async Task<PagedList<UnitProductDetailDto>> ListAsync(
-   ListUnitProductRequest request,
-   CancellationToken cancellationToken)
+        ListUnitProductRequest request,
+        CancellationToken cancellationToken)
     {
-        var query = _context.UnitProduct
+        var query = context.Productos
             .AsNoTracking()
             .AsQueryable();
 
@@ -28,38 +27,49 @@ public partial class UnitProductService
             query = query.Where(p => p.CreatedAt <= maxUtc);
         }
 
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var term = request.Search.Trim();
+            query = query.Where(p =>
+                (p.Serial != null && p.Serial.Contains(term)) ||
+                p.SKU.Contains(term) ||
+                p.LineaProducto.Name.Contains(term) ||
+                p.LineaProducto.Code.Contains(term));
+        }
+
         if (!string.IsNullOrWhiteSpace(request.OrderBy))
         {
-            var parts = request.OrderBy.Split(' ');
+            var parts = request.OrderBy.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var field = parts[0];
             var isDesc = parts.Length > 1 && parts[1].Equals("desc", StringComparison.OrdinalIgnoreCase);
 
-            query = field.ToLower() switch
+            query = field.ToLowerInvariant() switch
             {
                 "id" => isDesc ? query.OrderByDescending(p => p.Id) : query.OrderBy(p => p.Id),
-                "productname" => isDesc ? query.OrderByDescending(p => p.Producto.Nombre) : query.OrderBy(p => p.Producto.Nombre),
-                "productocodigo" => isDesc ? query.OrderByDescending(p => p.Producto.Codigo) : query.OrderBy(p => p.Producto.Codigo),
-                "precioventa" => isDesc ? query.OrderByDescending(p => p.ProductoVariante.Precio_Venta) : query.OrderBy(p => p.ProductoVariante.Precio_Venta),
+                "serial" => isDesc ? query.OrderByDescending(p => p.Serial) : query.OrderBy(p => p.Serial),
+                "productname" => isDesc ? query.OrderByDescending(p => p.LineaProducto.Name) : query.OrderBy(p => p.LineaProducto.Name),
+                "productocodigo" => isDesc ? query.OrderByDescending(p => p.LineaProducto.Code) : query.OrderBy(p => p.LineaProducto.Code),
+                "precioventa" => isDesc ? query.OrderByDescending(p => p.PrecioVenta) : query.OrderBy(p => p.PrecioVenta),
                 _ => query.OrderByDescending(p => p.Id)
             };
         }
         else
         {
-            query = query.OrderByDescending(p => p.Id); // Default
+            query = query.OrderByDescending(p => p.Id);
         }
 
         var dtoQuery = query.Select(p => new UnitProductDetailDto(
             p.Id,
-            p.Serial,
-            p.UnitProductStatus.GetDisplayName(),
-            p.FechaIngreso,
-            p.Producto.Nombre,
-            p.Producto.Imagen_Url,
-            p.Producto.Codigo,
-            p.ProductoVariante.CodigoVariante,
-            p.ProductoVariante.Atributos,
-            p.ProductoVariante.Precio_Venta,
-            p.Bodega.Ubicacion ?? "No se tiene información"
+            p.Serial ?? p.SKU,
+            p.Status,
+            p.FechaVencimiento,
+            p.LineaProducto.Name,
+            p.LineaProducto.ImagenUrl,
+            p.LineaProducto.Code,
+            p.SKU,
+            p.Atributos,
+            p.PrecioVenta ?? p.LineaProducto.PrecioVenta,
+            p.Bodega.Name ?? p.Bodega.Ubication ?? "Sin bodega"
         ));
 
         return await PagedList<UnitProductDetailDto>.ToPagedListAsync(

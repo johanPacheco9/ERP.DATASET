@@ -1,0 +1,48 @@
+﻿services:
+  # 1. TU APLICACIÓN BLAZOR (.NET 10)
+  erp.dataset:
+    image: erp.dataset
+    container_name: erp_blazor_app
+    build:
+      context: .
+      dockerfile: ERP.DATASET/Dockerfile
+    ports:
+      - "8080:8080" # El puerto por el que vas a entrar al ERP en el navegador
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # 💡 Magia de Docker: En el Host de la conexión no usas "localhost", usas el nombre del servicio de abajo ("erp-db")
+      - ConnectionStrings__DefaultConnection=Host=erp-db;Database=ERP_DB;Username=postgres;Password=1098825894
+      - AI__OllamaEndpoint=http://erp-ai:11434
+    depends_on:
+      - erp-db
+      - erp-ai
+    restart: always
+
+  # 2. EL MOTOR DE IA (OLLAMA LOCAL)
+  erp-ai:
+    image: ollama/ollama:latest
+    container_name: erp_ollama
+    volumes:
+      - ollama_storage:/root/.ollama # Guarda los modelos en tu disco para no re-descargarlos al reiniciar
+    ports:
+      - "11434:11434"
+    restart: always
+
+  # 3. LA BASE DE DATOS (POSTGRESQL 17)
+  erp-db:
+    image: postgres:17-alpine
+    container_name: erp_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1098825894
+      POSTGRES_DB: ERP_DB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Mantiene tus datos y seeds vivos en el disco duro
+    ports:
+      - "5432:5432"
+    restart: always
+
+# Especificamos dónde se van a crear físicamente las carpetas de datos en tu máquina
+volumes:
+  postgres_data:
+  ollama_storage:

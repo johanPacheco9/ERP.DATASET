@@ -1,0 +1,146 @@
+@page "/BaseProduct"
+@using ERP.DATA.Services.InventarioService.CategoriaService
+@using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests
+@using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses
+@using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests
+
+<div class="container-fluid">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Crear Nuevo Producto Base</h3>
+        </div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(mensajeError))
+            {
+                <div class="alert alert-danger small">@mensajeError</div>
+            }
+            @if (!string.IsNullOrEmpty(mensajeOk))
+            {
+                <div class="alert alert-success small">@mensajeOk</div>
+            }
+            <EditForm Model="@request" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+                <!-- SECCIÓN 1: Información General -->
+                <div class="row g-3">
+                    <h5 class="border-bottom pb-2">Información Básica</h5>
+                    <div class="col-md-3">
+                        <label class="form-label">Código (SKU)</label>
+                        <InputText @bind-Value="request.Codigo" class="form-control" placeholder="Ej: PROD-001" />
+                        <ValidationMessage For="@(() => request.Codigo)" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre del Producto</label>
+                        <InputText @bind-Value="request.Nombre" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Categoría</label>
+                        <InputSelect @bind-Value="request.CategoriaId" class="form-select">
+                            <option value="0">-- Seleccione --</option>
+        
+                            @if (_categorias != null)
+                            {
+                                @foreach (var cat in _categorias)
+                                {
+                                    <option value="@cat.Id">@cat.Nombre</option>
+                                }
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => request.CategoriaId)" />
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Descripción</label>
+                        <InputTextArea @bind-Value="request.Descripcion" class="form-control" rows="2" />
+                    </div>
+                </div>
+                <!-- SECCIÓN 2: Precios e Impuestos -->
+                <div class="row g-3 mt-3">
+                    <h5 class="border-bottom pb-2">Configuración Financiera y Fiscal</h5>
+                    <div class="col-md-3">
+                        <label class="form-label">Costo Unitario</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <InputNumber @bind-Value="request.Costo_Unitario" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Precio de Venta</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <InputNumber @bind-Value="request.Precio_Venta" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">% IVA</label>
+                        <InputNumber @bind-Value="request.PorcentajeIVA" class="form-control" step="0.01" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">% ICA</label>
+                        <InputNumber @bind-Value="request.PorcentajeICA" class="form-control" step="0.01" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <InputCheckbox @bind-Value="request.ExentoIVA" class="form-check-input" id="exentoIva" />
+                            <label class="form-check-label" for="exentoIva">Exento IVA</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- SECCIÓN 3: Logística y Atributos -->
+                <div class="row g-3 mt-3">
+                    <h5 class="border-bottom pb-2">Logística y Atributos Físicos</h5>
+                    <div class="col-md-3">
+                        <label class="form-label">Unidad de Medida</label>
+                        <InputSelect @bind-Value="request.Unidad_Medida" class="form-select">
+                            <option value="UND">Unidades</option>
+                            <option value="KG">Kilogramos</option>
+                            <option value="MT">Metros</option>
+                            <option value="LT">Litros</option>
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Peso (kg)</label>
+                        <InputNumber @bind-Value="request.Peso" class="form-control" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Volumen (m³)</label>
+                        <InputNumber @bind-Value="request.Volumen" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4 pt-2">
+                            <InputCheckbox @bind-Value="request.Es_Perecedero" class="form-check-input" id="perecedero" />
+                            <label class="form-check-label" for="perecedero">Es Perecedero</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- SECCIÓN 4: Extras -->
+                <div class="row g-3 mt-3">
+                    <h5 class="border-bottom pb-2">Metadatos y Notas</h5>
+                    <div class="col-md-6">
+                        <label class="form-label">URL Imagen</label>
+                        <InputText @bind-Value="request.Imagen_Url" class="form-control" placeholder="https://..." />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tags (separados por coma)</label>
+                        <InputText @bind-Value="request.Tags" class="form-control" placeholder="electrónica, nuevo, oferta" />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Notas Internas</label>
+                        <InputTextArea @bind-Value="request.Notas" class="form-control" rows="2" />
+                    </div>
+                </div>
+
+                <div class="mt-5 d-flex justify-content-end gap-2">
+                    <a href="/ProductosDashboard" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-success px-5" disabled="@cargando">
+                        @if (cargando)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Guardar Producto
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>

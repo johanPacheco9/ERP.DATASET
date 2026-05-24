@@ -1,0 +1,84 @@
+@page "/unidades"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Unidades de producto</h1>
+            <p class="inv-subtitle">Cada fila es un ítem en bodega (serial o SKU)</p>
+        </div>
+    </div>
+
+    <div class="row g-2 align-items-center mb-3">
+        <div class="col-md-6">
+            <input type="text" class="form-control form-control-sm"
+                   placeholder="Buscar serial, SKU o producto…"
+                   @bind="_search"
+                   @bind:event="oninput"
+                   @onkeyup="OnSearchKey" />
+        </div>
+        <div class="col-md-auto">
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="Buscar">Buscar</button>
+            <button type="button" class="btn btn-sm btn-link" @onclick="Limpiar">Limpiar</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger small">@_error</div>
+    }
+    else if (_loading)
+    {
+        <div class="inv-loading">Cargando unidades…</div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="inv-card inv-empty">
+            No hay unidades en inventario.
+            @if (_totalCatalogo > 0)
+            {
+                <div class="mt-2 text-muted small">Hay @_totalCatalogo líneas de producto en catálogo; las unidades aparecen al registrar ingresos o tras ejecutar el seed en desarrollo.</div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="inv-card">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>Serial / SKU</th>
+                        <th>Línea de producto</th>
+                        <th>SKU</th>
+                        <th>Bodega</th>
+                        <th>Estado</th>
+                        <th>Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in _items)
+                    {
+                        <tr>
+                            <td><code class="small">@u.Serial</code></td>
+                            <td class="fw-medium">@u.productName</td>
+                            <td class="text-muted small">@u.CodigoVariante</td>
+                            <td>@u.BodegaNombre</td>
+                            <td><span class="inv-badge inv-badge--info">@FormatStatus(u.Status)</span></td>
+                            <td>@(u.PrecioVenta?.ToString("C2") ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted small mt-2">
+            Página @_page de @_totalPages · @_total unidades
+        </p>
+        @if (_totalPages > 1)
+        {
+            <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-outline-secondary" disabled="@(_page <= 1)" @onclick="() => CambiarPagina(_page - 1)">Anterior</button>
+                <button class="btn btn-sm btn-outline-secondary" disabled="@(_page >= _totalPages)" @onclick="() => CambiarPagina(_page + 1)">Siguiente</button>
+            </div>
+        }
+    }
+</div>

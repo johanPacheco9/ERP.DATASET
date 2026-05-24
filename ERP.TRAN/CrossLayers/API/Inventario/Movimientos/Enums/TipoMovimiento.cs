@@ -14,10 +14,10 @@ public enum TipoMovimiento
     [Display(Name="Transferencia")]
     Transferencia = 30,
 
-    [Display(Name =  "Movimiento de perdidas")]
+    [Display(Name =  "Movement de perdidas")]
     Perdida = 40,
 
-    [Display(Name = "Movimiento de bajas")]
+    [Display(Name = "Movement de bajas")]
     Baja = 50
 }
 

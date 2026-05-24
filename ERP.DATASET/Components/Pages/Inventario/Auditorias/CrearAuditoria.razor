@@ -1,0 +1,83 @@
+@page "/auditorias/nueva"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Nueva auditoría</h1>
+            <p class="inv-subtitle">Genera el listado de unidades a contar según bodega y filtros</p>
+        </div>
+        <a href="/auditorias" class="btn btn-outline-secondary btn-sm">Cancelar</a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="inv-card p-4">
+                <EditForm Model="_form" OnValidSubmit="Crear">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Bodega <span class="text-danger">*</span></label>
+                            <InputSelect class="form-select" @bind-Value="_form.WarehouseId">
+                                <option value="0">— Seleccione —</option>
+                                @foreach (var b in _bodegas)
+                                {
+                                    <option value="@b.Id">@b.Name (@b.Code)</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de auditoría</label>
+                            <InputSelect class="form-select" @bind-Value="_form.Type">
+                                @foreach (var t in Enum.GetValues<ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums.AuditType>())
+                                {
+                                    <option value="@t">@t</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha de inicio</label>
+                            <InputDate class="form-control" @bind-Value="_form.StartDate" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">ID responsable</label>
+                            <InputNumber class="form-control" @bind-Value="_form.ResponsibleId" />
+                            <div class="form-text">Usuario que ejecuta el conteo (numérico por ahora).</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Observaciones</label>
+                            <InputTextArea class="form-control" rows="3" @bind-Value="_form.Observations" />
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <InputCheckbox class="form-check-input" @bind-Value="_form.IncludeReservedUnits" id="incRes" />
+                                <label class="form-check-label" for="incRes">Incluir unidades apartadas</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(_error))
+                    {
+                        <div class="alert alert-danger mt-3 small">@_error</div>
+                    }
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary" disabled="@_saving">
+                            @if (_saving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            Crear auditoría
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="inv-card p-3 small text-muted">
+                <strong class="text-dark d-block mb-2">Qué hace esta acción</strong>
+                <p class="mb-2">Al crear la auditoría, el sistema toma todas las unidades disponibles (y opcionalmente apartadas) en la bodega seleccionada y genera una línea de conteo por cada serial.</p>
+                <p class="mb-0">Luego podrás marcar cada unidad como encontrada o no desde el detalle de la auditoría.</p>
+            </div>
+        </div>
+    </div>
+</div>

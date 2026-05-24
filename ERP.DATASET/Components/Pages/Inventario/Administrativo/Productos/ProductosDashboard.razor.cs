@@ -1,6 +1,6 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
+﻿using ERP.DATA.Services.InventarioService.ProductService;
+using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices;
 using Microsoft.AspNetCore.Components;
 
 namespace ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos;
@@ -12,7 +12,7 @@ public partial class ProductosDashboard
     private string _stockFilter = string.Empty;
 
     private int _currentPage = 1;
-    private const int _pageSize = 15;
+    private const int PageSize = 15;
 
     private int _totalItems;
     private int _totalPages;
@@ -20,12 +20,12 @@ public partial class ProductosDashboard
     private bool _nuevoProductoModal = false;
     private bool _isLoading = false;
 
-    private List<ProductoSummaryDto> productos = new();
+    private List<ProductoSummaryDto> _productos = new();
 
     [Inject]
-    public IProductoService ProductoService { get; set; } = null!;
+    public ProductService ProductoService { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         await GetProductos();
     }
@@ -36,7 +36,7 @@ public partial class ProductosDashboard
 
         var request = new ListProductRequest(
             pageNumber: _currentPage,
-            pageSize: _pageSize,
+            pageSize: PageSize,
             minDate: null,
             maxDate: null,
             orderBy: null
@@ -52,7 +52,7 @@ public partial class ProductosDashboard
             CancellationToken.None
         );
 
-        productos = result.ToList();
+        _productos = result.ToList();
         _totalItems = result.TotalCount;
         _totalPages = result.TotalPages;
 

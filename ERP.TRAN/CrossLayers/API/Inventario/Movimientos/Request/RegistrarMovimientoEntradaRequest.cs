@@ -6,16 +6,16 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 public class RegistrarMovimientoEntradaRequest : IValidatableRequest
 {
     [DisplayName("El id del producto a ingresar")]
-    [Required(ErrorMessage = "El ProductoId es obligatorio")]
-    public int ProductoId { get; set; }
+    [Required(ErrorMessage = "El ProductId es obligatorio")]
+    public int LineaProductoId { get; set; }
 
 
     [DisplayName("El id de la bodega a agregar stock")]
-    [Required(ErrorMessage = "El BodegaId es obligatorio")]
+    [Required(ErrorMessage = "El WarehouseId es obligatorio")]
     public int BodegaId { get; set; }
 
 
-    [DisplayName("Cantidad de productos a ingresar")]
+    [DisplayName("Quantity de productos a ingresar")]
     [Required(ErrorMessage ="La cantidad para un movimiento de entrada debe ser al menos de 1")]
     [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
     public int Cantidad { get; set; }
@@ -32,19 +32,21 @@ public class RegistrarMovimientoEntradaRequest : IValidatableRequest
     public string? Lote { get; set; }
     public DateTime? FechaVencimiento { get; set; }
 
-    // Motivo y observaciones
+    // Motive y observaciones
     public string Motivo { get; set; } = "Entrada de inventario";
     public string? Observaciones { get; set; }
+
+    public bool? RequiereSerial {get; set;}
 
     public bool ParametersAreValid(out string? errors)
     {
         var errorList = new List<string>();
 
-        if (ProductoId == 0 )
-            errorList.Add("El ProductoId es obligatorio");
+        if (LineaProductoId == 0 )
+            errorList.Add("El ProductId es obligatorio");
 
         if (BodegaId == 0)
-            errorList.Add("El BodegaId es obligatorio");
+            errorList.Add("El WarehouseId es obligatorio");
 
         if (Cantidad <= 0)
             errorList.Add("La cantidad debe ser mayor a 0");

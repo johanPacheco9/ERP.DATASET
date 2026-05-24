@@ -1,4 +1,5 @@
-﻿using Ardalis.GuardClauses;
+using Ardalis.GuardClauses;
+using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Requests;
@@ -49,7 +50,8 @@ public sealed class ListUnitProductRequest : BaseListRequest
     [DisplayName("Filtro: Máxima fecha de versión")]
     public DateTime? MaxDate { get; set; }
 
-
+    /// <summary>Búsqueda por serial, SKU o nombre de línea de producto.</summary>
+    public string? Search { get; set; }
 
     /// <inheritdoc />
     public override bool ParametersAreValid(out string? errors)

@@ -1,0 +1,99 @@
+@page "/cartera"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Cartera</h1>
+            <p class="inv-subtitle">Seguimiento de ventas a credito, abonos y saldos pendientes</p>
+        </div>
+        <a href="/ventas" class="btn btn-outline-secondary btn-sm">Ventas</a>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="inv-loading">Cargando...</div>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <div class="inv-card p-3">
+                    <span class="text-muted small">Saldo por cobrar</span>
+                    <div class="fs-4 fw-bold text-danger">@TotalBalance.ToString("C2")</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="inv-card p-3">
+                    <span class="text-muted small">Ventas abiertas</span>
+                    <div class="fs-4 fw-bold">@_items.Count(i => i.Balance > 0)</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="inv-card p-3">
+                    <span class="text-muted small">Recaudado en ventas listadas</span>
+                    <div class="fs-4 fw-bold text-success">@TotalPaid.ToString("C2")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="inv-card p-3 mb-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label">Buscar</label>
+                    <input class="form-control" placeholder="Cliente, documento o numero de venta" @bind="_search" @bind:event="oninput" />
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="openOnly" @bind="_onlyOpen" @bind:after="LoadData" />
+                        <label class="form-check-label" for="openOnly">Solo saldos pendientes</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!FilteredItems.Any())
+        {
+            <div class="inv-card inv-empty">No hay cuentas por cobrar con los filtros actuales.</div>
+        }
+        else
+        {
+            <div class="inv-card">
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th>Venta</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Pagado</th>
+                            <th class="text-end">Saldo</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in FilteredItems)
+                        {
+                            <tr>
+                                <td><code>@item.SaleNumber</code></td>
+                                <td class="text-muted small">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="fw-semibold">@item.ClientName</span>
+                                    <div class="small text-muted">@item.ClientIdentification</div>
+                                </td>
+                                <td class="text-end">@item.SaleTotal.ToString("C2")</td>
+                                <td class="text-end text-success">@item.TotalPaid.ToString("C2")</td>
+                                <td class="text-end fw-bold @(item.Balance > 0 ? "text-danger" : "text-success")">@item.Balance.ToString("C2")</td>
+                                <td><span class="inv-badge @(item.Balance > 0 ? "inv-badge--info" : "inv-badge--ok")">@item.PaymentStatus</span></td>
+                                <td class="text-end">
+                                    <a href="/ventas/@item.SaleId" class="btn btn-sm btn-outline-primary">Gestionar</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</div>

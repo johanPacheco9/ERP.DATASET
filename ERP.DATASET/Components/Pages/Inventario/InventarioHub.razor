@@ -1,0 +1,77 @@
+@page "/inventario"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Inventario</h1>
+            <p class="inv-subtitle">Catálogo, existencias, movimientos y auditorías físicas</p>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+            <a href="/ProductosDashboard" class="inv-module-card">
+                <h3><i class="bi bi-tag me-2 text-primary"></i>Productos</h3>
+                <p>Catálogo, variantes, precios y stock por variante.</p>
+                <div class="inv-module-status inv-module-status--ready">Operativo</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <a href="/categorias" class="inv-module-card">
+                <h3><i class="bi bi-folder2 me-2 text-primary"></i>Categorías</h3>
+                <p>Clasificación del catálogo para reportes y filtros.</p>
+                <div class="inv-module-status inv-module-status--ready">Operativo</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <a href="/proveedores" class="inv-module-card">
+                <h3><i class="bi bi-truck me-2 text-primary"></i>Proveedores</h3>
+                <p>Maestro de proveedores vinculado a productos.</p>
+                <div class="inv-module-status inv-module-status--partial">Listado básico</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <a href="/bodegas" class="inv-module-card">
+                <h3><i class="bi bi-building me-2 text-primary"></i>Bodegas</h3>
+                <p>Ubicaciones de almacenamiento y capacidad.</p>
+                <div class="inv-module-status inv-module-status--ready">Operativo</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <a href="/movimientos" class="inv-module-card">
+                <h3><i class="bi bi-arrow-left-right me-2 text-primary"></i>Movimientos</h3>
+                <p>Entradas, salidas y kardex de existencias.</p>
+                <div class="inv-module-status inv-module-status--ready">Operativo</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <a href="/unidades" class="inv-module-card">
+                <h3><i class="bi bi-upc-scan me-2 text-primary"></i>Unidades</h3>
+                <p>Productos unitarios con serial y bodega actual.</p>
+                <div class="inv-module-status inv-module-status--ready">Operativo</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <a href="/auditorias" class="inv-module-card">
+                <h3><i class="bi bi-clipboard-check me-2 text-primary"></i>Auditorías</h3>
+                <p>Conteo físico vs sistema por bodega o categoría.</p>
+                <div class="inv-module-status inv-module-status--wip">En uso</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <a href="/ventas" class="inv-module-card">
+                <h3><i class="bi bi-cart3 me-2 text-primary"></i>Ventas</h3>
+                <p>Registro de ventas con descuento automático de inventario.</p>
+                <div class="inv-module-status inv-module-status--ready">Operativo</div>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <a href="/clientes" class="inv-module-card">
+                <h3><i class="bi bi-people me-2 text-primary"></i>Clientes</h3>
+                <p>Clientes vinculados a cada transacción de venta.</p>
+                <div class="inv-module-status inv-module-status--ready">Operativo</div>
+            </a>
+        </div>
+    </div>
+</div>

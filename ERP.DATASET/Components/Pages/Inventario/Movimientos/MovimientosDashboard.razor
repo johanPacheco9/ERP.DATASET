@@ -1,0 +1,60 @@
+@page "/movimientos"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Movimientos</h1>
+            <p class="inv-subtitle">Historial de entradas, salidas y ajustes de inventario</p>
+        </div>
+        <a href="/ProductosDashboard" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-box-arrow-in-down me-1"></i>Nuevo ingreso
+        </a>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="inv-loading">Cargando…</div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="inv-card inv-empty">No hay movimientos registrados.</div>
+    }
+    else
+    {
+        <div class="inv-card">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Costo total</th>
+                        <th>Bodega</th>
+                        <th>Motivo</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in _items)
+                    {
+                        <tr>
+                            <td class="text-muted">@m.MovimientoId</td>
+                            <td>
+                                <span class="inv-badge @GetTipoClass(m.TipoMovimiento)">
+                                    @m.TipoMovimiento.ToString()
+                                </span>
+                            </td>
+                            <td>@m.Cantidad</td>
+                            <td>@m.CostoTotal.ToString("C2")</td>
+                            <td class="text-muted">@m.BodegaId</td>
+                            <td class="text-muted small">@(m.Motivo ?? "—")</td>
+                            <td class="text-muted small">@m.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted small mt-2">Mostrando los últimos @_items.Count movimientos</p>
+    }
+</div>

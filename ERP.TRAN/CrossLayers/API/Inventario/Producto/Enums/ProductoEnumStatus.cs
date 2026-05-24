@@ -7,7 +7,7 @@ public enum ProductoEnumStatus
     [Display(Name = "Inactivo")]
     Inactivo = 0,
 
-    [Display(Name = "Activo para venta")]
+    [Display(Name = "IsActive para venta")]
     Activo = 1,
 
     [Display(Name = "Descontinuado")]

@@ -1,0 +1,64 @@
+@page "/bodegas"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Bodegas</h1>
+            <p class="inv-subtitle">Almacenes y ubicaciones de inventario</p>
+        </div>
+        <a href="/Warehouse" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Editar en línea
+        </a>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="inv-loading">Cargando…</div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="inv-card inv-empty">No hay bodegas configuradas.</div>
+    }
+    else
+    {
+        <div class="inv-card">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Ubicación</th>
+                        <th>Tienda</th>
+                        <th>Productos</th>
+                        <th>Capacidad</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in _items)
+                    {
+                        <tr>
+                            <td><code class="small">@b.Code</code></td>
+                            <td class="fw-medium">@b.Name</td>
+                            <td class="text-muted">@(b.Location ?? "—")</td>
+                            <td class="text-muted small">@b.StoreName</td>
+                            <td>@b.TotalProducts</td>
+                            <td class="text-muted">@(b.MaxCapacity?.ToString("N0") ?? "—")</td>
+                            <td>
+                                @if (b.IsActive)
+                                {
+                                    <span class="inv-badge inv-badge--ok">Activa</span>
+                                }
+                                else
+                                {
+                                    <span class="inv-badge inv-badge--muted">Inactiva</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

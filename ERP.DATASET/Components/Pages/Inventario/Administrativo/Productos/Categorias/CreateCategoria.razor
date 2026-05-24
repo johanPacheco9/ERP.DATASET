@@ -1,5 +1,106 @@
-﻿<h3>CreateCategoria</h3>
+﻿@page "/categorias/nuevo"
+@rendermode InteractiveServer
 
-@code {
+<div class="container-fluid px-4 py-4">
+    <!-- Header de la sección -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 mb-0 text-gray-800">Maestro de Categorías</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/BaseProduct">Inventario</a></li>
+                    <li class="breadcrumb-item active">Administración</li>
+                    <li class="breadcrumb-item active">Nuevo Registro</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <button type="button" class="btn btn-outline-secondary" @onclick="Cancelar">
+                <i class="bi bi-arrow-left me-1"></i> Volver al listado
+            </button>
+        </div>
+    </div>
 
-}
+    <div class="row">
+        <!-- Columna Principal: Formulario -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-primary">Información General</h6>
+                </div>
+                <div class="card-body p-4">
+                    <EditForm Model="@_CreateForm" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold small">NOMBRE DE CATEGORÍA</label>
+                                <InputText @bind-Value="_CreateForm.Name" 
+                                           class="form-control border-1 py-2" 
+                                           placeholder="Nombre descriptivo" />
+                                <ValidationMessage For="@(() => _CreateForm.Name)" class="text-danger small" />
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold small">CÓDIGO INTERNO (OPCIONAL)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-hash"></i></span>
+                                    <InputText @bind-Value="_CreateForm.Code" 
+                                               class="form-control border-1 py-2" 
+                                               placeholder="Ej: CAT-001" />
+                                </div>
+                                <ValidationMessage For="@(() => _CreateForm.Code)" class="text-danger small" />
+                            </div>
+
+                            <div class="col-12 mb-4">
+                                <label class="form-label fw-bold small">DESCRIPCIÓN OPERATIVA</label>
+                                <InputTextArea @bind-Value="_CreateForm.Description" 
+                                               class="form-control border-1" 
+                                               rows="5" 
+                                               placeholder="Detalle el uso de esta categoría en el inventario..." />
+                                <ValidationMessage For="@(() => _CreateForm.Description)" class="text-danger small" />
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(_mensajeError))
+                        {
+                            <div class="alert alert-light border-start border-danger border-4 text-danger mb-4">
+                                <i class="bi bi-x-circle-fill me-2"></i> @_mensajeError
+                            </div>
+                        }
+
+                        <div class="border-top pt-4 d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm" disabled="@_estaCargando">
+                                @if (_estaCargando)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span> <span>Guardando...</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-check-lg me-1"></i> <span>Confirmar y Guardar</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Lateral: Ayuda o Info adicional -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card border-0 bg-light shadow-none">
+                <div class="card-body">
+                    <h5 class="fw-bold"><i class="bi bi-info-circle me-2"></i> Guía de Usuario</h5>
+                    <p class="text-muted small mt-3">
+                        Las categorías permiten agrupar productos para generar reportes de existencias y movimientos más precisos.
+                    </p>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-2"><i class="bi bi-dot"></i> <strong>Nombre:</strong> Use nombres únicos y claros.</li>
+                        <li class="mb-2"><i class="bi bi-dot"></i> <strong>Código:</strong> Si se omite, el ERP asignará uno alfanumérico automáticamente.</li>
+                        <li class="mb-2"><i class="bi bi-dot"></i> <strong>Mantenimiento:</strong> Podrá editar la descripción y el nombre posteriormente desde el panel de edición.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

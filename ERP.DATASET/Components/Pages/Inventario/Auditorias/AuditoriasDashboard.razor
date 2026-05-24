@@ -1,0 +1,68 @@
+@page "/auditorias"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Auditorías</h1>
+            <p class="inv-subtitle">Conteo físico de unidades vs existencias en sistema</p>
+        </div>
+        <a href="/auditorias/nueva" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Nueva auditoría
+        </a>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="inv-loading">Cargando…</div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="inv-card inv-empty">
+            No hay auditorías registradas.
+            <div class="mt-2"><a href="/auditorias/nueva">Programar la primera</a></div>
+        </div>
+    }
+    else
+    {
+        <div class="inv-card">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Inicio</th>
+                        <th>Bodega</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Progreso</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in _items)
+                    {
+                        var pct = a.TotalExpectedUnits > 0
+                            ? (int)((double)a.TotalCountedUnits / a.TotalExpectedUnits * 100)
+                            : 0;
+                        <tr>
+                            <td class="fw-medium">@a.Id</td>
+                            <td class="text-muted small">@a.StartDate.ToString("dd/MM/yyyy")</td>
+                            <td>@(a.WarehouseName ?? "—")</td>
+                            <td class="text-muted small">@a.TypeDisplay</td>
+                            <td><span class="inv-badge inv-badge--info">@a.StatusDisplay</span></td>
+                            <td style="min-width: 140px;">
+                                <div class="small text-muted mb-1">@a.TotalCountedUnits / @a.TotalExpectedUnits</div>
+                                <div class="inv-progress">
+                                    <div class="inv-progress-bar" style="width: @(pct)%"></div>
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <a href="/auditorias/@a.Id" class="btn btn-sm btn-outline-secondary">Ver</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

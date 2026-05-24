@@ -1,27 +1,86 @@
-﻿@rendermode pageRenderMode
+@rendermode pageRenderMode
 
 <nav class="sidebar @(IsCollapsed ? "collapsed" : "")">
-    <div class="sidebar-header d-flex justify-content-between align-items-center px-3">
-        <span class="logo">ERP.DATASET</span>
-        <button class="btn sidebar-toggle shadow-sm"
-                @onclick="Toggle">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5" />
-            </svg>
+    <div class="sidebar-header d-flex justify-content-between align-items-center px-3 py-3">
+        <span class="logo">ERP</span>
+        <button class="btn sidebar-toggle btn-sm" @onclick="Toggle" type="button" aria-label="Menú">
+            <i class="bi bi-list"></i>
         </button>
     </div>
-  
-    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-        <i class="bi bi-house"></i>
+
+    <div class="px-3 mb-2">
+        <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">General</small>
+    </div>
+
+    <NavLink class="nav-link sidebar-link" href="" Match="NavLinkMatch.All">
+        <i class="bi bi-grid-1x2"></i>
         <span class="text">Inicio</span>
     </NavLink>
 
-    <NavLink class="nav-link" href="ProductManagement">
-        <i class="bi bi-box"></i>
-        <span class="text">Operativo</span>
+    <div class="px-3 mt-3 mb-2">
+        <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Inventario</small>
+    </div>
+
+    <NavLink class="nav-link sidebar-link" href="inventario">
+        <i class="bi bi-box-seam"></i>
+        <span class="text">Módulo</span>
     </NavLink>
 
-    <NavLink class="nav-link" href="clientes">
+    <NavLink class="nav-link sidebar-link" href="ProductosDashboard">
+        <i class="bi bi-tag"></i>
+        <span class="text">Productos</span>
+    </NavLink>
+
+    <NavLink class="nav-link sidebar-link" href="categorias">
+        <i class="bi bi-folder2"></i>
+        <span class="text">Categorías</span>
+    </NavLink>
+
+    <NavLink class="nav-link sidebar-link" href="bodegas">
+        <i class="bi bi-building"></i>
+        <span class="text">Bodegas</span>
+    </NavLink>
+
+    <NavLink class="nav-link sidebar-link" href="movimientos">
+        <i class="bi bi-arrow-left-right"></i>
+        <span class="text">Movimientos</span>
+    </NavLink>
+
+    <NavLink class="nav-link sidebar-link" href="stock-alertas">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span class="text">Alertas</span>
+    </NavLink>
+
+    <NavLink class="nav-link sidebar-link" href="unidades">
+        <i class="bi bi-upc-scan"></i>
+        <span class="text">Unidades</span>
+    </NavLink>
+
+    <NavLink class="nav-link sidebar-link" href="auditorias">
+        <i class="bi bi-clipboard-check"></i>
+        <span class="text">Auditorías</span>
+    </NavLink>
+
+    <NavLink class="nav-link sidebar-link" href="proveedores">
+        <i class="bi bi-truck"></i>
+        <span class="text">Proveedores</span>
+    </NavLink>
+
+    <div class="px-3 mt-3 mb-2">
+        <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Ventas</small>
+    </div>
+
+    <NavLink class="nav-link sidebar-link" href="ventas">
+        <i class="bi bi-cart3"></i>
+        <span class="text">Ventas</span>
+    </NavLink>
+
+    <NavLink class="nav-link sidebar-link" href="cartera">
+        <i class="bi bi-cash-stack"></i>
+        <span class="text">Cartera</span>
+    </NavLink>
+
+    <NavLink class="nav-link sidebar-link" href="clientes">
         <i class="bi bi-people"></i>
         <span class="text">Clientes</span>
     </NavLink>
@@ -31,12 +90,4 @@
     private bool IsCollapsed;
     private static IComponentRenderMode pageRenderMode = InteractiveServer;
     void Toggle() => IsCollapsed = !IsCollapsed;
-
-    private async Task Boton()
-    {
-        Console.WriteLine("Interacive");
-    }
 }
-
-
-

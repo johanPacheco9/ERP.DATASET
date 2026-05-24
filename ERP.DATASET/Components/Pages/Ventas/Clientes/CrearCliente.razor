@@ -1,0 +1,56 @@
+@page "/clientes/nuevo"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Nuevo cliente</h1>
+        </div>
+        <a href="/clientes" class="btn btn-outline-secondary btn-sm">Volver</a>
+    </div>
+
+    <div class="inv-card p-4 col-lg-8">
+        <EditForm Model="_form" OnValidSubmit="Guardar">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Nombre completo</label>
+                    <InputText class="form-control" @bind-Value="_form.Name" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tipo documento</label>
+                    <InputSelect class="form-select" @bind-Value="_form.DniType">
+                        @foreach (var t in Enum.GetValues<ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType>())
+                        {
+                            <option value="@t">@t</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Número identificación</label>
+                    <InputText class="form-control" @bind-Value="_form.IdentificationNumber" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Teléfono</label>
+                    <InputText class="form-control" @bind-Value="_form.PhoneNumber" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Ciudad</label>
+                    <InputText class="form-control" @bind-Value="_form.City" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Dirección</label>
+                    <InputText class="form-control" @bind-Value="_form.Address" />
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="alert alert-danger mt-3 small">@_error</div>
+            }
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary" disabled="@_saving">Guardar</button>
+            </div>
+        </EditForm>
+    </div>
+</div>

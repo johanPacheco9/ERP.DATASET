@@ -1,11 +1,10 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductosInventary;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 
 namespace ERP.DATA.Services.InventarioService.MovimientoService;
 
@@ -18,17 +17,21 @@ public partial class MovimientoService
         if (!salida.ParametersAreValid(out var errors))
             throw new InvalidOperationException(errors);
 
-        using var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
+        using var tx = await context.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
 
-            var unidadesDisponibles = await _context.UnitProduct
+            var lineaProductoId = salida.LineaProductoId > 0
+                ? salida.LineaProductoId
+                : salida.ProductoVarianteId;
+
+            var unidadesDisponibles = await context.Productos
                 .Where(u =>
-                    u.ProductoVarianteId == salida.ProductoVarianteId &&
+                    u.LineaProductoId == lineaProductoId &&
                     u.BodegaId == salida.BodegaId &&
-                    u.UnitProductStatus == UnitProductStatus.Available)
-                .OrderBy(u => u.FechaIngreso) // FIFO REAL
+                    u.Status == ProductoStatus.Available)
+                .OrderBy(u => u.CreatedAt)
                 .ThenBy(u => u.Id)
                 .Take(salida.Cantidad)
                 .ToListAsync(cancellationToken);
@@ -38,64 +41,67 @@ public partial class MovimientoService
                     $"Stock insuficiente. Disponible: {unidadesDisponibles.Count}");
 
             // 2. Crear movimiento agregado
-            var movimiento = new Movimiento
+            var movimiento = new Movement
             {
-                BodegaId = salida.BodegaId,
-                ProductoVarianteId = salida.ProductoVarianteId,
-                ProductoId = unidadesDisponibles.First().ProductoId,
-                TipoMovimiento = TipoMovimiento.Salida,
-                Cantidad = salida.Cantidad,
-                CostoUnitario = 0m, // opcional: promedio / FIFO
-                Motivo = salida.Motivo,
-                Observaciones = salida.Observaciones,
+                WarehouseId = salida.BodegaId,
+                LineaProductoId = lineaProductoId,
+                ProductId = unidadesDisponibles.First().Id,
+                Type = TipoMovimiento.Salida,
+                Quantity = salida.Cantidad,
+                UnitCost = 0m, // opcional: promedio / FIFO
+                Motive = salida.Motivo,
+                Observations = salida.Observaciones,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = "systemuser"
             };
 
-            _context.Movimientos.Add(movimiento);
-            await _context.SaveChangesAsync(cancellationToken);
+            context.Movements.Add(movimiento);
+            await context.SaveChangesAsync(cancellationToken);
 
             foreach (var unidad in unidadesDisponibles)
             {
-                unidad.UnitProductStatus = UnitProductStatus.Sold;
+                unidad.Status = ProductoStatus.Sold;
                 unidad.UpdatedAt = DateTime.UtcNow;
 
-                _context.UnitProductMovements.Add(new UnitProductMovement
+                context.UnitProductMovements.Add(new UnitProductMovement
                 {
-                    ProductoUnidadId = unidad.Id,
+                    ProductoId = unidad.Id,
+                    MovimientoId = movimiento.Id,
                     TipoMovimiento = TipoMovimiento.Salida,
                     BodegaOrigenId = salida.BodegaId,
-                    BodegaDestinoId = null,
                     Motivo = salida.Motivo,
                     Observaciones = $"Salida por movimiento #{movimiento.Id}"
                 });
             }
 
             // 4. Actualizar stock agregado
-            var stock = await _context.StockBodegas.FirstAsync(
-                s => s.BodegaId == salida.BodegaId &&
-                     s.ProductoVarianteId == salida.ProductoVarianteId,
+            var stock = await context.WarehouseStock.FirstOrDefaultAsync(
+                s => s.WarehouseId == salida.BodegaId &&
+                     s.LineaProductoId == lineaProductoId,
                 cancellationToken);
 
-            stock.StockActual -= salida.Cantidad;
-            stock.FechaActualizacion = DateTime.UtcNow;
+            if (stock != null)
+            {
+                stock.CurrentStock -= salida.Cantidad;
+                stock.FechaActualizacion = DateTime.UtcNow;
+            }
 
-            await _context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
 
             return new MovimientoDetailDto(
                 movimiento.Id,
-                movimiento.ProductoId!.Value,
-                movimiento.ProductoVarianteId,
-                movimiento.BodegaId,
-                movimiento.TipoMovimiento,
-                movimiento.Cantidad,
-                movimiento.CostoUnitario,
-                movimiento.CostoTotal,
+                movimiento.ProductId!.Value,
+                movimiento.LineaProductoId,
+                movimiento.WarehouseId,
+                movimiento.Type,
+                movimiento.Quantity,
+                movimiento.UnitCost,
+                movimiento.TotalCost,
                 movimiento.Lote,
-                movimiento.ReferenciaTipo,
-                movimiento.Motivo,
-                movimiento.Observaciones,
+                movimiento.ReferenceTye,
+                movimiento.Motive,
+                movimiento.Observations,
                 movimiento.CreatedAt,
                 movimiento.CreatedBy
             );

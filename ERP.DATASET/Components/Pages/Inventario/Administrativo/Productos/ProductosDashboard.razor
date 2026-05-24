@@ -1,4 +1,4 @@
-﻿@page "/ProductosDashboard"
+@page "/ProductosDashboard"
 @using ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos
 @using ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos.Movimientos
 @rendermode InteractiveServer
@@ -11,9 +11,9 @@
             <h1 class="minimal-title">Productos</h1>
             <p class="minimal-subtitle">Gestión de inventario</p>
         </div>
-        <button @onclick="@NuevoProducto" uc class="minimal-btn primary">
-            <span class="btn-icon">+</span>
-            Nuevo Producto
+        <button @onclick="NuevoProducto" class="minimal-btn primary" type="button">
+            <i class="bi bi-plus-lg"></i>
+            Nuevo producto
         </button>
     </div>
     <div class="row g-2 align-items-center mb-3">
@@ -65,6 +65,16 @@
     </div>
 
 
+    @if (_isLoading)
+    {
+        <div class="inv-loading py-5">Cargando productos…</div>
+    }
+    else if (!_productos.Any())
+    {
+        <div class="inv-card inv-empty">No hay productos. Use «Nuevo producto» para registrar el primero.</div>
+    }
+    else
+    {
     <div class="minimal-table-container">
         <table class="minimal-table">
             <thead>
@@ -79,7 +89,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var product in productos)
+                @foreach (var product in _productos)
                 {
                     var totalStock = product.ProductoVariantes.Sum(v => v.Stock);
                     var totalMinStock = product.ProductoVariantes.Sum(v => v.StockMinimo);
@@ -123,14 +133,14 @@
 
                         <td class="actions-cell">
                             <div class="actions-menu">
-                                <button class="icon-btn" @onclick="() => Ver(product)" title="Ver">
-                                    👁️
+                                <button class="icon-btn" @onclick="() => Ver(product)" title="Ver" type="button">
+                                    <i class="bi bi-eye"></i>
                                 </button>
-                                <button class="icon-btn" @onclick="() => Editar(product)" title="Editar">
-                                    ✏️
+                                <button class="icon-btn" @onclick="() => Editar(product)" title="Editar" type="button">
+                                    <i class="bi bi-pencil"></i>
                                 </button>
-                                <button class="icon-btn danger" @onclick="() => Eliminar(product)" title="Eliminar">
-                                    🗑️
+                                <button class="icon-btn danger" @onclick="() => Eliminar(product)" title="Eliminar" type="button">
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </div>
                         </td>
@@ -143,7 +153,7 @@
     <!-- Paginación Minimalista -->
     <div class="pagination-section">
         <div class="pagination-info">
-            Mostrando <strong>@productos.Count</strong> productos
+            Mostrando <strong>@_productos.Count</strong> productos
         </div>
         <div class="pagination-controls">
             <button class="pagination-btn @(_currentPage == 1 ? "disabled" : "")"
@@ -167,24 +177,21 @@
             </button>
         </div>
     </div>
+    }
 </div>
 
 @if (_nuevoProductoModal)
 {
     <div class="modal d-block mt-0" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content" style="">
-                <div class="modal-header border-0">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
                     <button type="button" class="btn-close" @onclick="CerrarModal"></button>
                 </div>
-                <div class="w-100 p-0">
-                    <div class="container-fluid p-0">
-                        <CrearIngresoProductos OnClose="CerrarModal" />
-                    </div>
+                <div class="modal-body pt-0">  <!-- ← Usar modal-body correctamente -->
+                    <CrearIngresoProductos OnClose="CerrarModal" />
                 </div>
-
             </div>
         </div>
     </div>
-    <div class="modal-backdrop fade show"></div>
 }

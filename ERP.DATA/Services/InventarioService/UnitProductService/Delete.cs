@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ERP.DATA.Services.InventarioService.UnitProductService
+﻿namespace ERP.DATA.Services.InventarioService.UnitProductService
 {
     internal class Delete
     {

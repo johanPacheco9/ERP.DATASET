@@ -3,6 +3,7 @@ using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.UnitProductController;
@@ -30,7 +31,7 @@ public sealed class GetUnitProductByIdEndpoint(
 
         if (producto is null)
             return NotFound();
-        TraceFound(nameof(Product), request.Id);
+        TraceFound(nameof(LineaProducto), request.Id);
 
         return producto;
     }

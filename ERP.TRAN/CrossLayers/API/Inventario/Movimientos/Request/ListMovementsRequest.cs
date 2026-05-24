@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Ardalis.GuardClauses;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Requests;
 using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
@@ -14,10 +15,9 @@ public class ListMovementsRequest : BaseListRequest, IValidatableRequest
     /// <remarks>
     ///     Son requeridos los constructores sin parámetros para la deserialización de JSON.
     /// </remarks>
-
     public ListMovementsRequest()
     {
-        OrderBy = $"{nameof(WarehouseSummaryDto.Id)} desc";
+        OrderBy = $"{nameof(MovimientoDetailDto.MovimientoId)} desc";
     }
 
     /// <summary>
@@ -28,8 +28,9 @@ public class ListMovementsRequest : BaseListRequest, IValidatableRequest
     /// <param name="minDate">Fecha mínima de creación del cupón</param>
     /// <param name="maxDate">Fecha máxima de creación del cupón</param>
     /// <param name="orderBy">Criterio de ordenamiento</param>
-    public ListMovementsRequest(int pageNumber, int pageSize, int? storeId,
-        WarehouseStatus? status, DateTime? minDate = null, DateTime? maxDate = null, string? orderBy = null)
+    public ListMovementsRequest(
+        int pageNumber, int pageSize, int? storeId,
+        DateTime? minDate = null, DateTime? maxDate = null, string? orderBy = null)
     {
         OrderBy = orderBy ?? OrderBy;
         PageNumber = Guard.Against.Expression(i => i < 1, pageNumber, "Inválido");
@@ -37,7 +38,6 @@ public class ListMovementsRequest : BaseListRequest, IValidatableRequest
         MinDate = minDate;
         MaxDate = maxDate;
         StoreId = storeId;
-        Status = status;
     }
 
     /// <summary>
@@ -57,7 +57,6 @@ public class ListMovementsRequest : BaseListRequest, IValidatableRequest
     /// </summary>
     public int? StoreId { get; set; }
 
-    public WarehouseStatus? Status { get; set; }
     /// <inheritdoc />
     public override bool ParametersAreValid(out string? errors)
     {
@@ -78,11 +77,8 @@ public class ListMovementsRequest : BaseListRequest, IValidatableRequest
         {
             var validFields = new[]
             {
-            nameof(WarehouseSummaryDto.Id),
-            nameof(WarehouseSummaryDto.Name),
-            nameof(WarehouseSummaryDto.Code),
-            nameof(WarehouseSummaryDto.MaxCapacity)
-        };
+                nameof(MovimientoDetailDto.MovimientoId)
+            };
 
             // Verifica si el campo de ordenamiento contiene alguno de los campos válidos
             if (!validFields.Any(v => OrderBy.Contains(v, StringComparison.OrdinalIgnoreCase)))
@@ -91,7 +87,7 @@ public class ListMovementsRequest : BaseListRequest, IValidatableRequest
             }
         }
         errors = errorList.Any() ? string.Join("; ", errorList) : null;
+
         return string.IsNullOrEmpty(errors);
     }
-
 }

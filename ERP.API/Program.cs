@@ -3,6 +3,7 @@ using ERP.DATA.DependencyInjections;
 using ERP.DATA.Repositories;
 using ERP.TRAN.CrossLayers.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using MainDataContext = ERP.DATA.Repositories.MainDataContext;
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 // Add services to the container.
@@ -28,7 +29,7 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<MainDataContext>();
 
-    await OneShotDatabaseSeeder.SeedAsync(context);
+    //await OneShotDatabaseSeeder.SeedAsync(context);
 }
 
 // Configure the HTTP request pipeline.

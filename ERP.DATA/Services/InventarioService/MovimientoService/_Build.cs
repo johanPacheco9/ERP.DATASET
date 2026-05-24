@@ -1,22 +1,14 @@
 ﻿using ERP.DATA.Repositories;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.BodegasInventary;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovimientos;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
+using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IMovement;
 using Microsoft.Extensions.Logging;
+using MainDataContext = ERP.DATA.Repositories.MainDataContext;
 
 namespace ERP.DATA.Services.InventarioService.MovimientoService;
 
-public partial class MovimientoService : IMovimientoService
+public partial class MovimientoService(ILogger<MovimientoService> logger, MainDataContext context)
 {
-    private readonly ILogger<MovimientoService> _logger;
-    private readonly MainDataContext _context;
-
-    public MovimientoService(ILogger<MovimientoService> logger, MainDataContext context)
-    {
-        _logger = logger;
-        _context = context;
-    }
-
-    public Task<Movimiento> GetMovimientoByIdAsync(Guid id, CancellationToken cancellationToken)
+    public Task<Movement> GetMovimientoByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

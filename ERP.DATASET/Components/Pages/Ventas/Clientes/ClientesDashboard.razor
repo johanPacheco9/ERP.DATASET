@@ -1,0 +1,53 @@
+@page "/clientes"
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Clientes</h1>
+            <p class="inv-subtitle">Maestro de clientes para facturación y ventas</p>
+        </div>
+        <a href="/clientes/nuevo" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Nuevo cliente
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger small">@_error</div>
+    }
+    else if (_loading)
+    {
+        <div class="inv-loading">Cargando…</div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="inv-card inv-empty">No hay clientes. <a href="/clientes/nuevo">Registrar uno</a></div>
+    }
+    else
+    {
+        <div class="inv-card">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Identificación</th>
+                        <th>Teléfono</th>
+                        <th>Ciudad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in _items)
+                    {
+                        <tr>
+                            <td class="fw-medium">@c.Name</td>
+                            <td>@c.IdentificationNumber</td>
+                            <td class="text-muted">@(c.PhoneNumber ?? "—")</td>
+                            <td class="text-muted">@(c.City ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

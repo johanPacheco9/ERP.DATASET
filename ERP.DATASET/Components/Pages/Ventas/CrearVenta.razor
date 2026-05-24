@@ -1,0 +1,188 @@
+@page "/ventas/nueva"
+@using ERP.TRAN.CrossLayers.API.Pos.Payments.Enums
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Nueva venta</h1>
+            <p class="inv-subtitle">Al confirmar se descuenta stock y se registran movimientos de salida</p>
+        </div>
+        <a href="/ventas" class="btn btn-outline-secondary btn-sm">Cancelar</a>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="inv-loading">Cargando…</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="inv-card p-3 mb-3">
+                    <h6 class="fw-semibold mb-3">Datos de la venta</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Cliente</label>
+                        <InputSelect class="form-select" @bind-Value="_clientId">
+                            <option value="0">Seleccione cliente...</option>
+                            @foreach (var c in _clientes)
+                            {
+                                <option value="@c.Id">@c.Name — @c.IdentificationNumber</option>
+                            }
+                        </InputSelect>
+                        @if (!_clientes.Any())
+                        {
+                            <div class="form-text"><a href="/clientes/nuevo">Crear cliente</a></div>
+                        }
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bodega de despacho</label>
+                        <InputSelect class="form-select" @bind-Value="_warehouseId" @bind-Value:after="OnWarehouseChanged">
+                            <option value="0">Seleccione bodega...</option>
+                            @foreach (var b in _bodegas)
+                            {
+                                <option value="@b.Id">@b.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Notas</label>
+                        <InputTextArea class="form-control" rows="2" @bind-Value="_notes" />
+                    </div>
+                </div>
+
+                <div class="inv-card p-3">
+                    <h6 class="fw-semibold mb-3">Agregar producto</h6>
+                    <div class="mb-2">
+                        <label class="form-label">Línea de producto</label>
+                        <InputSelect class="form-select" @bind-Value="_addLineaId" @bind-Value:after="OnProductChanged">
+                            <option value="0">— Seleccione —</option>
+                            @foreach (var p in _productos)
+                            {
+                                <option value="@p.Id">@p.Nombre (@p.Codigo)</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    @if (_addLineaId > 0 && _warehouseId > 0)
+                    {
+                        <p class="small text-muted mb-2">
+                            Disponible en bodega: <strong>@AddAvailableAfterCart</strong> unidades
+                            <span class="text-muted">(@_addAvailable total)</span>
+                        </p>
+                    }
+                    <div class="row g-2 align-items-end">
+                        <div class="col-6">
+                            <label class="form-label">Cantidad</label>
+                            <InputNumber class="form-control" @bind-Value="_addQty" min="1" />
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-primary w-100" @onclick="AgregarLinea" disabled="@(_warehouseId <= 0 || _addLineaId <= 0)">Agregar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="inv-card">
+                    <div class="inv-card-header d-flex justify-content-between">
+                        <span>Carrito</span>
+                        <span class="fw-semibold">@CartTotal.ToString("C2")</span>
+                    </div>
+                    @if (!_cart.Any())
+                    {
+                        <div class="inv-empty">Sin líneas</div>
+                    }
+                    else
+                    {
+                        <table class="inv-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-center">Cant.</th>
+                                    <th class="text-end">Precio</th>
+                                    <th class="text-end">Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var line in _cart)
+                                {
+                                    <tr>
+                                        <td>@line.ProductName</td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-secondary" @onclick="() => DecrementLine(line)">-</button>
+                                                <span class="btn btn-light disabled">@line.Quantity</span>
+                                                <button type="button" class="btn btn-outline-secondary" @onclick="() => IncrementLine(line)">+</button>
+                                            </div>
+                                        </td>
+                                        <td class="text-end">@line.UnitPrice.ToString("C2")</td>
+                                        <td class="text-end">@line.LineTotal.ToString("C2")</td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-sm btn-link text-danger" @onclick="() => QuitarLinea(line)">Quitar</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(_error))
+                {
+                    <div class="alert alert-danger mt-3 small">@_error</div>
+                }
+                <div class="inv-card p-3 mt-3">
+                    <h6 class="fw-semibold mb-3">Pago</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label">Método de pago</label>
+                            <InputSelect class="form-select" @bind-Value="_paymentMethod">
+                                <option value="@PaymentMethod.Cash">Efectivo</option>
+                                <option value="@PaymentMethod.CreditCard">Tarjeta crédito</option>
+                                <option value="@PaymentMethod.DebitCard">Tarjeta débito</option>
+                                <option value="@PaymentMethod.BankTransfer">Transferencia</option>
+                                <option value="@PaymentMethod.Nequi">Nequi</option>
+                                <option value="@PaymentMethod.Credit">Crédito</option>
+                            </InputSelect>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Monto pagado</label>
+                            <div class="input-group">
+                                <InputNumber class="form-control" @bind-Value="_paymentAmount" min="0" />
+                                <button type="button" class="btn btn-outline-secondary" @onclick="PagarTotal" disabled="@(!_cart.Any())">Total</button>
+                            </div>
+                        </div>
+                    </div>
+                    @if (_cart.Any())
+                    {
+                        var saldo = CartTotal - _paymentAmount;
+                        <div class="mt-2 small">
+                            <span class="text-muted">Total: </span><strong>@CartTotal.ToString("C2")</strong>
+                            @if (_paymentAmount > 0)
+                            {
+                                <span class="ms-3 text-muted">Saldo: </span>
+                                <strong class="@(saldo <= 0 ? "text-success" : "text-danger")">
+                                    @saldo.ToString("C2")
+                                </strong>
+                                @if (saldo < 0)
+                                {
+                                    <span class="ms-2 text-success small">Cambio: @(Math.Abs(saldo).ToString("C2"))</span>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="mt-3 d-flex justify-content-end">
+                    <button type="button" class="btn btn-primary" disabled="@(_saving || !_cart.Any() || _clientId <= 0 || _warehouseId <= 0)" @onclick="ConfirmarVenta">
+                        @if (_saving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Confirmar venta y descontar inventario
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>

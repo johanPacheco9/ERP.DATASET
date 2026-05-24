@@ -1,24 +1,24 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
+﻿using ERP.DATA.Services.InventarioService.CategoriaService;
+using ERP.DATA.Services.InventarioService.ProductoVarianteService;
+using ERP.DATA.Services.InventarioService.ProductService;
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ICategorias;
-using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProductosVariantes;
 using Microsoft.AspNetCore.Components;
 
 namespace ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos.Movimientos;
 
 public partial class CrearIngresoProductos : ComponentBase
 {
-    [Inject] public ICategoriaService CategoriaService { get; set; } = default!;
-    [Inject] public IProductoService productoService { get; set; } = null!;
-    [Inject] public IProductoVarianteService productoVarianteService { get; set; } = null!;
+    [Inject] public CategoriaService CategoriaService { get; set; } = default!;
+    [Inject] public ProductService productoService { get; set; } = null!;
+    [Inject] public ProductVariantService productoVarianteService { get; set; } = null!;
     [Parameter] public EventCallback OnClose { get; set; }
 
     private int _paso = 1;
     private bool? _quiereVariantes = null;
-    private CreateProductoRequest _producto = new();
+    private CreateProductoRequest _producto = NewProductRequest();
     private List<CategoriaDetailDto>? _categorias;
     private bool _isLoading = false;
     private List<string> _errores = new();
@@ -56,9 +56,9 @@ public partial class CrearIngresoProductos : ComponentBase
             {
                 PageNumber = 1,
                 PageSize = 100,
-                OrderBy = "Nombre"
+                OrderBy = "Name"
             };
-            var result = await CategoriaService.ListAsync(request, CancellationToken.None);
+            var result = await CategoriaService.List(request, CancellationToken.None);
             _categorias = result?.ToList();
             Console.WriteLine($"Categorías cargadas: {_categorias?.Count ?? 0}");
         }
@@ -123,7 +123,7 @@ public partial class CrearIngresoProductos : ComponentBase
                 }
             };
 
-            var ids = await productoVarianteService.AddProductoVariantes(
+            await productoVarianteService.AddProductoVariantes(
                 variantes,
                 CancellationToken.None
             );
@@ -248,7 +248,7 @@ public partial class CrearIngresoProductos : ComponentBase
     {
         _paso = 1;
         _quiereVariantes = null;
-        _producto = new CreateProductoRequest();
+        _producto = NewProductRequest();
         _errores.Clear();
         _productoIdCreado = null;
         _isLoading = false;
@@ -257,6 +257,18 @@ public partial class CrearIngresoProductos : ComponentBase
         _skusCreados.Clear();
         _totalSkusCreados = 0;
     }
+
+    private async Task Cerrar()
+    {
+        if (OnClose.HasDelegate)
+            await OnClose.InvokeAsync();
+    }
+
+    private static CreateProductoRequest NewProductRequest() => new()
+    {
+        Unidad_Medida = "UND",
+        PorcentajeIVA = 0.19m
+    };
 
     private class VarianteTemp
     {

@@ -6,7 +6,7 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
 public sealed class GetProveedorByIdRequest : IValidatableRequest
 {
     [FromRoute(Name = "id")]
-    [DisplayName("Id Del Proveedor")]
+    [DisplayName("Id Del Supplier")]
     public  int Id { get; init; }
 
     public bool ParametersAreValid(out string? errors)

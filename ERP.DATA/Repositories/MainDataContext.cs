@@ -1,10 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace ERP.DATA.Repositories;
-public partial class MainDataContext : DbContext
+public partial class MainDataContext(DbContextOptions<MainDataContext> options) : DbContext(options)
 {
-    public MainDataContext(DbContextOptions<MainDataContext> options) : base(options)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+        OnModelCreatingPartial(modelBuilder);
     }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
 

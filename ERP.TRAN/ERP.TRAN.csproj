@@ -7,13 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="CrossLayers\API\Inventario\Bodega\Services\**" />
+    <Compile Remove="CrossLayers\API\Inventario\Warehouse\Services\**" />
     <Compile Remove="CrossLayers\API\Inventario\Categoria\Services\**" />
     <Compile Remove="CrossLayers\API\Inventario\Movimientos\Services\**" />
-    <EmbeddedResource Remove="CrossLayers\API\Inventario\Bodega\Services\**" />
+    <EmbeddedResource Remove="CrossLayers\API\Inventario\Warehouse\Services\**" />
     <EmbeddedResource Remove="CrossLayers\API\Inventario\Categoria\Services\**" />
     <EmbeddedResource Remove="CrossLayers\API\Inventario\Movimientos\Services\**" />
-    <None Remove="CrossLayers\API\Inventario\Bodega\Services\**" />
+    <None Remove="CrossLayers\API\Inventario\Warehouse\Services\**" />
     <None Remove="CrossLayers\API\Inventario\Categoria\Services\**" />
     <None Remove="CrossLayers\API\Inventario\Movimientos\Services\**" />
   </ItemGroup>
@@ -26,7 +26,6 @@
     <Folder Include="CrossLayers\API\Pos\Transactions\Responses\" />
     <Folder Include="CrossLayers\API\Stores\Responses\" />
     <Folder Include="CrossLayers\API\Stores\Requests\" />
-    <Folder Include="CrossLayers\Core\Agreggates\Pos\SystemUsers\" />
     <Folder Include="CrossLayers\Core\Agreggates\Pos\Sales\" />
     <Folder Include="CrossLayers\Core\Agreggates\Pos\Transfers\" />
   </ItemGroup>

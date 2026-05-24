@@ -1,5 +1,53 @@
-﻿<h3>CategoriasDashboard</h3>
+@page "/categorias"
+@rendermode InteractiveServer
 
-@code {
+<div class="inv-page">
+    <div class="inv-header">
+        <div>
+            <h1 class="inv-title">Categorías</h1>
+            <p class="inv-subtitle">Clasificación de productos en el catálogo</p>
+        </div>
+        <a href="/categorias/nuevo" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Nueva categoría
+        </a>
+    </div>
 
-}
+    @if (_loading)
+    {
+        <div class="inv-loading">Cargando…</div>
+    }
+    else if (!_items.Any())
+    {
+        <div class="inv-card inv-empty">
+            No hay categorías registradas.
+            <div class="mt-2"><a href="/categorias/nuevo">Crear la primera</a></div>
+        </div>
+    }
+    else
+    {
+        <div class="inv-card">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Creada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in _items)
+                    {
+                        <tr>
+                            <td class="text-muted">@c.Id</td>
+                            <td class="fw-medium">@c.Nombre</td>
+                            <td class="text-muted">@(c.Descripcion ?? "—")</td>
+                            <td class="text-muted small">@(c.FechaCreacion?.ToString("dd/MM/yyyy") ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted small mt-2">@_total registros en total</p>
+    }
+</div>

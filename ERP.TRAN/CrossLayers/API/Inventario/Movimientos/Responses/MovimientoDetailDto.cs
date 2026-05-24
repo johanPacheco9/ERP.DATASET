@@ -18,7 +18,7 @@ public record MovimientoDetailDto(
     // Lote / vencimiento
     string? Lote,
     string? Referencia,
-    // Motivo y observaciones
+    // Motive y observaciones
     string? Motivo,
     string? Observaciones,
     // Auditoría

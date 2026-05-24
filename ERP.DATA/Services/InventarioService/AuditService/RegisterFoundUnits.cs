@@ -1,3 +1,10 @@
+using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.Audit.Request;
+using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
+using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
+using Microsoft.EntityFrameworkCore;
+
 namespace ERP.DATA.Services.InventarioService.AuditService;
 
 public partial class AuditoriaService
@@ -16,16 +23,16 @@ public partial class AuditoriaService
         if (audit == null)
             throw new InvalidOperationException($"La auditoría {request.AuditId} no existe.");
 
-        if (audit.Status == AuditStatus.Completada || audit.Status == AuditStatus.Cancelada)
+        if (audit.Status == AuditStatus.Completada || audit.Status == AuditStatus.RejectWithinconsistences)
             throw new InvalidOperationException(
                 $"No se pueden registrar unidades en una auditoría con estado '{audit.Status.GetDisplayName()}'.");
 
         // Activar auditoría si estaba pendiente
-        if (audit.Status == AuditStatus.Pendiente) audit.Status = AuditStatus.EnProgreso;
+        if (audit.Status == AuditStatus.Pendiente) audit.Status = AuditStatus.InProgress;
 
         var results = new List<FoundUnitResultItemDto>();
 
-        foreach (var serial in request.Serials)
+        foreach (var serial in request.ProductsIds)
         {
             var unitAudit = await _context.UnitProductAudits
                 .FirstOrDefaultAsync(u =>
@@ -38,34 +45,30 @@ public partial class AuditoriaService
                 // El serial no pertenece a esta auditoría → se trata como sobrante
                 results.Add(new FoundUnitResultItemDto(
                     serial,
-                    success: false,
-                    message:
+                    false,
                     "Serial no encontrado en la auditoría. Use RegisterSurplusUnit para registrarlo como sobrante."));
                 continue;
             }
 
             if (unitAudit.Status == UnitProductAuditStatus.Found ||
-                unitAudit.Status == UnitProductAuditStatus.LocationMismatch ||
                 unitAudit.Status == UnitProductAuditStatus.StatusMismatch)
             {
                 results.Add(new FoundUnitResultItemDto(
                     serial,
-                    success: false,
-                    message: "Esta unidad ya fue registrada anteriormente."));
+                    false,
+                    "Esta unidad ya fue registrada anteriormente."));
                 continue;
             }
 
-            // Comparar bodega física vs bodega en BD
-            var hasLocationMismatch = request.PhysicalWarehouseId.HasValue &&
-                                      unitAudit.BodegaId != request.PhysicalWarehouseId.Value;
-
+            // Comparar bodega fisica vs bodega en BD
+            var hasLocationMismatch = request.PhysicalWarehouseId != 0 &&
+                                      unitAudit.BodegaId != request.PhysicalWarehouseId;
             unitAudit.Status = hasLocationMismatch
-                ? UnitProductAuditStatus.LocationMismatch
+                ? UnitProductAuditStatus.StatusMismatch
                 : UnitProductAuditStatus.Found;
-
-            unitAudit.PhysicalWarehouseId = request.PhysicalWarehouseId;
-            unitAudit.CountedAt = DateTime.UtcNow;
-            unitAudit.CountedBy = request._AuditorAuth0Id;
+            unitAudit.BodegaEncontrada = request.PhysicalWarehouseId == 0
+                ? null
+                : request.PhysicalWarehouseId;
             unitAudit.UpdatedAt = DateTime.UtcNow;
 
             // Actualizar contadores del Audit
@@ -75,8 +78,8 @@ public partial class AuditoriaService
             else
                 audit.TotalMatches++;
 
-            results.Add(new FoundUnitResultItemDto(serial, success: true,
-                message: hasLocationMismatch
+            results.Add(new FoundUnitResultItemDto(serial, Success: true,
+                Message: hasLocationMismatch
                     ? "Registrada con diferencia de ubicación."
                     : "Registrada correctamente."));
         }
@@ -88,7 +91,7 @@ public partial class AuditoriaService
 
         return new RegisterFoundUnitResultDto(
             request.AuditId,
-            TotalProcessed: request.Serials.Count,
+            TotalProcessed: request.ProductsIds.Count,
             Successful: results.Count(r => r.Success),
             Failed: results.Count(r => !r.Success),
             Items: results);

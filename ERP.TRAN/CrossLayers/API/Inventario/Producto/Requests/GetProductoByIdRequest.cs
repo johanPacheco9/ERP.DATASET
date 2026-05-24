@@ -8,7 +8,7 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 public sealed class GetProductoByIdRequest : IValidatableRequest
 {
     [FromRoute(Name = "id")]
-    [DisplayName("Id Del Producto")]
+    [DisplayName("Id Del Product")]
 
     public  int Id { get; init; }
 
