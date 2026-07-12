@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using MainDataContext = ERP.DATA.Repositories.MainDataContext;
 
 var builder = WebApplication.CreateBuilder(args);
-
+//APIKEYRESEND = re_4SrwWJ5k_FSeFSpfvFpUP3b368UZrDMQH
 // 1. Componentes de Blazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

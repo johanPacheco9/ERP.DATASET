@@ -17,8 +17,7 @@ public partial class CrearIngresoProductos : ComponentBase
     [Parameter] public EventCallback OnClose { get; set; }
 
     private int _paso = 1;
-    private bool? _quiereVariantes = null;
-    private CreateProductoRequest _producto = NewProductRequest();
+    private CrearProductoForm _form = NewForm();
     private List<CategoriaDetailDto>? _categorias;
     private bool _isLoading = false;
     private List<string> _errores = new();
@@ -40,7 +39,6 @@ public partial class CrearIngresoProductos : ComponentBase
         catch (Exception ex)
         {
             _errores.Add($"Error inicializando: {ex.Message}");
-            Console.WriteLine($"Error inicializando: {ex.Message}");
         }
         finally
         {
@@ -52,15 +50,10 @@ public partial class CrearIngresoProductos : ComponentBase
     {
         try
         {
-            var request = new ListCategoriasRequest
-            {
-                PageNumber = 1,
-                PageSize = 100,
-                OrderBy = "Name"
-            };
-            var result = await CategoriaService.List(request, CancellationToken.None);
+            var result = await CategoriaService.List(
+                new ListCategoriasRequest { PageNumber = 1, PageSize = 100, OrderBy = "Name" },
+                CancellationToken.None);
             _categorias = result?.ToList();
-            Console.WriteLine($"Categorías cargadas: {_categorias?.Count ?? 0}");
         }
         catch (Exception ex)
         {
@@ -73,25 +66,45 @@ public partial class CrearIngresoProductos : ComponentBase
     {
         _errores.Clear();
 
-        if (string.IsNullOrWhiteSpace(_producto.Codigo))
-            _errores.Add("El código es requerido");
-        if (string.IsNullOrWhiteSpace(_producto.Nombre))
-            _errores.Add("El nombre es requerido");
-        if (_producto.CategoriaId == 0)
-            _errores.Add("Debe seleccionar una categoría");
+        if (_form.CategoriaId <= 0)
+            _errores.Add("Debe seleccionar una categoría.");
 
         if (_errores.Any())
-        {
-            Console.WriteLine($"Errores de validación: {string.Join(", ", _errores)}");
             return;
-        }
 
         try
         {
             _isLoading = true;
-            _producto.hasVariantes = false;
 
-            _productoIdCreado = await productoService.AddProductoAsync(_producto, CancellationToken.None);
+            var request = new CreateProductoRequest
+            {
+                Codigo = _form.Codigo.Trim().ToUpper(),
+                Nombre = _form.Nombre.Trim(),
+                Descripcion = _form.Descripcion?.Trim(),
+                Costo_Unitario = _form.Costo_Unitario,
+                Precio_Venta = _form.Precio_Venta,
+                PorcentajeIVA = _form.PorcentajeIVA,
+                PorcentajeICA = _form.PorcentajeICA,
+                ImpuestoEspecifico = _form.ImpuestoEspecifico,
+                ArancelImportacion = _form.ArancelImportacion,
+                ExentoIVA = _form.ExentoIVA,
+                GravadoICA = _form.GravadoICA,
+                CodigoTributario = _form.CodigoTributario?.Trim(),
+                CategoriaId = _form.CategoriaId,
+                ProveedorId = _form.ProveedorId,
+                Unidad_Medida = _form.Unidad_Medida,
+                Peso = _form.Peso,
+                Volumen = _form.Volumen,
+                Dimensiones = _form.Dimensiones?.Trim(),
+                Imagen_Url = _form.Imagen_Url?.Trim(),
+                Notas = _form.Notas?.Trim(),
+                Tags = _form.Tags?.Trim(),
+                Es_Perecedero = _form.Es_Perecedero,
+                FechaCaducidad = _form.FechaCaducidad,
+                hasVariantes = false
+            };
+
+            _productoIdCreado = await productoService.AddProductoAsync(request, CancellationToken.None);
             _paso = 2;
         }
         catch (Exception ex)
@@ -110,27 +123,24 @@ public partial class CrearIngresoProductos : ComponentBase
         {
             _isLoading = true;
             _errores.Clear();
-            var variantes = new List<CreateProductoVarianteRequest>
-            {
-                new CreateProductoVarianteRequest
-                {
-                    ProductoId = _productoIdCreado!.Value,
-                    CodigoVariante = _producto.Codigo,
-                    Atributos = null,
-                    PrecioVenta = _producto.Precio_Venta,
-                    CostoUnitario = _producto.Costo_Unitario,
-                    CodigoBarras = _producto.Codigo
-                }
-            };
 
             await productoVarianteService.AddProductoVariantes(
-                variantes,
-                CancellationToken.None
-            );
+                new List<CreateProductoVarianteRequest>
+                {
+                    new()
+                    {
+                        ProductoId = _productoIdCreado!.Value,
+                        CodigoVariante = _form.Codigo,
+                        Atributos = null,
+                        PrecioVenta = _form.Precio_Venta,
+                        CostoUnitario = _form.Costo_Unitario,
+                        CodigoBarras = _form.Codigo
+                    }
+                },
+                CancellationToken.None);
 
-            _skusCreados.Add(_producto.Codigo);
+            _skusCreados.Add(_form.Codigo);
             _totalSkusCreados = 1;
-
             _paso = 4;
         }
         catch (Exception ex)
@@ -150,33 +160,28 @@ public partial class CrearIngresoProductos : ComponentBase
         _nuevaVariante = new VarianteTemp();
     }
 
-    private void GenerarCodigoCompleto()
-    {
-        StateHasChanged();
-    }
-
     private void AgregarVariante()
     {
         _errores.Clear();
 
         if (string.IsNullOrWhiteSpace(_nuevaVariante.CodigoSufijo))
         {
-            _errores.Add("El código de variante es requerido");
+            _errores.Add("El código de variante es requerido.");
             return;
         }
-
         if (string.IsNullOrWhiteSpace(_nuevaVariante.Atributos))
         {
-            _errores.Add("La descripción de atributos es requerida");
+            _errores.Add("La descripción de atributos es requerida.");
             return;
         }
 
-        var codigoCompleto = $"{_producto.Codigo}-{_nuevaVariante.CodigoSufijo.Trim().ToUpper()}";
+        var codigoCompleto = $"{_form.Codigo}-{_nuevaVariante.CodigoSufijo.Trim().ToUpper()}";
         if (_variantesTemp.Any(v => v.CodigoVariante == codigoCompleto))
         {
-            _errores.Add($"Ya existe una variante con el código {codigoCompleto}");
+            _errores.Add($"Ya existe una variante con el código {codigoCompleto}.");
             return;
         }
+
         _variantesTemp.Add(new VarianteTemp
         {
             CodigoVariante = codigoCompleto,
@@ -192,9 +197,7 @@ public partial class CrearIngresoProductos : ComponentBase
     private void EliminarVariante(int index)
     {
         if (index >= 0 && index < _variantesTemp.Count)
-        {
             _variantesTemp.RemoveAt(index);
-        }
     }
 
     private async Task GuardarTodasLasVariantes()
@@ -206,32 +209,24 @@ public partial class CrearIngresoProductos : ComponentBase
 
             if (!_variantesTemp.Any())
             {
-                _errores.Add("Debe agregar al menos una variante");
+                _errores.Add("Debe agregar al menos una variante.");
                 return;
             }
-            var variantesRequests = _variantesTemp.Select(variante =>
-                new CreateProductoVarianteRequest
-                {
-                    ProductoId = _productoIdCreado!.Value,
-                    CodigoVariante = variante.CodigoVariante,
-                    Atributos = variante.Atributos,
-                    PrecioVenta = variante.Precio_Venta,
-                    CostoUnitario = variante.Costo_Unitario,
-                    CodigoBarras = variante.Codigo_Barras
-                }
-            ).ToList();
 
             var idsCreados = await productoVarianteService.AddProductoVariantes(
-                variantesRequests,
-                CancellationToken.None
-            );
+                _variantesTemp.Select(v => new CreateProductoVarianteRequest
+                {
+                    ProductoId = _productoIdCreado!.Value,
+                    CodigoVariante = v.CodigoVariante,
+                    Atributos = v.Atributos,
+                    PrecioVenta = v.Precio_Venta,
+                    CostoUnitario = v.Costo_Unitario,
+                    CodigoBarras = v.Codigo_Barras
+                }).ToList(),
+                CancellationToken.None);
 
             _skusCreados = _variantesTemp.Select(v => v.CodigoVariante).ToList();
             _totalSkusCreados = idsCreados.Count;
-
-            Console.WriteLine($"Variantes creadas: {_totalSkusCreados}");
-
-            // Ir al paso 4 (éxito)
             _paso = 4;
         }
         catch (Exception ex)
@@ -247,8 +242,7 @@ public partial class CrearIngresoProductos : ComponentBase
     private void Reiniciar()
     {
         _paso = 1;
-        _quiereVariantes = null;
-        _producto = NewProductRequest();
+        _form = NewForm();
         _errores.Clear();
         _productoIdCreado = null;
         _isLoading = false;
@@ -264,7 +258,7 @@ public partial class CrearIngresoProductos : ComponentBase
             await OnClose.InvokeAsync();
     }
 
-    private static CreateProductoRequest NewProductRequest() => new()
+    private static CrearProductoForm NewForm() => new()
     {
         Unidad_Medida = "UND",
         PorcentajeIVA = 0.19m

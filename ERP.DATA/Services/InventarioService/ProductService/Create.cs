@@ -29,6 +29,11 @@ public partial class ProductService
         if (exists)
             throw new InvalidOperationException($"Ya existe un producto con el código '{codigoProducto}'.");
 
+        if (!request.BodegaId.HasValue)
+        {
+            
+        }
+        
         var producto = new LineaProducto
         {
             Code = codigoProducto,

@@ -1,4 +1,5 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
+using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using Microsoft.EntityFrameworkCore;
@@ -72,7 +73,9 @@ public partial class ProductVariantService
                     FechaVencimiento = request.FechaVencimiento,
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = "SYSTEM",
-                    IsActive = true
+                    IsActive = true,
+                    BodegaId = request.BodegaId ?? 1,
+                    Status = ProductoStatus.Available
                 };
 
                 _context.Productos.Add(variante);

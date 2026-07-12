@@ -22,6 +22,8 @@ public sealed class CreateProductoVarianteRequest : IValidatableRequest
 
     [Range(0, double.MaxValue)]
     public decimal CostoUnitario { get; set; }
+    
+    public int? BodegaId { get; set; } //Se usa la bodea principal si no se especifica
 
     /// <summary>
     /// JSON o texto con atributos personalizados: {"Color": "Rojo", "Talla": "M"}
