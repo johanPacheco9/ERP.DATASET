@@ -27,27 +27,32 @@
                 <input type="text"
                        class="form-control ps-5 minimal-input"
                        placeholder="Buscar productos..."
-                       @bind="_searchText"
-                       @bind:event="oninput" />
+                       value="@_searchText"
+                       @oninput="OnSearchInput" />
             </div>
         </div>
 
         <!-- Categoría -->
         <div class="col-12 col-md-auto">
             <select class="form-select minimal-select"
-                    @bind="_selectedCategory">
-                <option value="">Categoría</option>
-                <option value="Computadoras">Computadoras</option>
-                <option value="Periféricos">Periféricos</option>
-                <option value="Accesorios">Accesorios</option>
-                <option value="Impresoras">Impresoras</option>
+                    value="@_selectedCategory"
+                    @onchange="OnCategoryChanged">
+                <option value="">Todas las categorías</option>
+                @if (_categorias != null && _categorias.Any())
+                {
+                    @foreach (var category in _categorias)
+                    {
+                        <option value="@category.Nombre">@category.Nombre</option>
+                    }
+                }
             </select>
         </div>
 
         <!-- Estado -->
         <div class="col-12 col-md-auto">
             <select class="form-select minimal-select"
-                    @bind="_stockFilter">
+                    value="@_stockFilter"
+                    @onchange="OnStockFilterChanged">
                 <option value="">Estado</option>
                 <option value="low">Stock Bajo</option>
                 <option value="normal">Normal</option>

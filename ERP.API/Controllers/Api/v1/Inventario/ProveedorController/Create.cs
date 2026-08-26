@@ -2,6 +2,7 @@
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor;
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.ISupplier;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +29,7 @@ public sealed class CreateProveedorEndpoint : BaseCreateEndpoint<CreateProveedor
         if (!request.ParametersAreValid(out var validationErrors))
             return BadRequest(new { errors = validationErrors });
 
-        var proveedor = new Supplier
+        var proveedor = new Proveedor
         {
             Name = request.Nombre,
             Nit = request.Nit,
@@ -41,7 +42,7 @@ public sealed class CreateProveedorEndpoint : BaseCreateEndpoint<CreateProveedor
 
         var proveedorCreado = await _proveedorService.AddProveedorAsync(proveedor, cancellationToken);
 
-        TraceCreated(nameof(Supplier), proveedorCreado.Id);
+        TraceCreated(nameof(Proveedor), proveedorCreado.Id);
 
         return CreatedAtRoute("GetProveedorById", new { id = proveedorCreado.Id }, new
         {

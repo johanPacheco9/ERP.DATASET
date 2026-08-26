@@ -1,7 +1,6 @@
 using ERP.DATA.Services.InventarioService.AuditService;
 using ERP.DATA.Services.InventarioService.MovimientoService;
-using ERP.DATA.Services.InventarioService.ProductService;
-using ERP.DATA.Services.InventarioService.UnitProductService;
+using ERP.DATA.Services.InventarioService.UnidadProductoService;
 using ERP.DATA.Services.InventarioService.WarehouseService;
 using ERP.DATA.Services.VentasService.Payments;
 using ERP.DATA.Services.VentasService.SaleService;
@@ -9,18 +8,20 @@ using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
 using Microsoft.AspNetCore.Components;
+using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
 
 namespace ERP.DATASET.Components.Pages;
 
 public partial class Home
 {
-    [Inject] private ProductService ProductoService { get; set; } = null!;
+    [Inject] private ProductoBaseService ProductoService { get; set; } = null!;
     [Inject] private WarehouseService WarehouseService { get; set; } = null!;
     [Inject] private MovimientoService MovimientoService { get; set; } = null!;
     [Inject] private AuditoriaService AuditService { get; set; } = null!;
-    [Inject] private UnitProductService UnitProductService { get; set; } = null!;
+    [Inject] private UnidadProductoManager UnidadProductoManager { get; set; } = null!;
     [Inject] private SaleService SaleService { get; set; } = null!;
     [Inject] private PaymentsService PaymentsService { get; set; } = null!;
 
@@ -39,7 +40,13 @@ public partial class Home
         try
         {
             var productos = await ProductoService.ListAsync(
-                new ListProductRequest(1, 1), CancellationToken.None);
+                request: new ListProductRequest(pageNumber: 1, pageSize: 1),
+                searchTerm: null,
+                categoryName: null,
+                stockFilter: null,
+                cancellationToken: CancellationToken.None
+            );
+
             _productos = productos.TotalCount;
 
             var bodegas = await WarehouseService.List(
@@ -54,7 +61,7 @@ public partial class Home
             var audits = await AuditService.ListAudits(CancellationToken.None);
             _auditorias = audits.Count;
 
-            var unidades = await UnitProductService.ListAsync(
+            var unidades = await UnidadProductoManager.ListAsync(
                 new ListUnitProductRequest(1, 1), CancellationToken.None);
             _unidades = unidades.TotalCount;
 

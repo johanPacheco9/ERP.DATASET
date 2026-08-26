@@ -32,9 +32,24 @@ public partial class MainDataContext
         {
             e.ToTable("SaleLineItems");
             e.HasKey(l => l.Id);
-            e.HasOne(l => l.Sale).WithMany(s => s.Lines).HasForeignKey(l => l.SaleId).OnDelete(DeleteBehavior.Cascade);
-            e.HasOne(l => l.LineaProducto).WithMany().HasForeignKey(l => l.LineaProductoId);
-            e.HasOne(l => l.Producto).WithMany().HasForeignKey(l => l.ProductoId).OnDelete(DeleteBehavior.SetNull);
+    
+            // Relación con la Venta (Cascada al eliminar la venta)
+            e.HasOne(l => l.Sale)
+                .WithMany(s => s.Lines)
+                .HasForeignKey(l => l.SaleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación obligatoria con la Variante del Producto
+            e.HasOne(l => l.ProductoVariante)
+                .WithMany()
+                .HasForeignKey(l => l.ProductoVarianteId)
+                .OnDelete(DeleteBehavior.Restrict); // Evita borrados accidentales de variantes con ventas históricas
+
+            // Relación opcional con la Unidad Específica (para productos serializados / garantías)
+            e.HasOne(l => l.UnidadProducto)
+                .WithMany()
+                .HasForeignKey(l => l.UnidadProductoId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

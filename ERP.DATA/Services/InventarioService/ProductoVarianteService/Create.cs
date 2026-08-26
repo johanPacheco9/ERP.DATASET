@@ -1,6 +1,4 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,26 +7,26 @@ namespace ERP.DATA.Services.InventarioService.ProductoVarianteService;
 public partial class ProductVariantService
 {
     public async Task<List<int>> AddProductoVariantes(
-       List<CreateProductoVarianteRequest> requests,
-       CancellationToken cancellationToken = default)
+        List<CreateProductoVarianteRequest> requests,
+        CancellationToken cancellationToken = default)
     {
         if (requests == null || !requests.Any())
             throw new ArgumentException("Debe proporcionar al menos una variante");
 
-        var productoId = requests.First().ProductoId;
+        var productoBaseId = requests.First().ProductoId;
 
-        // Validar que todas sean del mismo producto
-        if (requests.Any(r => r.ProductoId != productoId))
-            throw new InvalidOperationException("Todas las variantes deben ser del mismo producto");
+        // 1. Validar que todas las variantes pertenezcan al mismo ProductoBase
+        if (requests.Any(r => r.ProductoId != productoBaseId))
+            throw new InvalidOperationException("Todas las variantes deben ser del mismo producto base");
 
-        // Verificar que el producto existe
-        var producto = await _context.LineaProductos
-            .FirstOrDefaultAsync(p => p.Id == productoId, cancellationToken);
+        // 2. Verificar existencia del ProductoBase
+        var productoBaseExiste = await _context.ProductoBase
+            .AnyAsync(p => p.Id == productoBaseId, cancellationToken);
 
-        if (producto == null)
-            throw new InvalidOperationException($"No existe un producto con ID {productoId}");
+        if (!productoBaseExiste)
+            throw new InvalidOperationException($"No existe un producto base con ID {productoBaseId}");
 
-        // Validar códigos únicos en el request
+        // 3. Validar códigos únicos dentro del request
         var codigosRequest = requests
             .Select(r => r.CodigoVariante.Trim().ToUpper())
             .ToList();
@@ -43,55 +41,41 @@ public partial class ProductVariantService
             throw new InvalidOperationException(
                 $"Códigos duplicados en el request: {string.Join(", ", duplicadosEnRequest)}");
 
-        // Verificar que no existan en la BD
-        var existentes = await _context.Productos
+        // 4. Verificar que el SKU no exista ya en la base de datos
+        var existentes = await _context.ProductoVariantes
             .Where(v => codigosRequest.Contains(v.SKU))
             .Select(v => v.SKU)
             .ToListAsync(cancellationToken);
 
         if (existentes.Any())
             throw new InvalidOperationException(
-                $"Ya existen variantes con los códigos: {string.Join(", ", existentes)}");
+                $"Ya existen variantes con los códigos/SKUs: {string.Join(", ", existentes)}");
 
         using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
-            var variantesCreadas = new List<int>();
-
-            foreach (var request in requests)
+            var variantesEntidades = requests.Select(request => new ProductoVariante
             {
-                var variante = new Producto
-                {
-                    LineaProductoId = request.ProductoId,
-                    SKU = request.CodigoVariante.Trim().ToUpper(),
-                    Atributos = request.Atributos,
-                    CodigoBarras = request.CodigoBarras,
-                    PrecioVenta = request.PrecioVenta,
-                    CostoUnitario = request.CostoUnitario,
-                    Lote = request.Lote,
-                    FechaVencimiento = request.FechaVencimiento,
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedBy = "SYSTEM",
-                    IsActive = true,
-                    BodegaId = request.BodegaId ?? 1,
-                    Status = ProductoStatus.Available
-                };
+                ProductoBaseId = request.ProductoId,
+                SKU = request.CodigoVariante.Trim().ToUpper(),
+                CodigoBarras = request.CodigoBarras,
+                Atributos = request.Atributos,
+                PrecioVenta = request.PrecioVenta,
+                CostoUnitario = request.CostoUnitario,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = "SYSTEM",
+                IsActive = true
+            }).ToList();
 
-                _context.Productos.Add(variante);
-            }
-
+            // 5. Inserción masiva de variantes
+            _context.ProductoVariantes.AddRange(variantesEntidades);
             await _context.SaveChangesAsync(cancellationToken);
-
-            // Obtener los IDs generados
-            variantesCreadas = await _context.Productos
-                .Where(v => codigosRequest.Contains(v.SKU))
-                .Select(v => v.Id)
-                .ToListAsync(cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
 
-            return variantesCreadas;
+            // Retornar los IDs generados automáticamente por EF Core
+            return variantesEntidades.Select(v => v.Id).ToList();
         }
         catch
         {

@@ -1,15 +1,15 @@
-﻿using ERP.DATA.Services.InventarioService.ProductService;
-using ERP.TRAN.CrossLayers.API.Inventario.Producto;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Producto;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using Microsoft.AspNetCore.Mvc;
+using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
 
 
 public sealed class DeleteProductoEndpoint(
-    ProductService productoService,
+    ProductoBaseService productoService,
     ILogger<DeleteProductoEndpoint> logger)
-    : BaseDeleteEndpoint<DeleteProveedorRequest, DeleteProductoEndpoint, ProductService>(productoService, logger)
+    : BaseDeleteEndpoint<DeleteProveedorRequest, DeleteProductoEndpoint, ProductoBaseService>(productoService, logger)
 {
     [Tags("Inventario - Productos")]
     [HttpDelete(ProductEndpoints.Get, Name = "DeleteProducto")]

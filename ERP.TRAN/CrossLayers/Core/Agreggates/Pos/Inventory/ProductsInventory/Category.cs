@@ -7,5 +7,5 @@ public class Category : EntityWithtraceability
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public string Code { get; set; } = null!;
-    public ICollection<LineaProducto> Products { get; set; } = new List<LineaProducto>();
+    public ICollection<ProductoBase> Products { get; set; } = new List<ProductoBase>();
 }

@@ -21,6 +21,6 @@ public class UnitProductMovement
     public string Motivo { get; set; } = null!;
     public string? Observaciones { get; set; }
 
-    public Producto Producto { get; set; } = null!;
+    public ProductoVariante ProductoVariante { get; set; } = null!;
     public Movement Movimiento { get; set; } = null!;
 }

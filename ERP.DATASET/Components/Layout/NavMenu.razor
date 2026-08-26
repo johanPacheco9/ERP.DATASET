@@ -1,90 +1,162 @@
 @rendermode pageRenderMode
 
-<nav class="sidebar @(IsCollapsed ? "collapsed" : "")">
-    <div class="sidebar-header d-flex justify-content-between align-items-center px-3 py-3">
-        <span class="logo">ERP</span>
-        <button class="btn sidebar-toggle btn-sm" @onclick="Toggle" type="button" aria-label="Menú">
-            <i class="bi bi-list"></i>
-        </button>
+<aside class="bg-white border-r border-slate-200 min-h-screen flex flex-col justify-between transition-all duration-200 @(IsCollapsed ? "w-16" : "w-64")">
+    <div>
+        <!-- Brand Header -->
+        <div class="h-16 flex items-center justify-between px-4 border-b border-slate-200">
+            @if (!IsCollapsed)
+            {
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                        E
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-900 text-sm tracking-tight block leading-tight">ERP DATASET</span>
+                        <span class="text-[10px] text-slate-400 font-medium block">Punto de Venta</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-sm mx-auto shadow-sm">
+                    E
+                </div>
+            }
+            
+            <button class="w-7 h-7 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 flex items-center justify-center text-xs transition-colors" @onclick="Toggle" type="button" title="Colapsar menú">
+                <i class="bi @(IsCollapsed ? "bi-chevron-right" : "bi-chevron-left")"></i>
+            </button>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="p-3 space-y-6 text-xs">
+            
+            <!-- SECCIÓN: GENERAL -->
+            <div>
+                @if (!IsCollapsed)
+                {
+                    <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        General
+                    </div>
+                }
+                <div class="space-y-1">
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="" Match="NavLinkMatch.All">
+                        <i class="bi bi-grid text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Inicio</span> }
+                    </NavLink>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: VENTAS & FACTURACIÓN -->
+            <div>
+                @if (!IsCollapsed)
+                {
+                    <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                        <span>Ventas & POS</span>
+                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Factus</span>
+                    </div>
+                }
+                <div class="space-y-1">
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ventas/nueva">
+                        <i class="bi bi-upc-scan text-sm text-emerald-600 group-hover:text-emerald-700 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span class="font-semibold text-slate-900">Terminal POS (Caja)</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ventas">
+                        <i class="bi bi-receipt text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Historial Ventas</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="cartera">
+                        <i class="bi bi-cash-stack text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Cartera y Cobros</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="clientes">
+                        <i class="bi bi-people text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Clientes / DIAN</span> }
+                    </NavLink>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: INVENTARIO -->
+            <div>
+                @if (!IsCollapsed)
+                {
+                    <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Inventario
+                    </div>
+                }
+                <div class="space-y-1">
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="inventario">
+                        <i class="bi bi-box-seam text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Módulo General</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ProductosDashboard">
+                        <i class="bi bi-tags text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Productos</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="categorias">
+                        <i class="bi bi-folder2 text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Categorías</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="bodegas">
+                        <i class="bi bi-building text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Bodegas</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="movimientos">
+                        <i class="bi bi-arrow-left-right text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Movimientos Kárdex</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="stock-alertas">
+                        <i class="bi bi-exclamation-triangle text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Alertas de Stock</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="unidades">
+                        <i class="bi bi-qr-code-scan text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Unidades Físicas</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="auditorias">
+                        <i class="bi bi-clipboard-check text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Auditorías</span> }
+                    </NavLink>
+
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="proveedores">
+                        <i class="bi bi-truck text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Proveedores</span> }
+                    </NavLink>
+                </div>
+            </div>
+        </nav>
     </div>
 
-    <div class="px-3 mb-2">
-        <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">General</small>
-    </div>
-
-    <NavLink class="nav-link sidebar-link" href="" Match="NavLinkMatch.All">
-        <i class="bi bi-grid-1x2"></i>
-        <span class="text">Inicio</span>
-    </NavLink>
-
-    <div class="px-3 mt-3 mb-2">
-        <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Inventario</small>
-    </div>
-
-    <NavLink class="nav-link sidebar-link" href="inventario">
-        <i class="bi bi-box-seam"></i>
-        <span class="text">Módulo</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="ProductosDashboard">
-        <i class="bi bi-tag"></i>
-        <span class="text">Productos</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="categorias">
-        <i class="bi bi-folder2"></i>
-        <span class="text">Categorías</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="bodegas">
-        <i class="bi bi-building"></i>
-        <span class="text">Bodegas</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="movimientos">
-        <i class="bi bi-arrow-left-right"></i>
-        <span class="text">Movimientos</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="stock-alertas">
-        <i class="bi bi-exclamation-triangle"></i>
-        <span class="text">Alertas</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="unidades">
-        <i class="bi bi-upc-scan"></i>
-        <span class="text">Unidades</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="auditorias">
-        <i class="bi bi-clipboard-check"></i>
-        <span class="text">Auditorías</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="proveedores">
-        <i class="bi bi-truck"></i>
-        <span class="text">Proveedores</span>
-    </NavLink>
-
-    <div class="px-3 mt-3 mb-2">
-        <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.05em;">Ventas</small>
-    </div>
-
-    <NavLink class="nav-link sidebar-link" href="ventas">
-        <i class="bi bi-cart3"></i>
-        <span class="text">Ventas</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="cartera">
-        <i class="bi bi-cash-stack"></i>
-        <span class="text">Cartera</span>
-    </NavLink>
-
-    <NavLink class="nav-link sidebar-link" href="clientes">
-        <i class="bi bi-people"></i>
-        <span class="text">Clientes</span>
-    </NavLink>
-</nav>
+    <!-- Footer Sidebar -->
+    @if (!IsCollapsed)
+    {
+        <div class="p-3 border-t border-slate-200 text-xs">
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs">
+                        C
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-800 text-[11px] block leading-tight">Caja Principal</span>
+                        <span class="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Conectado
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</aside>
 
 @code {
     private bool IsCollapsed;

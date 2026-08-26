@@ -6,47 +6,56 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 
 public sealed class CreateExitMovementRequest : IValidatableRequest
 {
-    [DisplayName("Id de línea de producto (catálogo)")]
-    public int LineaProductoId { get; set; }
-
-    [DisplayName("Id de línea de producto (alias legacy)")]
+    [DisplayName("Id de la variante de producto (SKU)")]
+    [Required(ErrorMessage = "El ProductoVarianteId es obligatorio")]
     public int ProductoVarianteId { get; set; }
 
-    [DisplayName("El id de la bodega de donde sale el stock")]
-    [Required(ErrorMessage = "El WarehouseId es obligatorio")]
+    [DisplayName("Id de la bodega de donde sale el stock")]
+    [Required(ErrorMessage = "El BodegaId es obligatorio")]
     public int BodegaId { get; set; }
 
-    [DisplayName("Quantity de productos a retirar")]
+    [DisplayName("Cantidad de productos a retirar")]
     [Required(ErrorMessage = "La cantidad para un movimiento de salida debe ser al menos de 1")]
     [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
     public int Cantidad { get; set; }
 
-    [DisplayName("Motive de la salida")]
+    [DisplayName("Motivo de la salida")]
     [Required(ErrorMessage = "El motivo de la salida es obligatorio")]
     [MaxLength(500)]
     public string Motivo { get; set; } = null!;
 
-    [DisplayName("Observations adicionales")]
+    [DisplayName("Observaciones adicionales")]
     public string? Observaciones { get; set; }
 
+    // === TRAZABILIDAD Y REFERENCIAS OPCIONALES ===
+    public int? ReferenciaId { get; set; }
+    public string? ReferenciaTipo { get; set; } // 'venta', 'merma', 'ajuste_manual', 'traslado'
+
+    // === LOTES Y UNIDADES SERIALIZADAS ===
+    public string? Lote { get; set; }
+    public string? SerialNumber { get; set; }
+
     /// <summary>
-    /// Validaciones de negocio (no solo anotaciones)
+    /// Validaciones de negocio del request
     /// </summary>
     public bool ParametersAreValid(out string? errors)
     {
         var errorList = new List<string>();
 
-        if (LineaProductoId <= 0 && ProductoVarianteId <= 0)
-            errorList.Add("Indique LineaProductoId o ProductoVarianteId");
+        if (ProductoVarianteId <= 0)
+            errorList.Add("El ProductoVarianteId es obligatorio");
 
         if (BodegaId <= 0)
-            errorList.Add("El WarehouseId es obligatorio");
+            errorList.Add("El BodegaId es obligatorio");
 
         if (Cantidad <= 0)
             errorList.Add("La cantidad debe ser mayor a 0");
 
         if (string.IsNullOrWhiteSpace(Motivo))
             errorList.Add("El motivo es obligatorio");
+
+        if (!string.IsNullOrWhiteSpace(SerialNumber) && Cantidad != 1)
+            errorList.Add("Si se especifica un serial individual, la cantidad debe ser exactamente 1");
 
         errors = errorList.Any()
             ? string.Join("; ", errorList)

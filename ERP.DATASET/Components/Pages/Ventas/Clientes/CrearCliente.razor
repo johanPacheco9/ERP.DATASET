@@ -1,55 +1,96 @@
 @page "/clientes/nuevo"
+@using ERP.TRAN.CrossLayers.API.Pos.Clients.Enums
 @rendermode InteractiveServer
 
-<div class="inv-page">
-    <div class="inv-header">
+<div class="max-w-4xl mx-auto p-2 sm:p-4 space-y-6">
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-            <h1 class="inv-title">Nuevo cliente</h1>
+            <h1 class="text-xl font-bold text-slate-800 tracking-tight">Nuevo Cliente / Tercero</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Información fiscal para facturación electrónica Factus y DIAN</p>
         </div>
-        <a href="/clientes" class="btn btn-outline-secondary btn-sm">Volver</a>
+        <a href="/clientes" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+            Volver
+        </a>
     </div>
 
-    <div class="inv-card p-4 col-lg-8">
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <EditForm Model="_form" OnValidSubmit="Guardar">
-            <div class="row g-3">
-                <div class="col-md-8">
-                    <label class="form-label">Nombre completo</label>
-                    <InputText class="form-control" @bind-Value="_form.Name" />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                
+                <div class="md:col-span-2">
+                    <label class="font-bold text-slate-700 block mb-1">Nombre Completo / Razón Social *</label>
+                    <InputText class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Distribuidora Los Andes S.A.S. o Juan Pérez" @bind-Value="_form.Name" />
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Tipo documento</label>
-                    <InputSelect class="form-select" @bind-Value="_form.DniType">
-                        @foreach (var t in Enum.GetValues<ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType>())
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Tipo de Documento *</label>
+                    <InputSelect class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" @bind-Value="_form.DniType">
+                        @foreach (var t in Enum.GetValues<DniType>())
                         {
                             <option value="@t">@t</option>
                         }
                     </InputSelect>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Número identificación</label>
-                    <InputText class="form-control" @bind-Value="_form.IdentificationNumber" />
+
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <label class="font-bold text-slate-700 block mb-1">Número de Identificación *</label>
+                        <InputText class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: 900123456" @bind-Value="_form.IdentificationNumber" />
+                    </div>
+                    <div class="w-20">
+                        <label class="font-bold text-slate-700 block mb-1">DV</label>
+                        <InputText class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm text-center focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="0-9" @bind-Value="_form.Dv" />
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Teléfono</label>
-                    <InputText class="form-control" @bind-Value="_form.PhoneNumber" />
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Correo Electrónico (Para Factura Electrónica Factus) *</label>
+                    <InputText type="email" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="facturacion@empresa.com" @bind-Value="_form.Email" />
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Ciudad</label>
-                    <InputText class="form-control" @bind-Value="_form.City" />
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Teléfono / Celular</label>
+                    <InputText class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: 300 123 4567" @bind-Value="_form.PhoneNumber" />
                 </div>
-                <div class="col-12">
-                    <label class="form-label">Dirección</label>
-                    <InputText class="form-control" @bind-Value="_form.Address" />
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Ciudad / Municipio</label>
+                    <InputText class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Bogotá D.C." @bind-Value="_form.City" />
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Régimen Fiscal</label>
+                    <InputSelect class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" @bind-Value="_form.TaxRegime">
+                        <option value="Responsable de IVA">Responsable de IVA (Común)</option>
+                        <option value="No responsable de IVA">No responsable de IVA (Simplificado)</option>
+                        <option value="Régimen Simple">Régimen Simple de Tributación</option>
+                    </InputSelect>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="font-bold text-slate-700 block mb-1">Dirección de Domicilio</label>
+                    <InputText class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Ej: Carrera 15 # 93 - 60" @bind-Value="_form.Address" />
                 </div>
             </div>
 
             @if (!string.IsNullOrEmpty(_error))
             {
-                <div class="alert alert-danger mt-3 small">@_error</div>
+                <div class="mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs">
+                    @_error
+                </div>
             }
 
-            <div class="mt-4">
-                <button type="submit" class="btn btn-primary" disabled="@_saving">Guardar</button>
+            <div class="mt-6 flex justify-end gap-3">
+                <a href="/clientes" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5" disabled="@_saving">
+                    @if (_saving)
+                    {
+                        <span class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-slate-950 border-t-transparent"></span>
+                    }
+                    <span>Guardar Cliente</span>
+                </button>
             </div>
         </EditForm>
     </div>

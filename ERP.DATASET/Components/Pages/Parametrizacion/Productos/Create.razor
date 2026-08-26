@@ -1,7 +1,7 @@
 @page "/inventario/productos/nuevo"
-@using ERP.DATA.Services.InventarioService.ProductService
 @using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests
-@inject ProductService ProductSvc
+@using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService
+@inject ProductoBaseService ProductoBaseSvc
 @inject NavigationManager Nav
 
 <div class="container-fluid py-4">
@@ -134,7 +134,7 @@
                             </div>
                             <div class="col-12">
                                 <div class="form-check form-switch">
-                                    <InputCheckbox @bind-Value="_request.Es_Perecedero" class="form-check-input" id="perecedero" />
+                                    <InputCheckbox @bind-Value="_request.EsPerecedero" class="form-check-input" id="perecedero" />
                                     <label class="form-check-label" for="perecedero">Producto Perecedero</label>
                                 </div>
                             </div>

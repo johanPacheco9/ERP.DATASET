@@ -37,76 +37,79 @@ public partial class SaleService
                 StoreId = request.StoreId,
                 Status = SaleStatus.Completed,
                 Notes = request.Notes,
-                CreatedBy = request._CreatorAuth0Id,
-                CreatedAt = DateTime.UtcNow
+                CreatedBy = request._CreatorAuth0Id ?? "system",
+                CreatedAt = DateTime.UtcNow,
+                FactusStatus = "Pendiente"
             };
 
             context.Sales.Add(sale);
             await context.SaveChangesAsync(cancellationToken);
 
-            sale.SaleNumber = $"VTA-{DateTime.UtcNow:yyyyMMdd}-{sale.Id:D4}";
+            sale.SaleNumber = $"POS-{DateTime.UtcNow:yyyyMMdd}-{sale.Id:D4}";
             decimal subtotal = 0;
-            var lineDetails = new List<SaleLineDetailDto>();
+            decimal totalTax = 0;
+
+            // Lista temporal para almacenar referencias antes de construir el DTO final
+            var pendingLineItems = new List<(SaleLineItem Item, string ProductName, string Sku, string? SerialNumber)>();
 
             foreach (var line in request.Lines)
             {
-                var linea = await context.LineaProductos
+                // 1. Obtener Variante y su ProductoBase de forma segura por ID de variante
+                var variante = await context.ProductoVariantes
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(l => l.Id == line.LineaProductoId, cancellationToken)
-                    ?? throw new InvalidOperationException($"Producto línea {line.LineaProductoId} no existe.");
+                    .Include(v => v.ProductoBase)
+                    .FirstOrDefaultAsync(v => v.Id == line.ProductoVarianteId, cancellationToken)
+                    ?? throw new InvalidOperationException($"La variante con ID #{line.ProductoVarianteId} no existe.");
 
-                var qty = line.ProductoId.HasValue ? 1 : line.Quantity;
-                var unitPrice = line.UnitPrice ?? linea.PrecioVenta;
-                var lineTotal = unitPrice * qty;
+                var qty = !string.IsNullOrWhiteSpace(line.SerialNumber) ? 1 : line.Quantity;
+                
+                // Fallback de Precio y Tarifa de IVA (Variante -> ProductoBase)
+                var unitPrice = line.UnitPrice ?? (variante.PrecioVenta > 0 ? variante.PrecioVenta : variante.ProductoBase.PrecioVenta);
+                var taxRate = line.TaxRate ?? (variante.ProductoBase.ExentoIVA ? 0m : variante.ProductoBase.PorcentajeIVA);
+                
+                var lineSubtotal = unitPrice * qty;
+                var lineTax = Math.Round(lineSubtotal ?? 0 * taxRate, 2);
+                var lineTotal = lineSubtotal + lineTax;
 
+                // 2. Descontar Inventario vía StockHelper (usando el ProductoBaseId de la relación real de la variante)
                 var movementId = await StockHelper.DeductInventoryAsync(
                     context,
                     request.WarehouseId,
-                    line.LineaProductoId,
-                    line.ProductoId,
+                    variante.ProductoBaseId,
+                    line.ProductoVarianteId,
                     qty,
                     $"Venta {sale.SaleNumber}",
-                    request._CreatorAuth0Id,
+                    request._CreatorAuth0Id ?? "system",
                     sale.Id,
+                    line.SerialNumber,
                     cancellationToken);
 
-                string? serialOrSku = null;
-                if (line.ProductoId.HasValue)
-                {
-                    serialOrSku = await context.Productos
-                        .Where(p => p.Id == line.ProductoId)
-                        .Select(p => p.Serial ?? p.SKU)
-                        .FirstAsync(cancellationToken);
-                }
-
+                // 3. Registrar la línea de venta
                 var saleLine = new SaleLineItem
                 {
                     SaleId = sale.Id,
-                    LineaProductoId = line.LineaProductoId,
-                    ProductoId = line.ProductoId,
+                    ProductoVarianteId = line.ProductoVarianteId,
+                    UnidadProductoId = movementId, // O el ID real de la unidad de producto encontrada por serial
                     Quantity = qty,
-                    UnitPrice = unitPrice,
-                    LineTotal = lineTotal,
+                    UnitPrice = unitPrice ?? 0,
+                    TaxRate = taxRate,
+                    TaxAmount = lineTax,
+                    LineTotal = lineTotal ?? 0,
                     MovementId = movementId,
-                    CreatedBy = request._CreatorAuth0Id,
+                    CreatedBy = request._CreatorAuth0Id ?? "system",
                     CreatedAt = DateTime.UtcNow
                 };
 
                 context.SaleLineItems.Add(saleLine);
-                subtotal += lineTotal;
+                subtotal += lineSubtotal ?? 0;
+                totalTax += lineTax;
 
-                lineDetails.Add(new SaleLineDetailDto(
-                    0,
-                    linea.Name,
-                    serialOrSku,
-                    qty,
-                    unitPrice,
-                    lineTotal,
-                    movementId));
+                pendingLineItems.Add((saleLine, variante.ProductoBase.Name, variante.SKU, line.SerialNumber));
             }
 
             sale.Subtotal = subtotal;
-            sale.Total = subtotal;
+            sale.TaxAmount = totalTax;
+            sale.Total = subtotal + totalTax;
             
             var payment = new SalePayment
             {
@@ -114,31 +117,56 @@ public partial class SaleService
                 Amount = request.PaymentAmount,
                 Method = request.PaymentMethod,
                 PaidAt = DateTime.UtcNow,
-                CreatedBy = request._CreatorAuth0Id,
+                CreatedBy = request._CreatorAuth0Id ?? "system",
                 CreatedAt = DateTime.UtcNow
             };
             context.SalePayments.Add(payment);
-            sale.PaymentStatus = request.PaymentAmount >= subtotal
+
+            sale.PaymentStatus = request.PaymentAmount >= sale.Total
                 ? PaymentStatus.Paid
                 : request.PaymentAmount > 0
                     ? PaymentStatus.Partial
                     : PaymentStatus.Pending;
 
+            // Guardar cambios finales para generar las PKs de SaleLineItems y SalePayment
             await context.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
-           
+
+            // Mapear los DTOs de salida con los IDs persistidos
+            var lineDetails = pendingLineItems.Select(x => new SaleLineDetailDto(
+                x.Item.Id,
+                x.Item.ProductoVarianteId,
+                x.ProductName,
+                x.Sku,
+                x.SerialNumber,
+                x.Item.Quantity,
+                x.Item.UnitPrice,
+                x.Item.TaxRate,
+                x.Item.TaxAmount,
+                x.Item.LineTotal,
+                x.Item.MovementId
+            )).ToList();
+
             return new SaleDetailDto(
                 sale.Id,
                 sale.SaleNumber,
                 sale.CreatedAt,
                 client.Name,
                 client.IdentificationNumber,
+                client.Email,
+                client.PhoneNumber,
+                client.Address,
                 warehouse.Name,
                 sale.Subtotal,
+                sale.TaxAmount,
                 sale.Total,
                 sale.Status.GetDisplayName(),
                 sale.PaymentStatus,
                 sale.Notes,
+                sale.FactusInvoiceNumber,
+                sale.FactusStatus,
+                sale.FactusCufe,
+                sale.FactusQrUrl,
                 lineDetails);
         }
         catch

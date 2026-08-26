@@ -1,22 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
-    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Bootstrap Icons for iconography -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    
+    <!-- Legacy Styles -->
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="css/inventario.css" />
     <link rel="stylesheet" href="ERP.DATASET.styles.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
+    
+    <style>
+        @@media print {
+            body * {
+                visibility: hidden;
+            }
+            #pos-receipt-print-area, #pos-receipt-print-area * {
+                visibility: visible;
+            }
+            #pos-receipt-print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 80mm;
+                margin: 0;
+                padding: 10px;
+                background: white;
+                color: black;
+            }
+        }
+    </style>
+
     <HeadOutlet />
 </head>
 
-<body>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased">
     <Routes />
     <script src="_framework/blazor.web.js"></script>
+
+    <!-- POS Web Audio Synthesizer & Scanner Utility -->
+    <script>
+        window.erpAudio = {
+            playSuccess: function() {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(980, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1960, ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.1);
+                } catch(e) {}
+            },
+            playError: function() {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(240, ctx.currentTime);
+                    osc.frequency.setValueAtTime(180, ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.22);
+                } catch(e) {}
+            }
+        };
+
+        window.erpPos = {
+            focusInput: function(elementId) {
+                setTimeout(() => {
+                    const el = document.getElementById(elementId);
+                    if (el) {
+                        el.focus();
+                        el.select();
+                    }
+                }, 30);
+            },
+            printReceipt: function() {
+                window.print();
+            }
+        };
+    </script>
 </body>
 
 </html>

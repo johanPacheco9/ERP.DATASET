@@ -24,9 +24,12 @@ public partial class ClientService
             Name = request.Name.Trim(),
             DniType = request.DniType,
             IdentificationNumber = request.IdentificationNumber.Trim(),
-            PhoneNumber = request.PhoneNumber,
-            Address = request.Address,
-            City = request.City
+            Dv = request.Dv,
+            Email = request.Email?.Trim(),
+            PhoneNumber = request.PhoneNumber?.Trim(),
+            Address = request.Address?.Trim(),
+            City = request.City?.Trim(),
+            TaxRegime = request.TaxRegime?.Trim()
         };
 
         context.Clients.Add(client);
@@ -38,6 +41,9 @@ public partial class ClientService
             client.DniType,
             client.IdentificationNumber,
             client.PhoneNumber,
-            client.City);
+            client.City,
+            client.Email,
+            client.Address,
+            client.Dv);
     }
 }

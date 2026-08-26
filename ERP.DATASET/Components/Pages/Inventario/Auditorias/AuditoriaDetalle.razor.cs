@@ -1,16 +1,17 @@
 using ERP.DATA.Services.InventarioService.AuditService;
-using ERP.DATA.Services.InventarioService.ProductService;
-using ERP.DATA.Services.InventarioService.UnitProductService;
+using ERP.DATA.Services.InventarioService.UnidadProductoService;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
 
 namespace ERP.DATASET.Components.Pages.Inventario.Auditorias;
 
@@ -19,8 +20,8 @@ public partial class AuditoriaDetalle
     [Parameter] public int Id { get; set; }
 
     [Inject] private AuditoriaService AuditService { get; set; } = null!;
-    [Inject] private UnitProductService UnitProductService { get; set; } = null!;
-    [Inject] private ProductService ProductService { get; set; } = null!;
+    [Inject] private UnidadProductoManager UnidadProductoManager { get; set; } = null!;
+    [Inject] private ProductoBaseService ProductoBaseService { get; set; } = null!;
 
     private bool _loading = true;
     private AuditDetailDto? _audit;
@@ -85,9 +86,14 @@ public partial class AuditoriaDetalle
 
     private async Task LoadProducts()
     {
-        var result = await ProductService.ListAsync(
-            new ListProductRequest { PageNumber = 1, PageSize = 200 },
-            CancellationToken.None);
+        var result = await ProductoBaseService.ListAsync(
+            request: new ListProductRequest(pageNumber: 1, pageSize: 1),
+            searchTerm: null,
+            categoryName: null,
+            stockFilter: null,
+            cancellationToken: CancellationToken.None
+        );
+        
         _productos = result.ToList();
     }
 
@@ -168,7 +174,7 @@ public partial class AuditoriaDetalle
                 RequiereAccionCorrectiva = _editForm.RequiereAccionCorrectiva
             };
 
-            var updatedDto = await UnitProductService.Update(transationalRequest, CancellationToken.None);
+            var updatedDto = await UnidadProductoManager.Update(transationalRequest, CancellationToken.None);
 
             if (updatedDto != null)
             {

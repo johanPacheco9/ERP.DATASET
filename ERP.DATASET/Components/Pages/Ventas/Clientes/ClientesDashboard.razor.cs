@@ -10,13 +10,21 @@ public partial class ClientesDashboard
 
     private bool _loading = true;
     private string? _error;
+    private string? _search;
     private List<ClientSummaryDto> _items = new();
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        _error = null;
         try
         {
-            _items = await ClientService.ListAsync(CancellationToken.None);
+            _items = await ClientService.ListAsync(_search, CancellationToken.None);
         }
         catch (Exception ex)
         {
@@ -25,6 +33,18 @@ public partial class ClientesDashboard
         finally
         {
             _loading = false;
+        }
+    }
+
+    private async Task FilterClients()
+    {
+        try
+        {
+            _items = await ClientService.ListAsync(_search, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
         }
     }
 }

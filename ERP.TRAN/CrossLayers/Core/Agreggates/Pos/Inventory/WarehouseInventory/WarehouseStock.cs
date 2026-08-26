@@ -1,19 +1,21 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
+﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
+
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 
 public class WarehouseStock : EntityWithtraceability
 {
     public int Id { get; set; }
     public int WarehouseId { get; set; }
-    public int LineaProductoId { get; set; } // Referencia al "Producto Base" o Catálogo
-
-    // Totales calculados (Saldos)
-    public int CurrentStock { get; set; }   // Suma de unidades con Status = Disponible
-    public int StockReservado { get; set; } // Suma de unidades con Status = Reservado (en carrito/pedido)
     
-    // Configuración de alertas
+    // Clave Foránea directa a la Variante (SKU)
+    public int ProductoVarianteId { get; set; }
+
+    // Totales calculados (Saldos agregados)
+    public int CurrentStock { get; set; }    // Cantidad física disponible en la bodega
+    public int StockReservado { get; set; } // Cantidad apartada/en transito/en carrito
+    
+    // Configuración de alertas por bodega
     public int StockMinimo { get; set; } = 0;
     public int StockMaximo { get; set; } = 0;
 
@@ -21,5 +23,5 @@ public class WarehouseStock : EntityWithtraceability
 
     // Navegación
     public Warehouse Warehouse { get; set; } = null!;
-    public LineaProducto LineaProducto { get; set; } = null!;
+    public ProductoVariante ProductoVariante { get; set; } = null!;
 }

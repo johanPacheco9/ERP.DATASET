@@ -1,7 +1,6 @@
 using Bogus;
 using ERP.DATA.Repositories;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Enums;
-using ERP.TRAN.CrossLayers.API.Inventario.Producto.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
@@ -89,7 +88,7 @@ public static class OneShotDatabaseSeeder
         if (!context.Supplier.Any())
         {
             var suppliers = Enumerable.Range(1, 5)
-                .Select(_ => new Supplier
+                .Select(_ => new Proveedor
                 {
                     Name = faker.Company.CompanyName(),
                     Email = faker.Internet.Email(),
@@ -123,88 +122,106 @@ public static class OneShotDatabaseSeeder
         }
 
         // =========================
-        // PRODUCTS
+        // PRODUCT BASES (CATÁLOGO)
         // =========================
-        if (!context.LineaProductos.Any())
+        if (!context.ProductoBase.Any())
         {
             var categories = await context.Category.ToListAsync();
             var suppliers = await context.Supplier.ToListAsync();
 
             var products = Enumerable.Range(1, 100)
-                .Select(i => new LineaProducto
+                .Select(i => new ProductoBase
                 {
                     Code = $"PROD-{i:000}",
                     Name = faker.Commerce.ProductName(),
-                    CategoryId  = faker.PickRandom(categories).Id,
+                    CategoryId = faker.PickRandom(categories).Id,
                     SupplierId = faker.PickRandom(suppliers).Id,
                     CostoUnitario = faker.Random.Decimal(10, 100),
-                    PrecioVenta= faker.Random.Decimal(120, 200),
+                    PrecioVenta = faker.Random.Decimal(120, 200),
                     UnidadMedida = "Unidad",
-                    Status = LineaProductoStatus.Active,
+                    BaseStatus = ProductoBaseStatus.Active,
                     CreatedBy = "system",
                     CreatedAt = now,
                     IsActive = true
                 }).ToList();
 
-            context.LineaProductos.AddRange(products);
+            context.ProductoBase.AddRange(products);
             await context.SaveChangesAsync();
         }
 
         // =========================
-        // VARIANTS
+        // PRODUCT VARIANTS (SKUs)
         // =========================
-        var warehouses = await context.Warehouse.ToListAsync();
-
-        if (!context.Productos.Any(p => string.IsNullOrEmpty(p.Serial)))
+        if (!context.ProductoVariantes.Any())
         {
-            var lineas = await context.LineaProductos.ToListAsync();
+            var bases = await context.ProductoBase.ToListAsync();
 
-            var variants = lineas.SelectMany(p =>
-                Enumerable.Range(1, 2).Select(i => new Producto
+            var variants = bases.SelectMany(p =>
+                Enumerable.Range(1, 2).Select(i => new ProductoVariante
                 {
-                    LineaProductoId = p.Id,
-                    BodegaId = faker.PickRandom(warehouses).Id,
+                    ProductoBaseId = p.Id,
                     SKU = $"{p.Code}-V{i}",
                     PrecioVenta = faker.Random.Decimal(150, 300),
                     CostoUnitario = faker.Random.Decimal(80, 150),
-                    Status = ProductoStatus.Available,
                     CreatedBy = "system",
                     CreatedAt = now,
                     IsActive = true
                 })
             ).ToList();
 
-            context.Productos.AddRange(variants);
+            context.ProductoVariantes.AddRange(variants);
             await context.SaveChangesAsync();
         }
 
         // =========================
-        // UNIT PRODUCTS (SERIALS)
+        // UNIT PRODUCTS & WAREHOUSE STOCK
         // =========================
-        if (!context.Productos.Any(p => p.Serial != null))
+        if (!context.UnidadesProductos.Any())
         {
-            var lineas = await context.LineaProductos.ToListAsync();
+            var warehouses = await context.Warehouse.ToListAsync();
+            var variantes = await context.ProductoVariantes.ToListAsync();
 
+            // 1. Crear Unidades Serializadas (para los ítems de alta trazabilidad)
             var unitProducts = Enumerable.Range(1, 200)
                 .Select(i =>
                 {
-                    var linea = faker.PickRandom(lineas);
-                    return new Producto
+                    var variante = faker.PickRandom(variantes);
+                    var bodega = faker.PickRandom(warehouses);
+                    return new UnidadProducto
                     {
-                        LineaProductoId = linea.Id,
-                        BodegaId = faker.PickRandom(warehouses).Id,
-                        SKU = $"{linea.Code}-U{i:D4}",
-                        Serial = $"SN-{i:D5}",
-                        PrecioVenta = faker.Random.Decimal(150, 300),
-                        CostoUnitario = faker.Random.Decimal(80, 150),
-                        Status = ProductoStatus.Available,
+                        ProductoVarianteId = variante.Id,
+                        BodegaId = bodega.Id,
+                        SerialNumber = $"SN-{i:D5}",
+                        Lote = $"LOT-{faker.Random.Number(100, 999)}",
+                        Status = UnidadProductoStatus.Available,
+                        UbicacionFisica = $"Estante {faker.Random.AlphaNumeric(3).ToUpper()}",
                         CreatedBy = "system",
                         CreatedAt = now,
                         IsActive = true
                     };
                 }).ToList();
 
-            context.Productos.AddRange(unitProducts);
+            context.UnidadesProductos.AddRange(unitProducts);
+            await context.SaveChangesAsync();
+
+            // 2. Crear Saldo Inicial en WarehouseStock por cada Variante y Bodega
+            var stocks = (from v in variantes
+                          from w in warehouses
+                          select new WarehouseStock
+                          {
+                              WarehouseId = w.Id,
+                              ProductoVarianteId = v.Id,
+                              CurrentStock = faker.Random.Number(10, 100),
+                              StockReservado = 0,
+                              StockMinimo = 5,
+                              StockMaximo = 150,
+                              FechaActualizacion = now,
+                              CreatedBy = "system",
+                              CreatedAt = now,
+                              IsActive = true
+                          }).ToList();
+
+            context.WarehouseStock.AddRange(stocks);
             await context.SaveChangesAsync();
         }
     }

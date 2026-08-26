@@ -6,8 +6,12 @@ public sealed record SaleSummaryDto(
     DateTime CreatedAt,
     string ClientName,
     string WarehouseName,
+    decimal Subtotal,
+    decimal TaxAmount,
     decimal Total,
     string StatusDisplay,
     string PaymentStatusDisplay,
-    int LineCount
+    int LineCount,
+    string? FactusStatus = null,
+    string? FactusInvoiceNumber = null
 );

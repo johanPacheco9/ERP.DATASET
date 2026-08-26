@@ -6,8 +6,8 @@ namespace ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Responses;
 public record MovimientoDetailDto(
     int MovimientoId,
     // Identificadores
-    int ProductoId,
     int ProductoVarianteId,
+    int? UnidadProductoId,
     int BodegaId,
     // Tipo
     TipoMovimiento TipoMovimiento,
@@ -15,10 +15,12 @@ public record MovimientoDetailDto(
     int Cantidad,
     decimal CostoUnitario,
     decimal CostoTotal,
-    // Lote / vencimiento
+    // Trazabilidad y referencias
+    int? ReferenciaId,
+    string? ReferenciaTipo,
     string? Lote,
-    string? Referencia,
-    // Motive y observaciones
+    DateTime? FechaVencimiento,
+    // Motivo y observaciones
     string? Motivo,
     string? Observaciones,
     // Auditoría

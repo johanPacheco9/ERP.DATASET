@@ -12,21 +12,24 @@ namespace ERP.DATA.Repositories;
 
 public partial class MainDataContext
 {
-    public DbSet<LineaProducto> LineaProductos { get; set; }
+    public DbSet<ProductoBase> ProductoBase { get; set; }
 
     public DbSet<Warehouse> Warehouse { get; set; }
 
     public DbSet<Category> Category { get; set; }
 
-    public DbSet<Supplier> Supplier { get; set; }
+    public DbSet<Proveedor> Supplier { get; set; }
 
     public DbSet<WarehouseStock> WarehouseStock { get; set; }
 
     public DbSet<Movement> Movements { get; set; }
 
-    public DbSet<UnitProductAudit>UnitProductAudits{get; set;}
-    public DbSet<Producto> Productos { get; set; }
+    public DbSet<UnidadProductoAuditada> UnitProductAudits{get; set;}
     
+    public DbSet<ProductoVariante> ProductoVariantes { get; set; }
+
+    public DbSet<UnidadProducto> UnidadesProductos { get; set; }
+
     public DbSet<UnitProductMovement> UnitProductMovements { get; set; }
 
     public DbSet<Audit> Audit { get; set; }

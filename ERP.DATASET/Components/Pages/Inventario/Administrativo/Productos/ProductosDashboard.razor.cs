@@ -1,7 +1,11 @@
-﻿using ERP.DATA.Services.InventarioService.ProductService;
+﻿using ERP.DATA.Services.InventarioService.CategoriaService;
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using Microsoft.AspNetCore.Components;
+using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
 
 namespace ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos;
 
@@ -22,12 +26,32 @@ public partial class ProductosDashboard
 
     private List<ProductoSummaryDto> _productos = new();
 
-    [Inject]
-    public ProductService ProductoService { get; set; } = null!;
+    private List<CategoriaDetailDto> _categorias = [] ;
 
-    protected async override Task OnInitializedAsync()
+    [Inject] public ProductoBaseService ProductoService { get; set; } = null!;
+
+    [Inject] public CategoriaService CategoriaService { get; set; } = null!;
+
+
+    protected override async Task OnInitializedAsync()
     {
+        await GetCategorias();
         await GetProductos();
+    }
+
+
+    private async Task GetCategorias()
+    {
+        var request = new ListCategoriasRequest(
+            1, 100, minDate: null, maxDate: null
+        );
+
+        var result = await CategoriaService.List(request, CancellationToken.None);
+        if (result.Count>0)
+        {
+            _categorias = result.ToList();
+        }
+        
     }
 
     private async Task GetProductos()
@@ -42,13 +66,11 @@ public partial class ProductosDashboard
             orderBy: null
         );
 
-        if (!string.IsNullOrWhiteSpace(_searchText))
-        {
-            request.OrderBy = _searchText;
-        }
-
         var result = await ProductoService.ListAsync(
             request,
+            searchTerm: _searchText,
+            categoryName: _selectedCategory,
+            stockFilter: _stockFilter,
             CancellationToken.None
         );
 
@@ -58,9 +80,33 @@ public partial class ProductosDashboard
 
         _isLoading = false;
     }
+
+
+    // Controladores de eventos de filtros
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _searchText = e.Value?.ToString() ?? string.Empty;
+        _currentPage = 1;
+        await GetProductos();
+    }
+
+    private async Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        _selectedCategory = e.Value?.ToString() ?? string.Empty;
+        _currentPage = 1;
+        await GetProductos();
+    }
+
+    private async Task OnStockFilterChanged(ChangeEventArgs e)
+    {
+        _stockFilter = e.Value?.ToString() ?? string.Empty;
+        _currentPage = 1;
+        await GetProductos();
+    }
+
     private async Task ChangePage(int page)
     {
-        if (page < 1 || page > _totalPages)
+        if (page < 1 || page > _totalPages || page == _currentPage)
             return;
 
         _currentPage = page;
@@ -99,6 +145,7 @@ public partial class ProductosDashboard
     {
         Console.WriteLine($"Eliminando producto: {p.Nombre}");
     }
+
     private void NuevoProducto()
     {
         _nuevoProductoModal = true;

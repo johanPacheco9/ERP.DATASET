@@ -1,15 +1,16 @@
-﻿using ERP.DATA.Services.InventarioService.ProductService;
-using ERP.DATA.Utilities.Providers;
+﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProductVariant;
 using Microsoft.AspNetCore.Mvc;
+using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
 
 public sealed class CreateProductoEndpoint(
     ILogger<CreateProductoEndpoint> logger,
-    ProductService productoService, IProductVariantService productoVarianteService
+    ProductoBaseService productoService, IProductVariantService productoVarianteService
 )
     : BaseCreateEndpoint<CreateProductoRequest, CreateProductoEndpoint>(logger)
 {

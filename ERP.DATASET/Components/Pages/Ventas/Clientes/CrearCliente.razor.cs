@@ -25,9 +25,12 @@ public partial class CrearCliente
                 Name = _form.Name,
                 DniType = _form.DniType,
                 IdentificationNumber = _form.IdentificationNumber,
+                Dv = _form.Dv,
+                Email = _form.Email,
                 PhoneNumber = _form.PhoneNumber,
                 Address = _form.Address,
                 City = _form.City,
+                TaxRegime = _form.TaxRegime,
                 _CreatorAuth0Id = "system"
             };
 
@@ -49,8 +52,11 @@ public partial class CrearCliente
         public string Name { get; set; } = "";
         public DniType DniType { get; set; } = DniType.cc;
         public string IdentificationNumber { get; set; } = "";
+        public string? Dv { get; set; }
+        public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
         public string? City { get; set; }
+        public string? TaxRegime { get; set; } = "Responsable de IVA";
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace ERP.DATA.Services.Inventario.ProveedorService;
+﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
+
+namespace ERP.DATA.Services.Inventario.ProveedorService;
 
 using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Requests;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
@@ -8,9 +10,9 @@ using System.Threading.Tasks;
 
 public partial class SupplierService
 {
-    public async Task<Supplier> AddProveedorAsync(Supplier proveedor, CancellationToken cancellationToken)
+    public async Task<Proveedor> AddProveedorAsync(Proveedor proveedor, CancellationToken cancellationToken)
     {
-        proveedor = new Supplier
+        proveedor = new Proveedor
         {
             Name = proveedor.Name,
             Nit = proveedor.Nit,

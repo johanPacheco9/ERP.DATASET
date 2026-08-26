@@ -1,10 +1,10 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<div class="d-flex">
+<div class="min-h-screen bg-slate-50 flex font-sans antialiased text-slate-900">
     <NavMenu />
 
-    <main class="flex-fill content-area">
-        <div class="p-4">
+    <main class="flex-1 overflow-x-hidden min-w-0">
+        <div class="p-2 sm:p-6">
             @Body
         </div>
     </main>

@@ -2,98 +2,126 @@
 @using ERP.TRAN.CrossLayers.API.Pos.Payments.Enums
 @rendermode InteractiveServer
 
-<div class="container-fluid py-4 bg-light min-vh-100">
+<div class="max-w-[1600px] mx-auto space-y-5">
     @if (_loading)
     {
-        <div class="d-flex justify-content-center align-items-center position-fixed start-0 top-0 w-100 h-100 bg-white bg-opacity-75" style="z-index: 1050;">
-            <div class="text-center">
-                <div class="spinner-border text-primary mb-2" role="status"></div>
-                <div class="text-muted small fw-medium">Cargando transacción...</div>
-            </div>
+        <div class="p-12 text-center bg-white rounded-xl border border-slate-200 shadow-xs">
+            <div class="inline-block animate-spin rounded-full h-7 w-7 border-3 border-blue-600 border-t-transparent mb-2"></div>
+            <p class="text-xs font-medium text-slate-600">Cargando comprobante de venta...</p>
         </div>
     }
     else if (_venta == null)
     {
-        <div class="alert alert-warning shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
-            <div>
-                <h6 class="alert-heading mb-0 fw-bold">Venta no encontrada</h6>
-                <small>El identificador de la venta no corresponde a ningún registro activo.</small>
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-exclamation-triangle-fill text-amber-600 text-lg"></i>
+                <span class="font-semibold">Venta no encontrada.</span>
             </div>
-            <a href="/ventas" class="btn btn-warning btn-sm ms-auto">Volver al listado</a>
+            <a href="/ventas" class="px-3 py-1.5 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700">Volver</a>
         </div>
     }
     else
     {
-        @* ENCABEZADO DE ACCIÓN REFINADO *@
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+        <!-- Header Venta Blanco -->
+        <div class="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="badge bg-dark-subtle text-dark border px-2 py-1 font-monospace">@_venta.SaleNumber</span>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                        <i class="bi bi-check-circle-fill me-1"></i> @_venta.StatusDisplay
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 rounded-md bg-slate-900 text-white font-mono font-bold text-xs">
+                        @_venta.SaleNumber
+                    </span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        @_venta.StatusDisplay
+                    </span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        Factus: @(_venta.FactusStatus ?? "Pendiente DIAN")
                     </span>
                 </div>
-                <h3 class="fw-bold tracking-tight mb-0">@_venta.ClientName</h3>
-                <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>Punto de Despacho: <strong>@_venta.WarehouseName</strong></small>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">@_venta.ClientName</h1>
+                <div class="flex items-center gap-2 text-xs text-slate-500 mt-0.5 font-mono">
+                    <span>Doc: @_venta.ClientIdentification</span>
+                    <span>&bull;</span>
+                    <span>Bodega: @_venta.WarehouseName</span>
+                    <span>&bull;</span>
+                    <span>@_venta.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
             </div>
-            <a href="/ventas" class="btn btn-white btn-sm border shadow-sm px-3">
-                <i class="bi bi-arrow-left me-1"></i> Volver a Ventas
-            </a>
+
+            <div class="flex items-center gap-2">
+                <button type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-colors flex items-center gap-1.5 shadow-2xs" @onclick="PrintInvoice">
+                    <i class="bi bi-printer text-slate-500"></i> Imprimir Factura
+                </button>
+                <a href="/ventas" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors flex items-center gap-1">
+                    <i class="bi bi-arrow-left"></i> Historial
+                </a>
+            </div>
         </div>
 
-        @* LAYOUT ASIMÉTRICO DE DOS COLUMNAS *@
-        <div class="row g-4">
+        <!-- Grid 2 Columnas -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             
-            @* COLUMNA PRINCIPAL (IZQUIERDA): PRODUCTOS Y LOGÍSTICA *@
-            <div class="col-lg-8">
+            <!-- Columna Izquierda: Artículos (8 cols) -->
+            <div class="lg:col-span-8 space-y-4">
                 
-                @* Banner Logístico de Inventario (Discreto y corporativo) *@
-                <div class="p-3 bg-white border rounded shadow-sm d-flex align-items-start gap-3 mb-4">
-                    <div class="p-2 bg-primary-subtle text-primary rounded">
-                        <i class="bi bi-box-seam fs-5"></i>
+                <!-- Banner Factus DIAN Blanco -->
+                <div class="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs flex items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-2.5">
+                        <i class="bi bi-shield-check text-emerald-600 text-xl"></i>
+                        <div>
+                            <span class="font-bold text-slate-800 block">Facturación Electrónica DIAN</span>
+                            <span class="text-slate-500">Estructura impositiva lista para sincronización con la API de Factus.</span>
+                        </div>
                     </div>
-                    <div>
-                        <span class="fw-bold d-block text-dark small mb-0">Trazabilidad de Inventario</span>
-                        <small class="text-muted">
-                            Cada ítem generó un movimiento de salida de tipo <span class="badge bg-light text-dark border font-monospace">venta</span>. 
-                            Las unidades físicas pasaron al estado <span class="text-dark fw-medium">Vendido</span> de manera inmediata.
-                        </small>
-                    </div>
+                    <button type="button" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-2xs transition-colors" @onclick="EmitirFactusSimulado">
+                        <i class="bi bi-send me-1"></i> Emitir a Factus
+                    </button>
                 </div>
 
-                @* Tabla de Detalles de Ítems *@
-                <div class="card shadow-sm border-0 overflow-hidden">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h6 class="mb-0 fw-bold text-secondary">Artículos Despachados (@_venta.Lines.Count)</h6>
+                <!-- Tabla de Artículos -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <h2 class="font-bold text-xs uppercase tracking-wider text-slate-700">Artículos Facturados (@_venta.Lines.Count)</h2>
+                        <span class="text-slate-400 text-xs font-mono">Trazabilidad de inventario</span>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light text-uppercase fs-7 tracking-wider border-bottom text-muted">
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
                                 <tr>
-                                    <th scope="col" class="ps-4">Producto</th>
-                                    <th scope="col">Serial / SKU</th>
-                                    <th scope="col" class="text-center">Cant.</th>
-                                    <th scope="col" class="text-end">Precio Unitario</th>
-                                    <th scope="col" class="text-end">Subtotal</th>
-                                    <th scope="col" class="text-end pe-4">Mov. Inv</th>
+                                    <th class="py-2.5 px-4">Producto</th>
+                                    <th class="py-2.5 px-3">Serial / SKU</th>
+                                    <th class="py-2.5 px-3 text-center">Cant.</th>
+                                    <th class="py-2.5 px-3 text-right">P. Unitario</th>
+                                    <th class="py-2.5 px-2 text-center">IVA</th>
+                                    <th class="py-2.5 px-4 text-right">Total</th>
+                                    <th class="py-2.5 px-3 text-right">Movimiento</th>
                                 </tr>
                             </thead>
-                            <tbody class="border-top-0">
+                            <tbody class="divide-y divide-slate-100">
                                 @foreach (var l in _venta.Lines)
                                 {
-                                    <tr>
-                                        <td class="ps-4">
-                                            <span class="fw-semibold text-dark d-block">@l.ProductName</span>
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="py-2.5 px-4 font-semibold text-slate-900">
+                                            @l.ProductName
                                         </td>
-                                        <td>
-                                            <span class="badge bg-light text-secondary border font-monospace small">@(l.SerialOrSku ?? "—")</span>
+                                        <td class="py-2.5 px-3 font-mono text-slate-500">
+                                            @(l.SerialNumber ?? "—")
                                         </td>
-                                        <td class="text-center fw-medium">@l.Quantity</td>
-                                        <td class="text-end text-muted">@l.UnitPrice.ToString("C2")</td>
-                                        <td class="text-end fw-semibold text-dark">@l.LineTotal.ToString("C2")</td>
-                                        <td class="text-end pe-4">
-                                            <span class="text-muted font-monospace small">#@(l.MovementId?.ToString() ?? "—")</span>
+                                        <td class="py-2.5 px-3 text-center font-bold text-slate-800">
+                                            @l.Quantity
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right font-mono text-slate-600">
+                                            @l.UnitPrice.ToString("C0")
+                                        </td>
+                                        <td class="py-2.5 px-2 text-center">
+                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold @(l.TaxRate > 0 ? "bg-slate-100 text-slate-700 border border-slate-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200")">
+                                                @(l.TaxRate > 0 ? $"{(l.TaxRate * 100):0}%" : "Exento")
+                                            </span>
+                                        </td>
+                                        <td class="py-2.5 px-4 text-right font-mono font-bold text-slate-900">
+                                            @l.LineTotal.ToString("C0")
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right font-mono text-slate-400">
+                                            #@(l.MovementId?.ToString() ?? "—")
                                         </td>
                                     </tr>
                                 }
@@ -101,174 +129,157 @@
                         </table>
                     </div>
                 </div>
-            </div>
 
-            @* COLUMNA FINANCIERA (DERECHA): ESTADO DE PAGO Y AUDITORÍA *@
-            <div class="col-lg-4">
-                @if (_pagos != null)
+                @if (!string.IsNullOrEmpty(_venta.Notes))
                 {
-                    @* Alerta Crítica de Cartera / Saldos Pendientes *@
-                    @if (_pagos.Balance > 0)
-                    {
-                        <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center p-3 mb-4 animate-pulse">
-                            <i class="bi bi-exclamation-octagon-fill text-danger fs-3 me-3"></i>
-                            <div>
-                                <h6 class="mb-0 fw-bold text-danger">Venta con Saldo Pendiente</h6>
-                                <p class="mb-0 text-dark small">El cliente tiene una deuda de <strong>@_pagos.Balance.ToString("C2")</strong> sobre esta factura.</p>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert alert-success border-0 shadow-sm d-flex align-items-center p-3 mb-4">
-                            <i class="bi bi-shield-check text-success fs-3 me-3"></i>
-                            <div>
-                                <h6 class="mb-0 fw-bold text-success">Transacción Liquidada</h6>
-                                <p class="mb-0 text-muted small">No se registran saldos pendientes para esta venta.</p>
-                            </div>
-                        </div>
-                    }
-
-                    @* Tarjeta Resumen de Caja (Kpi Financiero con fix de desborde) *@
-                    <div class="card shadow-sm border-0 mb-4 bg-dark text-white overflow-hidden">
-                        @* Añadimos un min-height para asegurar que el contenido no se comprima *@
-                        <div class="card-body p-4 position-relative" style="min-height: 180px;">
-        
-                            @* FIX: Cambiamos inline el estilo del signo para que quede perfectamente al borde y no pise las cifras *@
-                            <div class="position-absolute end-0 bottom-0 p-2" style="opacity: 0.06; line-height: 1; pointer-events: none;">
-                                <i class="bi bi-currency-dollar" style="font-size: 7.5rem;"></i>
-                            </div>
-        
-                            <div class="position-relative" style="z-index: 2;">
-                                <span class="text-muted-white text-uppercase fs-7 tracking-wider fw-medium d-block mb-1">Estado de Cartera</span>
-                                <h5 class="fw-bold mb-3">@_pagos.PaymentStatus</h5>
-            
-                                <hr class="border-secondary my-3" />
-            
-                                <div class="d-flex justify-content-between mb-2 small text-light opacity-75">
-                                    <span>Total Facturado:</span>
-                                    <span class="fw-medium">@_pagos.SaleTotal.ToString("C2")</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2 text-success fw-medium">
-                                    <span>Total Recaudado:</span>
-                                    <span>+ @_pagos.TotalPaid.ToString("C2")</span>
-                                </div>
-                                <div class="d-flex justify-content-between pt-2 border-top border-secondary align-items-baseline">
-                                    <span class="fw-bold fs-7 text-uppercase tracking-wider opacity-75">Saldo Deudor:</span>
-                                    <span class="fs-4 fw-bold text-warning">
-                                        @_pagos.Balance.ToString("C2")
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    @* Historial de Transacciones de Caja *@
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-bold text-secondary">Historial de Recaudos</h6>
-                            <div class="d-flex align-items-center gap-2">
-                                @if (_pagos.Balance > 0)
-                                {
-                                    <button class="btn btn-sm btn-primary" @onclick="OpenPaymentModal">
-                                        <i class="bi bi-cash-coin me-1"></i>Registrar abono
-                                    </button>
-                                }
-                                <span class="badge bg-light text-muted border font-monospace">@_pagos.Payments.Count()</span>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            @if (!_pagos.Payments.Any())
-                            {
-                                <div class="text-center py-4 text-muted">
-                                    <i class="bi bi-wallet2 fs-2 d-block mb-2 text-black-50"></i>
-                                    <small>No se registran transacciones de ingreso.</small>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="list-group list-group-flush small">
-                                    @foreach (var p in _pagos.Payments)
-                                    {
-                                        <div class="list-group-item p-3 border-bottom-dashed">
-                                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                                <span class="fw-bold text-dark"><i class="bi bi-credit-card-2-back me-1 text-muted"></i> @p.Method</span>
-                                                <span class="fw-bold text-success">+ @p.Amount.ToString("C2")</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between text-muted fs-7">
-                                                <span>@p.PaidAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</span>
-                                                <span>Ref: <strong class="text-dark">@(p.Reference ?? "N/A")</strong></span>
-                                            </div>
-                                            <div class="mt-2 pt-1 border-top border-light text-end fs-7 text-black-50">
-                                                <i class="bi bi-person-circle"></i> Cajero: @p.CreatedBy
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                        </div>
+                    <div class="p-3.5 bg-white rounded-xl border border-slate-200 text-xs">
+                        <span class="font-bold text-slate-700 block mb-0.5">Observaciones:</span>
+                        <p class="text-slate-600">@_venta.Notes</p>
                     </div>
                 }
+            </div>
+
+            <!-- Columna Derecha: Estado de Cartera y Abonos (4 cols) -->
+            <div class="lg:col-span-4 space-y-4">
+                
+                <!-- Tarjeta Resumen Financiero Blanco -->
+                <div class="bg-white rounded-xl p-4 border-2 border-slate-200 shadow-xs space-y-3">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Estado de Cartera</span>
+                    <h3 class="text-base font-bold text-slate-900">@(_pagos?.PaymentStatus ?? _venta.PaymentStatus.ToString())</h3>
+
+                    <div class="space-y-1.5 text-xs border-t border-slate-100 pt-2.5 font-mono">
+                        <div class="flex justify-between text-slate-600">
+                            <span>Subtotal:</span>
+                            <span class="text-slate-800 font-semibold">@_venta.Subtotal.ToString("C2")</span>
+                        </div>
+                        <div class="flex justify-between text-slate-600">
+                            <span>IVA Total:</span>
+                            <span class="text-slate-800 font-semibold">+ @_venta.TaxAmount.ToString("C2")</span>
+                        </div>
+                        <div class="flex justify-between text-slate-900 font-bold pt-1 border-t border-slate-100">
+                            <span>Total Facturado:</span>
+                            <span>@_venta.Total.ToString("C2")</span>
+                        </div>
+                        <div class="flex justify-between text-emerald-700 font-bold">
+                            <span>Total Recaudado:</span>
+                            <span>+ @((_pagos?.TotalPaid ?? _venta.Total).ToString("C2"))</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-sm pt-2 border-t border-slate-100 @((_pagos?.Balance ?? 0) > 0 ? "text-rose-600" : "text-slate-500")">
+                            <span>Saldo Pendiente:</span>
+                            <span>@((_pagos?.Balance ?? 0).ToString("C2"))</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial de Pagos / Abonos -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700">Historial de Recaudos</h3>
+                        @if (_pagos != null && _pagos.Balance > 0)
+                        {
+                            <button type="button" class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors flex items-center gap-1" @onclick="OpenPaymentModal">
+                                <i class="bi bi-plus-lg"></i> Registrar Abono
+                            </button>
+                        }
+                    </div>
+
+                    <div class="p-3.5">
+                        @if (_pagos == null || !_pagos.Payments.Any())
+                        {
+                            <div class="text-center py-5 text-slate-400 text-xs">
+                                <i class="bi bi-wallet2 text-xl d-block mb-1"></i>
+                                <span>No hay abonos registrados.</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="divide-y divide-slate-100 text-xs space-y-2">
+                                @foreach (var p in _pagos.Payments)
+                                {
+                                    <div class="pt-2 first:pt-0">
+                                        <div class="flex justify-between items-center font-semibold">
+                                            <span class="text-slate-800"><i class="bi bi-credit-card text-slate-400 me-1"></i> @p.Method</span>
+                                            <span class="text-emerald-700 font-mono">+ @p.Amount.ToString("C0")</span>
+                                        </div>
+                                        <div class="flex justify-between text-[11px] text-slate-400 font-mono mt-0.5">
+                                            <span>@p.PaidAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                            <span>Ref: @(p.Reference ?? "N/A")</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     }
 </div>
 
+<!-- MODAL REGISTRAR ABONO -->
 @if (_showPaymentModal && _pagos != null)
 {
-    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h6 class="modal-title fw-bold">Registrar Abono</h6>
-                    <button type="button" class="btn-close btn-close-white" @onclick="() => _showPaymentModal = false"></button>
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                    <i class="bi bi-cash-coin text-blue-600"></i> Registrar Abono a Factura
+                </h3>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg" @onclick="() => _showPaymentModal = false">&times;</button>
+            </div>
+
+            <div class="p-4 space-y-3.5 text-xs">
+                <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between text-amber-900 font-bold">
+                    <span>Saldo pendiente:</span>
+                    <span class="font-mono text-sm">@_pagos.Balance.ToString("C2")</span>
                 </div>
-                <div class="modal-body p-3">
-                    <div class="alert alert-info small">
-                        Saldo pendiente: <strong>@_pagos.Balance.ToString("C2")</strong>
+
+                @if (!string.IsNullOrEmpty(_paymentError))
+                {
+                    <div class="p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-800">
+                        @_paymentError
                     </div>
-                    @if (!string.IsNullOrEmpty(_paymentError))
-                    {
-                        <div class="alert alert-danger small">@_paymentError</div>
-                    }
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Valor</label>
-                            <InputNumber class="form-control" @bind-Value="_paymentForm.Amount" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Fecha</label>
-                            <InputDate class="form-control" @bind-Value="_paymentForm.PaidAt" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Metodo</label>
-                            <InputSelect class="form-select" @bind-Value="_paymentForm.Method">
-                                <option value="@PaymentMethod.Cash">Efectivo</option>
-                                <option value="@PaymentMethod.CreditCard">Tarjeta credito</option>
-                                <option value="@PaymentMethod.DebitCard">Tarjeta debito</option>
-                                <option value="@PaymentMethod.BankTransfer">Transferencia</option>
-                                <option value="@PaymentMethod.Nequi">Nequi</option>
-                                <option value="@PaymentMethod.Credit">Credito</option>
-                            </InputSelect>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Referencia</label>
-                            <InputText class="form-control" @bind-Value="_paymentForm.Reference" />
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Notas</label>
-                            <InputTextArea class="form-control" rows="2" @bind-Value="_paymentForm.Notes" />
-                        </div>
+                }
+
+                <div class="space-y-2.5">
+                    <div>
+                        <label class="font-semibold text-slate-700 block mb-1">Monto del Abono *</label>
+                        <input type="number" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg font-bold font-mono text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-blue-600" @bind="_paymentForm.Amount" />
+                    </div>
+
+                    <div>
+                        <label class="font-semibold text-slate-700 block mb-1">Método de Pago</label>
+                        <select class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs" @bind="_paymentForm.Method">
+                            <option value="@PaymentMethod.Cash">Efectivo</option>
+                            <option value="@PaymentMethod.DebitCard">Tarjeta Débito</option>
+                            <option value="@PaymentMethod.CreditCard">Tarjeta Crédito</option>
+                            <option value="@PaymentMethod.BankTransfer">Transferencia Bancaria</option>
+                            <option value="@PaymentMethod.Nequi">Nequi</option>
+                            <option value="@PaymentMethod.Credit">Crédito</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="font-semibold text-slate-700 block mb-1">Referencia / Comprobante</label>
+                        <input type="text" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs" placeholder="Ej: TRX-998822" @bind="_paymentForm.Reference" />
+                    </div>
+
+                    <div>
+                        <label class="font-semibold text-slate-700 block mb-1">Notas</label>
+                        <textarea class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs" rows="2" placeholder="Observaciones..." @bind="_paymentForm.Notes"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer bg-light p-2">
-                    <button type="button" class="btn btn-white btn-sm border" @onclick="() => _showPaymentModal = false">Cancelar</button>
-                    <button type="button" class="btn btn-primary btn-sm px-3" @onclick="SavePayment" disabled="@_savingPayment">
+
+                <div class="pt-2 flex gap-2">
+                    <button type="button" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors" @onclick="() => _showPaymentModal = false">
+                        Cancelar
+                    </button>
+                    <button type="button" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-xs transition-colors flex items-center justify-center gap-1" @onclick="SavePayment" disabled="@_savingPayment">
                         @if (_savingPayment)
                         {
-                            <span class="spinner-border spinner-border-sm me-1"></span>
+                            <span class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></span>
                         }
-                        Guardar abono
+                        <span>Guardar Abono</span>
                     </button>
                 </div>
             </div>

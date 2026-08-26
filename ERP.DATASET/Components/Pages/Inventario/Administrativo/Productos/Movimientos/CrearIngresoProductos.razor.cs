@@ -1,18 +1,19 @@
 ﻿using ERP.DATA.Services.InventarioService.CategoriaService;
 using ERP.DATA.Services.InventarioService.ProductoVarianteService;
-using ERP.DATA.Services.InventarioService.ProductService;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
 using Microsoft.AspNetCore.Components;
+using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
 
 namespace ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos.Movimientos;
 
 public partial class CrearIngresoProductos : ComponentBase
 {
     [Inject] public CategoriaService CategoriaService { get; set; } = default!;
-    [Inject] public ProductService productoService { get; set; } = null!;
+    [Inject] public ProductoBaseService productoService { get; set; } = null!;
     [Inject] public ProductVariantService productoVarianteService { get; set; } = null!;
     [Parameter] public EventCallback OnClose { get; set; }
 
@@ -99,9 +100,9 @@ public partial class CrearIngresoProductos : ComponentBase
                 Imagen_Url = _form.Imagen_Url?.Trim(),
                 Notas = _form.Notas?.Trim(),
                 Tags = _form.Tags?.Trim(),
-                Es_Perecedero = _form.Es_Perecedero,
+                EsPerecedero = _form.Es_Perecedero,
                 FechaCaducidad = _form.FechaCaducidad,
-                hasVariantes = false
+                HasVariantes = false
             };
 
             _productoIdCreado = await productoService.AddProductoAsync(request, CancellationToken.None);

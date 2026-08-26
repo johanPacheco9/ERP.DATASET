@@ -13,7 +13,7 @@ public class Transaction : EntityWithtraceability
 
     public int ClientId { get; set; }
 
-    public List<LineaProducto> productos { get; set; } 
+    public List<ProductoBase> productos { get; set; } 
 
     public Store Store { get; set; } = null!;
     public TransactionStatus TransactionStatus { get; set; }

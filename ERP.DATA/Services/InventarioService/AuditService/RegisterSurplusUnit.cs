@@ -35,7 +35,8 @@ public partial class AuditoriaService
 
         var code = request.Code.Trim();
 
-        var existingSurplus = await _context.UnitProductAudits
+        // Verificamos usando el DbSet correcto de tu entidad
+        var existingSurplus = await _context.Set<UnidadProductoAuditada>()
             .AnyAsync(u =>
                     u.AuditId == request.AuditId &&
                     u.Serial == code &&
@@ -46,10 +47,10 @@ public partial class AuditoriaService
             throw new InvalidOperationException(
                 $"El serial '{code}' ya fue registrado como sobrante en esta auditoria.");
 
-        var productVariantExists = await _context.Productos
+        var productVariantExists = await _context.ProductoVariantes
             .AnyAsync(p =>
                     p.Id == request.ProductoVariantId.Value &&
-                    p.LineaProductoId == request.ProductId,
+                    p.ProductoBaseId == request.ProductId,
                 cancellationToken);
 
         if (!productVariantExists)
@@ -58,23 +59,24 @@ public partial class AuditoriaService
         if (audit.Status == AuditStatus.Pendiente)
             audit.Status = AuditStatus.InProgress;
 
-        var surplusUnit = new UnitProductAudit
+        // Instanciamos la entidad exacta 'UnidadProductoAuditada'
+        var surplusUnit = new UnidadProductoAuditada
         {
             AuditId = audit.Id,
-            UnitProductId = 0,
-            LineaProductoId = request.ProductId,
-            ProductoId = request.ProductoVariantId.Value,
-            BodegaId = request.PhysicalWarehouseId,
+            UnitProductId = 0, // Al ser un sobrante físico nuevo no vinculado previamente, se deja en 0 o se asocia
+            ProductoBaseId = request.ProductId,
+            ProductoVarianteId = request.ProductoVariantId.Value,
+            BodegaId = audit.WarehouseId ?? request.PhysicalWarehouseId,
             BodegaEncontrada = request.PhysicalWarehouseId,
             Serial = code,
             Status = UnitProductAuditStatus.ExcessProduct,
-            UpdatedAt = DateTime.UtcNow,
             Observaciones = request.Observations,
             CreatedBy = request._AuditorAuth0Id,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
-        _context.UnitProductAudits.Add(surplusUnit);
+        _context.Set<UnidadProductoAuditada>().Add(surplusUnit);
         audit.TotalSurplus++;
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -84,9 +86,9 @@ public partial class AuditoriaService
             request.AuditId,
             code,
             request.ProductId,
-            request.ProductoVariantId,
+            request.ProductoVariantId.Value,
             request.PhysicalWarehouseId,
-            surplusUnit.UpdatedAt,
+            surplusUnit.UpdatedAt ?? DateTime.UtcNow,
             surplusUnit.CreatedBy);
     }
 }

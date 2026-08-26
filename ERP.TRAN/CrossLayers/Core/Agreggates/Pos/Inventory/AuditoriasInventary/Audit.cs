@@ -37,6 +37,6 @@ public class Audit : EntityWithtraceability
 
     public Warehouse? Warehouse { get; set; }
     public Category? Category { get; set; }
-    public LineaProducto? Product { get; set; }
-    public ICollection<UnitProductAudit> UnitProductAudit {get; set; } = new List<UnitProductAudit>();
+    public ProductoBase? Product { get; set; }
+    public ICollection<UnidadProductoAuditada> UnidadProductoAuditada {get; set; } = new List<UnidadProductoAuditada>();
 }

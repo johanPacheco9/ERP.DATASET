@@ -8,10 +8,12 @@ public sealed class CreateSaleRequest : BaseCreateRequest
     public int ClientId { get; set; }
     public int WarehouseId { get; set; }
     public int StoreId { get; set; } = 1;
+    public int? PosTerminalId { get; set; }
+    public int? PosShiftId { get; set; }
     public string? Notes { get; set; }
     public decimal PaymentAmount { get; set; }  
     
-    public PaymentMethod PaymentMethod { get; set; }
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
     
     public List<SaleLineRequest> Lines { get; set; } = new();
 
@@ -23,15 +25,15 @@ public sealed class CreateSaleRequest : BaseCreateRequest
         if (WarehouseId <= 0)
             list.Add("Seleccione una bodega.");
         if (Lines == null || !Lines.Any())
-            list.Add("Agregue al menos una línea de venta.");
+            list.Add("Agregue al menos un producto a la venta.");
         else
         {
             foreach (var (line, i) in Lines.Select((l, idx) => (l, idx + 1)))
             {
-                if (line.LineaProductoId <= 0)
-                    list.Add($"Línea {i}: producto inválido.");
+                if (line.ProductoVarianteId <= 0)
+                    list.Add($"Línea {i}: variante de producto inválida.");
                 if (line.Quantity <= 0)
-                    list.Add($"Línea {i}: cantidad debe ser mayor a cero.");
+                    list.Add($"Línea {i}: la cantidad debe ser mayor a cero.");
             }
         }
         errors = list.Any() ? string.Join("; ", list) : null;
@@ -41,8 +43,9 @@ public sealed class CreateSaleRequest : BaseCreateRequest
 
 public sealed class SaleLineRequest
 {
-    public int LineaProductoId { get; set; }
-    public int? ProductoId { get; set; }
+    public int ProductoVarianteId { get; set; }
+    public string? SerialNumber { get; set; } // Añadido para dar soporte a productos serializados (UnidadProducto)
     public int Quantity { get; set; } = 1;
     public decimal? UnitPrice { get; set; }
+    public decimal? TaxRate { get; set; }
 }

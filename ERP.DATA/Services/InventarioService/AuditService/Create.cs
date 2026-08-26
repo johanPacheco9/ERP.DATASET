@@ -35,14 +35,19 @@ public partial class AuditoriaService
             throw new InvalidOperationException($"Ya hay una auditoría en progreso para la bodega requerida.");
         }
 
-        var productsToAuditQuery = _context.Productos
-            .Where(s => s.Status == ProductoStatus.Available);
+        // 1. Apuntar a UnidadesProductos e incluir la relación con Variante y ProductoBase para los filtros
+        var productsToAuditQuery = _context.UnidadesProductos
+            .Include(u => u.ProductoVariante)
+                .ThenInclude(v => v.ProductoBase)
+            .Where(s => s.Status == UnidadProductoStatus.Available);
 
         if (request.IncludeReservedUnits)
         {
-            productsToAuditQuery = _context.Productos
-                .Where(s => s.Status == ProductoStatus.Available ||
-                            s.Status == ProductoStatus.Separated);
+            productsToAuditQuery = _context.UnidadesProductos
+                .Include(u => u.ProductoVariante)
+                    .ThenInclude(v => v.ProductoBase)
+                .Where(s => s.Status == UnidadProductoStatus.Available ||
+                            s.Status == UnidadProductoStatus.Separated);
         }
 
         if (request.WarehouseId.HasValue)
@@ -54,13 +59,14 @@ public partial class AuditoriaService
         if (request.CategoryId.HasValue)
         {
             productsToAuditQuery = productsToAuditQuery
-                .Where(u => u.LineaProducto.CategoryId == request.CategoryId.Value);
+                .Where(u => u.ProductoVariante.ProductoBase.CategoryId == request.CategoryId.Value);
         }
 
+        // Si tu request usa ProductId para referirse al ProductoBase
         if (request.ProductId.HasValue)
         {
             productsToAuditQuery = productsToAuditQuery
-                .Where(u => u.LineaProductoId == request.ProductId.Value);
+                .Where(u => u.ProductoVariante.ProductoBaseId == request.ProductId.Value);
         }
 
         var productsToAudit = await productsToAuditQuery.ToListAsync(cancellationToken);
@@ -76,7 +82,7 @@ public partial class AuditoriaService
 
         try
         {
-            // 1. Crear la cabecera de la Auditoría
+            // 2. Crear la cabecera de la Auditoría
             var audit = new Audit
             {
                 StartDate = DateTime.UtcNow,
@@ -103,34 +109,33 @@ public partial class AuditoriaService
             _context.Audit.Add(audit);
             await _context.SaveChangesAsync(cancellationToken);
 
-            // 2. Mapear las líneas de la auditoría intermedia y congelar el stock principal
-            var unitProductAudits = new List<UnitProductAudit>();
+            // 3. Mapear las líneas de la auditoría y congelar el stock de las unidades físicas
+            var unitProductAudits = new List<UnidadProductoAuditada>();
 
             foreach (var unit in productsToAudit)
             {
-                // Generamos la línea intermedia
-                unitProductAudits.Add(new UnitProductAudit
+                unitProductAudits.Add(new UnidadProductoAuditada
                 {
                     AuditId = audit.Id,
                     UnitProductId = unit.Id,
-                    LineaProductoId = unit.LineaProductoId,
-                    ProductoId = unit.Id,
+                    ProductoVarianteId = unit.ProductoVarianteId,
                     BodegaId = unit.BodegaId,
-                    Serial = unit.Serial ?? unit.SKU,
-                    Status = UnitProductAuditStatus.NotFound, // Inicia como no encontrado hasta que se pistolee
+                    Serial = unit.SerialNumber ?? unit.ProductoVariante.SKU,
+                    Status = UnitProductAuditStatus.NotFound, // Inicia como no encontrado hasta que se escanee
                     CreatedBy = request._CreatorAuth0Id,
                     CreatedAt = DateTime.UtcNow
                 });
-                unit.Status = ProductoStatus.InAuditLock; 
+
+                unit.Status = UnidadProductoStatus.InAuditLock; 
                 unit.UpdatedAt = DateTime.UtcNow;
                 unit.UpdatedBy = request._CreatorAuth0Id;
             }
 
-            // Persistimos las líneas intermedias y los cambios de estado de los productos en un solo bloque
+            // Persistimos las líneas intermedias y los cambios de estado
             _context.UnitProductAudits.AddRange(unitProductAudits);
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Confirmamos la transacción de forma segura
+            // Confirmamos la transacción
             await transaction.CommitAsync(cancellationToken);
 
             return new AuditDetailDto(

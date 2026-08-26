@@ -5,6 +5,7 @@ using ERP.TRAN.CrossLayers.API.Pos.Payments.Requests;
 using ERP.TRAN.CrossLayers.API.Pos.Payments.Responses;
 using ERP.TRAN.CrossLayers.API.Pos.Sales.Responses;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace ERP.DATASET.Components.Pages.Ventas;
 
@@ -13,8 +14,9 @@ public partial class VentaDetalle
     [Parameter] public int Id { get; set; }
 
     [Inject] private SaleService SaleService { get; set; } = null!;
-    [Inject]
-    private PaymentsService PaymentService { get; set; } = null!;
+    [Inject] private PaymentsService PaymentService { get; set; } = null!;
+    [Inject] private IJSRuntime JS { get; set; } = null!;
+
     private bool _loading = true;
     private bool _savingPayment;
     private bool _showPaymentModal;
@@ -25,9 +27,25 @@ public partial class VentaDetalle
 
     protected override async Task OnInitializedAsync()
     {
-        _venta = await SaleService.GetByIdAsync(Id, CancellationToken.None);
-        _pagos = await PaymentService.GetBySaleId(Id, CancellationToken.None);
-        _loading = false;
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        try
+        {
+            _venta = await SaleService.GetByIdAsync(Id, CancellationToken.None);
+            _pagos = await PaymentService.GetBySaleId(Id, CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            _venta = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 
     private void OpenPaymentModal()
@@ -60,9 +78,11 @@ public partial class VentaDetalle
                 PaidAt = _paymentForm.PaidAt,
                 Reference = _paymentForm.Reference,
                 Notes = _paymentForm.Notes,
-                _CreatorAuth0Id = "system"
+                _CreatorAuth0Id = "cajero-pos"
             }, CancellationToken.None);
+            
             _showPaymentModal = false;
+            await LoadData();
         }
         catch (Exception ex)
         {
@@ -74,10 +94,25 @@ public partial class VentaDetalle
         }
     }
 
+    private async Task PrintInvoice()
+    {
+        await JS.InvokeVoidAsync("erpPos.printReceipt");
+    }
+
+    private void EmitirFactusSimulado()
+    {
+        // Preparado para la llamada a la API de Factus en cuanto el usuario integre sus credenciales
+        if (_venta != null)
+        {
+            // Simular actualización visual
+            _venta = _venta with { FactusStatus = "Emitida a DIAN", FactusInvoiceNumber = $"FE-{_venta.Id:D4}" };
+        }
+    }
+
     private sealed class AddPaymentForm
     {
         public decimal Amount { get; set; }
-        public PaymentMethod Method { get; set; }
+        public PaymentMethod Method { get; set; } = PaymentMethod.Cash;
         public DateTime PaidAt { get; set; } = DateTime.Today;
         public string? Reference { get; set; }
         public string? Notes { get; set; }

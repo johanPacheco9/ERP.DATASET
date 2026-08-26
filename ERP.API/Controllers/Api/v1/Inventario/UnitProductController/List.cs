@@ -1,4 +1,4 @@
-﻿using ERP.DATA.Services.InventarioService.UnitProductService;
+﻿using ERP.DATA.Services.InventarioService.UnidadProductoService;
 using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct;
@@ -11,14 +11,14 @@ namespace ERP.API.Controllers.Api.v1.Inventario.UnitProductController;
 public sealed class List
     : BaseListEndpoint<ListUnitProductRequest, List, PagedList<AuditDetailDto>>
 {
-    private readonly UnitProductService _unitProductService;
+    private readonly UnidadProductoManager _unidadProductoManager;
 
     public List(
         ILogger<List> logger,
-        UnitProductService unitProductService
+        UnidadProductoManager unidadProductoManager
     ) : base(logger)
     {
-        _unitProductService = unitProductService;
+        _unidadProductoManager = unidadProductoManager;
     }
 
     [Tags("Inventario -UnitProducts")]
@@ -41,7 +41,7 @@ public sealed class List
     {
         try
         {
-            var result = await _unitProductService.ListAsync(request, cancellationToken);
+            var result = await _unidadProductoManager.ListAsync(request, cancellationToken);
             if (result == null)
             {
                 return NotFound();

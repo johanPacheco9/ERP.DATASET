@@ -1,11 +1,8 @@
 using ERP.DATA.Repositories;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using Microsoft.EntityFrameworkCore;
-using MainDataContext = ERP.DATA.Repositories.MainDataContext;
 
 namespace ERP.DATA.Services.VentasService.SaleService;
 
@@ -14,116 +11,101 @@ internal static class StockHelper
     internal static async Task<int> DeductInventoryAsync(
         MainDataContext context,
         int warehouseId,
-        int lineaProductoId,
-        int? productoId,
+        int productoBaseId,
+        int productoVarianteId,
         int quantity,
         string motivo,
         string createdBy,
         int? saleId,
+        string? serialNumber,
         CancellationToken cancellationToken)
     {
-        List<Producto> unidades;
+        // 1. Obtener la variante y su producto base para resolver el costo (con fallback al padre)
+        var variante = await context.ProductoVariantes
+                           .AsNoTracking()
+                           .Include(v => v.ProductoBase)
+                           .FirstOrDefaultAsync(v => v.Id == productoVarianteId && v.ProductoBaseId == productoBaseId, cancellationToken)
+                       ?? throw new InvalidOperationException($"La variante #{productoVarianteId} asociada al producto base #{productoBaseId} no existe."); 
+        
+        
+        // Resolver costo aplicando fallback si el costo de la variante es 0 o nulo
+        decimal costoAplicado = (variante.CostoUnitario.HasValue && variante.CostoUnitario.Value > 0)
+            ? variante.CostoUnitario.Value
+            : variante.ProductoBase.CostoUnitario;
 
-        if (productoId.HasValue)
+        int? unidadProductoId = null;
+
+        // 2. CASO 1: Venta por Serial / IMEI Único (UnidadProducto)
+        if (!string.IsNullOrWhiteSpace(serialNumber))
         {
-            var unit = await context.Productos
-                           .FirstOrDefaultAsync(p =>
-                                   p.Id == productoId.Value &&
-                                   p.BodegaId == warehouseId &&
-                                   p.LineaProductoId == lineaProductoId &&
-                                   p.Status == ProductoStatus.Available,
-                               cancellationToken)
-                       ?? throw new InvalidOperationException($"La unidad {productoId} no está disponible en esta bodega.");
-
             if (quantity != 1)
-                throw new InvalidOperationException("Si selecciona una unidad por serial, la cantidad debe ser 1.");
+                throw new InvalidOperationException("Si se vende una unidad física por serial único, la cantidad debe ser 1.");
 
-            unidades = [unit];
+            var unidad = await context.UnidadesProductos
+                .FirstOrDefaultAsync(u => 
+                    u.SerialNumber == serialNumber && 
+                    u.ProductoVarianteId == productoVarianteId &&
+                    u.BodegaId == warehouseId && 
+                    u.Status == UnidadProductoStatus.Available, cancellationToken)
+                ?? throw new InvalidOperationException($"El serial '{serialNumber}' no está disponible en la bodega especificada.");
+
+            unidad.Status = UnidadProductoStatus.Sold;
+            unidad.UpdatedAt = DateTime.UtcNow;
+            unidad.UpdatedBy = createdBy;
+
+            // Guardamos la referencia para el Kárdex
+            unidadProductoId = unidad.Id;
         }
-        else
+
+        // 3. CASO 2: Descontar Saldo Agregado de Inventario (WarehouseStock)
+        var stock = await context.WarehouseStock
+            .FirstOrDefaultAsync(s => 
+                s.WarehouseId == warehouseId && 
+                s.ProductoVarianteId == productoVarianteId, cancellationToken);
+
+        if (stock == null || stock.CurrentStock < quantity)
         {
-            unidades = await context.Productos
-                .Where(p =>
-                    p.LineaProductoId == lineaProductoId &&
-                    p.BodegaId == warehouseId &&
-                    p.Status == ProductoStatus.Available)
-                .OrderBy(p => p.CreatedAt)
-                .ThenBy(p => p.Id)
-                .Take(quantity)
-                .ToListAsync(cancellationToken);
-
-            if (unidades.Count < quantity)
-                throw new InvalidOperationException(
-                    $"Stock insuficiente. Disponible: {unidades.Count}, solicitado: {quantity}.");
+            throw new InvalidOperationException(
+                $"Stock insuficiente en bodega. Disponible: {stock?.CurrentStock ?? 0}, solicitado: {quantity}.");
         }
 
-        var lineaCost = await context.LineaProductos
-            .AsNoTracking()
-            .Where(l => l.Id == lineaProductoId)
-            .Select(l => l.CostoUnitario)
-            .FirstAsync(cancellationToken);
+        stock.CurrentStock -= quantity;
+        stock.FechaActualizacion = DateTime.UtcNow;
 
-        // 1. Prepara el Movement
+        // 4. Registrar Movimiento en Kárdex
         var movimiento = new Movement
         {
             WarehouseId = warehouseId,
-            LineaProductoId = lineaProductoId,
-            ProductId = unidades.First().Id,
+            ProductoVarianteId = productoVarianteId, // FK principal al SKU
+            UnidadProductoId = unidadProductoId,      // FK opcional al Serial exacto
             Type = TipoMovimiento.Salida,
-            Quantity = unidades.Count,
-            UnitCost = unidades.First().CostoUnitario ?? lineaCost,
+            Quantity = quantity,
+            UnitCost = costoAplicado,
             ReferenceId = saleId,
-            ReferenceTye = "venta",
+            ReferenceType = "venta",
             Motive = motivo,
             Observations = saleId.HasValue ? $"Venta #{saleId}" : motivo,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy
         };
+
         context.Movements.Add(movimiento);
 
-        foreach (var unidad in unidades)
-        {
-            unidad.Status = ProductoStatus.Sold;
-            unidad.UpdatedAt = DateTime.UtcNow;
-            unidad.UpdatedBy = createdBy;
-
-            context.UnitProductMovements.Add(new UnitProductMovement
-            {
-                ProductoId = unidad.Id,
-                Movimiento = movimiento,
-                TipoMovimiento = TipoMovimiento.Salida,
-                BodegaOrigenId = warehouseId,
-                Motivo = motivo,
-                Observaciones = $"Salida por venta — movimiento #{movimiento.Id}"
-            });
-        }
-
-        // 3. Actualiza stock
-        var stock = await context.WarehouseStock.FirstOrDefaultAsync(
-            s => s.WarehouseId == warehouseId && s.LineaProductoId == lineaProductoId,
-            cancellationToken);
-
-        if (stock != null)
-        {
-            stock.CurrentStock = Math.Max(0, stock.CurrentStock - unidades.Count);
-            stock.FechaActualizacion = DateTime.UtcNow;
-        }
-
-        // 4. Un solo SaveChanges guarda todo junto
+        // 5. Persistir cambios de forma atómica
         await context.SaveChangesAsync(cancellationToken);
 
         return movimiento.Id;
     }
 
-
     internal static async Task<int> GetAvailableCountAsync(
         MainDataContext context,
-        int lineaProductoId,
+        int productoVarianteId,
         int warehouseId,
-        CancellationToken cancellationToken) =>
-        await context.Productos.CountAsync(p =>
-                p.LineaProductoId == lineaProductoId &&
-                p.BodegaId == warehouseId &&
-                p.Status == ProductoStatus.Available,
-            cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        return await context.WarehouseStock
+            .Where(s => s.WarehouseId == warehouseId && s.ProductoVarianteId == productoVarianteId)
+            .Select(s => s.CurrentStock)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

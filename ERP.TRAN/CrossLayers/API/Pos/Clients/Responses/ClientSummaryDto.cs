@@ -8,5 +8,8 @@ public sealed record ClientSummaryDto(
     DniType DniType,
     string IdentificationNumber,
     string? PhoneNumber,
-    string? City
+    string? City,
+    string? Email = null,
+    string? Address = null,
+    string? Dv = null
 );

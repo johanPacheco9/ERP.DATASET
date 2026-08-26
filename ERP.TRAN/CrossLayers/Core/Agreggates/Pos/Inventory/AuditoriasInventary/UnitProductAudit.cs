@@ -4,14 +4,20 @@ using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
+
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 
-public class UnitProductAudit : EntityWithtraceability
+/// <summary>
+/// Representa el registro de auditoría para una unidad de producto física o variante dentro de un proceso de inventario.
+/// </summary>
+public class UnidadProductoAuditada : EntityWithtraceability
 {
     public int AuditId { get; set; }
     public int UnitProductId { get; set; }
-    public int LineaProductoId { get; set; }
-    public int ProductoId { get; set; }
+    
+    // Mapeo adaptado a la nueva arquitectura (ProductoBase y ProductoVariante)
+    public int ProductoBaseId { get; set; }
+    public int ProductoVarianteId { get; set; }
     public int BodegaId { get; set; }
 
     public string Serial { get; set; } = null!;
@@ -24,16 +30,16 @@ public class UnitProductAudit : EntityWithtraceability
     public int? BodegaEncontrada { get; set; }
     public string? UbicacionFisica { get; set; }
 
-    public string? EstadoFisico { get; set; } 
+    public string? EstadoFisico { get; set; }  
     public bool RequiereAccionCorrectiva { get; set; }
     public bool AjusteRealizado { get; set; }
     public int? MovimientoAjusteId { get; set; }
     public DateTime? FechaAjuste { get; set; }
 
+    // === NAVEGACIÓN ===
     public Audit Audit { get; set; } = null!;
-    public LineaProducto LineaProducto { get; set; } = null!;
-    public Producto Producto { get; set; } = null!;
+    public ProductoBase ProductoBase { get; set; } = null!;
+    public ProductoVariante ProductoVariante { get; set; } = null!;
     public Warehouse Bodega { get; set; } = null!;
     public Warehouse? BodegaEncontradaNav { get; set; }
 }
-
