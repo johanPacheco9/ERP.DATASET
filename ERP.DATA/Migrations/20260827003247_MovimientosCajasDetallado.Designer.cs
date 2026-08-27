@@ -3,6 +3,7 @@ using System;
 using ERP.DATA.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.DATA.Migrations
 {
     [DbContext(typeof(MainDataContext))]
-    partial class MainDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260827003247_MovimientosCajasDetallado")]
+    partial class MovimientosCajasDetallado
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1070,7 +1073,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("PosTerminals");
+                    b.ToTable("PosTerminal");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.Sale", b =>
@@ -1283,6 +1286,10 @@ namespace ERP.DATA.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -1506,7 +1513,7 @@ namespace ERP.DATA.Migrations
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShiftMovement", b =>
                 {
                     b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShift", "PosShift")
-                        .WithMany("Movements")
+                        .WithMany()
                         .HasForeignKey("PosShiftId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1641,8 +1648,6 @@ namespace ERP.DATA.Migrations
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShift", b =>
                 {
-                    b.Navigation("Movements");
-
                     b.Navigation("Sales");
                 });
 

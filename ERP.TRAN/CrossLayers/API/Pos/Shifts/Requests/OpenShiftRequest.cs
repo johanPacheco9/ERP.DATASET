@@ -5,7 +5,7 @@ namespace ERP.TRAN.CrossLayers.API.Pos.Shifts.Requests;
 public sealed class OpenShiftRequest : BaseCreateRequest
 {
     public int PosTerminalId { get; set; }
-    public string CashierId { get; set; } = "cajero-principal";
+    public int CashierId { get; set; }
     public string CashierName { get; set; } = "Cajero de Turno";
     public decimal InitialCash { get; set; } // Base de efectivo
     public string? Notes { get; set; }

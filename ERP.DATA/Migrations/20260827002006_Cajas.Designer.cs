@@ -3,6 +3,7 @@ using System;
 using ERP.DATA.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.DATA.Migrations
 {
     [DbContext(typeof(MainDataContext))]
-    partial class MainDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260827002006_Cajas")]
+    partial class Cajas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -963,50 +966,6 @@ namespace ERP.DATA.Migrations
                     b.ToTable("PosShifts");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShiftMovement", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("PosShiftId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PosShiftId");
-
-                    b.ToTable("PosShiftMovements");
-                });
-
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosTerminal", b =>
                 {
                     b.Property<int>("Id")
@@ -1070,7 +1029,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("PosTerminals");
+                    b.ToTable("PosTerminal");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.Sale", b =>
@@ -1283,6 +1242,10 @@ namespace ERP.DATA.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -1503,17 +1466,6 @@ namespace ERP.DATA.Migrations
                     b.Navigation("Usuarios");
                 });
 
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShiftMovement", b =>
-                {
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShift", "PosShift")
-                        .WithMany("Movements")
-                        .HasForeignKey("PosShiftId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PosShift");
-                });
-
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosTerminal", b =>
                 {
                     b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores.Store", "Store")
@@ -1641,8 +1593,6 @@ namespace ERP.DATA.Migrations
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShift", b =>
                 {
-                    b.Navigation("Movements");
-
                     b.Navigation("Sales");
                 });
 

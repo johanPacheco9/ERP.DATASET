@@ -26,7 +26,6 @@
     <Folder Include="CrossLayers\API\Pos\Transactions\Responses\" />
     <Folder Include="CrossLayers\API\Stores\Responses\" />
     <Folder Include="CrossLayers\API\Stores\Requests\" />
-    <Folder Include="CrossLayers\Core\Agreggates\Pos\Sales\" />
     <Folder Include="CrossLayers\Core\Agreggates\Pos\Transfers\" />
   </ItemGroup>
 

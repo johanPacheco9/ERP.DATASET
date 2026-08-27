@@ -1,0 +1,158 @@
+@page "/cajas/nueva"
+@using ERP.TRAN.CrossLayers.API.Pos.Caja.Requests
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@* @inject ITerminalService TerminalService *@ <!-- Inyecta aquí tu servicio cuando lo tengas listo -->
+
+<div class="max-w-2xl mx-auto p-4 sm:p-6 space-y-6 mt-6">
+    <!-- Header Creación -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-xs border border-emerald-200">
+                    Punto de Venta
+                </span>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Nueva Caja Física (POS)</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Configure los parámetros, sucursal y resolución DIAN para la nueva terminal</p>
+        </div>
+        <a href="/cajas" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center gap-1.5 border border-slate-200">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill text-sm"></i>
+            <span>@_errorMessage</span>
+        </div>
+    }
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nombre de la Caja</label>
+                <input type="text" 
+                       @bind="_request.Name" 
+                       class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                       placeholder="Ej. Caja Principal 01" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Código Interno</label>
+                <input type="text" 
+                       @bind="_request.Code" 
+                       class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                       placeholder="Ej. CAJA-01" />
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tienda / Sucursal</label>
+                <select @bind="_request.StoreId" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="0">Seleccione tienda...</option>
+                    <!-- Aquí iterarás tu lista de tiendas -->
+                    <option value="1">Tienda Principal Centro</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Almacén de Inventario</label>
+                <select @bind="_request.WarehouseId" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="0">Seleccione almacén...</option>
+                    <!-- Aquí iterarás tu lista de almacenes -->
+                    <option value="1">Almacén General</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Prefijo de Facturación</label>
+                <input type="text" 
+                       @bind="_request.Prefix" 
+                       class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono uppercase text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                       placeholder="Ej. FE" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Consecutivo Actual</label>
+                <input type="number" 
+                       @bind="_request.CurrentConsecutive" 
+                       class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Número de Resolución DIAN (Opcional)</label>
+            <input type="text" 
+                   @bind="_request.DianResolutionNumber" 
+                   class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                   placeholder="Ej. 18760000001" />
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+            <input type="checkbox" id="isActive" @bind="_request.IsActive" class="w-4 h-4 text-emerald-600 bg-slate-50 border-slate-300 rounded focus:ring-emerald-500">
+            <label for="isActive" class="text-xs font-semibold text-slate-700 select-none">Terminal activa y disponible para operar</label>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+            <a href="/cajas" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-200">
+                Cancelar
+            </a>
+            <button type="button" 
+                    @onclick="HandleCreate" 
+                    disabled="@_isSubmitting"
+                    class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-2 disabled:opacity-50">
+                @if (_isSubmitting)
+                {
+                    <div class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-slate-950 border-t-transparent"></div>
+                    <span>Guardando...</span>
+                }
+                else
+                {
+                    <i class="bi bi-check2-circle"></i>
+                    <span>Crear Caja</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateCajaRequest _request = new() { CurrentConsecutive = 1, IsActive = true };
+    private bool _isSubmitting;
+    private string? _errorMessage;
+
+    private async Task HandleCreate()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_request.Name) || string.IsNullOrWhiteSpace(_request.Code))
+        {
+            _errorMessage = "El nombre y el código de la caja son obligatorios.";
+            return;
+        }
+
+        try
+        {
+            _isSubmitting = true;
+
+            // TODO: Llamar a tu servicio de creación
+            // await TerminalService.CreateAsync(_request);
+
+            Navigation.NavigateTo("/cajas");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

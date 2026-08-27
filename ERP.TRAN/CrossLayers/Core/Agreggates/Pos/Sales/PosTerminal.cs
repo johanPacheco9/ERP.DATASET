@@ -4,6 +4,11 @@ using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 
+/// <summary>
+/// Representa una caja física o terminal de punto de venta (POS) dentro de una sucursal, 
+/// encargada de gestionar el inventario de una bodega específica, controlar los consecutivos 
+/// de facturación ante la DIAN y agrupar los turnos de operación.
+/// </summary>
 public class PosTerminal : EntityWithtraceability
 {
     public string Name { get; set; } = null!;

@@ -1,3 +1,4 @@
+using ERP.DATA.Services.CajaService;
 using ERP.DATA.Services.Inventario.ProveedorService;
 using ERP.DATA.Services.VentasService.ClientService;
 using ERP.DATA.Services.VentasService.Payments;
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddTransient<ClientService>();
         services.AddTransient<SaleService>();
         services.AddTransient<PaymentsService>();
+        services.AddTransient<CajaManager>();
 
         return services;
     }
