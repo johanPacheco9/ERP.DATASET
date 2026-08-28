@@ -1,6 +1,7 @@
 using ERP.DATA.Repositories;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,13 +21,12 @@ internal static class StockHelper
         string? serialNumber,
         CancellationToken cancellationToken)
     {
-        // 1. Obtener la variante y su producto base para resolver el costo (con fallback al padre)
+        // 1. Obtener la variante y su producto base para resolver costo y precio (con fallback al padre)
         var variante = await context.ProductoVariantes
                            .AsNoTracking()
                            .Include(v => v.ProductoBase)
                            .FirstOrDefaultAsync(v => v.Id == productoVarianteId && v.ProductoBaseId == productoBaseId, cancellationToken)
-                       ?? throw new InvalidOperationException($"La variante #{productoVarianteId} asociada al producto base #{productoBaseId} no existe."); 
-        
+                       ?? throw new InvalidOperationException($"La variante #{productoVarianteId} asociada al producto base #{productoBaseId} no existe.");    
         
         // Resolver costo aplicando fallback si el costo de la variante es 0 o nulo
         decimal costoAplicado = (variante.CostoUnitario.HasValue && variante.CostoUnitario.Value > 0)
@@ -53,7 +53,6 @@ internal static class StockHelper
             unidad.UpdatedAt = DateTime.UtcNow;
             unidad.UpdatedBy = createdBy;
 
-            // Guardamos la referencia para el Kárdex
             unidadProductoId = unidad.Id;
         }
 
@@ -72,12 +71,10 @@ internal static class StockHelper
         stock.CurrentStock -= quantity;
         stock.FechaActualizacion = DateTime.UtcNow;
 
-        // 4. Registrar Movimiento en Kárdex
+        // 4. Crear la Cabecera del Movimiento (Kárdex global de la venta)
         var movimiento = new Movement
         {
-            WarehouseId = warehouseId,
-            ProductoVarianteId = productoVarianteId, // FK principal al SKU
-            UnidadProductoId = unidadProductoId,      // FK opcional al Serial exacto
+            OrigenWarehouseId = warehouseId,
             Type = TipoMovimiento.Salida,
             Quantity = quantity,
             UnitCost = costoAplicado,
@@ -90,9 +87,24 @@ internal static class StockHelper
         };
 
         context.Movements.Add(movimiento);
+        await context.SaveChangesAsync(cancellationToken); // Guardamos para obtener el Id de la cabecera
 
-        // 5. Persistir cambios de forma atómica
-        await context.SaveChangesAsync(cancellationToken);
+        // 5. Crear el Detalle si afecta una unidad serializada específica
+        if (unidadProductoId.HasValue)
+        {
+            context.UnitProductMovements.Add(new UnitProductMovement
+            {
+                UnidadProductoId = unidadProductoId.Value,
+                MovimientoId = movimiento.Id,
+                TipoMovimiento = TipoMovimiento.Salida,
+                BodegaOrigenId = warehouseId,
+                BodegaDestinoId = null,
+                Motivo = motivo,
+                Observaciones = saleId.HasValue ? $"Venta #{saleId}" : motivo
+            });
+
+            await context.SaveChangesAsync(cancellationToken);
+        }
 
         return movimiento.Id;
     }

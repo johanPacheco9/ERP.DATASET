@@ -1,9 +1,9 @@
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
@@ -41,5 +41,6 @@ public partial class MainDataContext
     public DbSet<Sale> Sales { get; set; }
 
     public DbSet<SaleLineItem> SaleLineItems { get; set; }
+    
 }
 

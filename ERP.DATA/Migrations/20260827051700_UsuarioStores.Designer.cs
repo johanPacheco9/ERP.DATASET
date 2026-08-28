@@ -3,6 +3,7 @@ using System;
 using ERP.DATA.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.DATA.Migrations
 {
     [DbContext(typeof(MainDataContext))]
-    partial class MainDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260827051700_UsuarioStores")]
+    partial class UsuarioStores
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -679,17 +682,20 @@ namespace ERP.DATA.Migrations
                     b.Property<string>("Observaciones")
                         .HasColumnType("text");
 
-                    b.Property<int>("TipoMovimiento")
+                    b.Property<int>("ProductoId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UnidadProductoId")
+                    b.Property<int>("ProductoVarianteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TipoMovimiento")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MovimientoId");
 
-                    b.HasIndex("UnidadProductoId");
+                    b.HasIndex("ProductoVarianteId");
 
                     b.ToTable("UnitProductMovements");
                 });
@@ -709,9 +715,6 @@ namespace ERP.DATA.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("DestinationWarehouseId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("FechaVencimiento")
                         .HasColumnType("timestamp with time zone");
 
@@ -727,10 +730,7 @@ namespace ERP.DATA.Migrations
                     b.Property<string>("Observations")
                         .HasColumnType("text");
 
-                    b.Property<int>("OrigenWarehouseId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("ProductoVarianteId")
+                    b.Property<int>("ProductoVarianteId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Quantity")
@@ -745,6 +745,9 @@ namespace ERP.DATA.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("UnidadProductoId")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("decimal(15,4)");
 
@@ -754,16 +757,14 @@ namespace ERP.DATA.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<int?>("WarehouseId")
+                    b.Property<int>("WarehouseId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DestinationWarehouseId");
-
-                    b.HasIndex("OrigenWarehouseId");
-
                     b.HasIndex("ProductoVarianteId");
+
+                    b.HasIndex("UnidadProductoId");
 
                     b.HasIndex("WarehouseId");
 
@@ -1441,46 +1442,45 @@ namespace ERP.DATA.Migrations
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts.UnitProductMovement", b =>
                 {
                     b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Movement", "Movimiento")
-                        .WithMany("UnitProductMovements")
+                        .WithMany()
                         .HasForeignKey("MovimientoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.UnidadProducto", "UnidadProducto")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoVariante", "ProductoVariante")
                         .WithMany()
-                        .HasForeignKey("UnidadProductoId")
+                        .HasForeignKey("ProductoVarianteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Movimiento");
 
-                    b.Navigation("UnidadProducto");
+                    b.Navigation("ProductoVariante");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Movement", b =>
                 {
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Warehouse", "DestinationWarehouse")
-                        .WithMany()
-                        .HasForeignKey("DestinationWarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Warehouse", "OrigenWarehouse")
-                        .WithMany()
-                        .HasForeignKey("OrigenWarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoVariante", "ProductoVariante")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("ProductoVarianteId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoVariante", null)
-                        .WithMany("Movimientos")
-                        .HasForeignKey("ProductoVarianteId");
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.UnidadProducto", "UnidadProducto")
+                        .WithMany()
+                        .HasForeignKey("UnidadProductoId");
 
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Warehouse", null)
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Warehouse", "Warehouse")
                         .WithMany("Movement")
-                        .HasForeignKey("WarehouseId");
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("DestinationWarehouse");
+                    b.Navigation("ProductoVariante");
 
-                    b.Navigation("OrigenWarehouse");
+                    b.Navigation("UnidadProducto");
+
+                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Warehouse", b =>
@@ -1682,11 +1682,6 @@ namespace ERP.DATA.Migrations
                     b.Navigation("Cajas");
 
                     b.Navigation("UserStores");
-                });
-
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Movement", b =>
-                {
-                    b.Navigation("UnitProductMovements");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Warehouse", b =>

@@ -1,6 +1,6 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 public class Warehouse : EntityWithtraceability

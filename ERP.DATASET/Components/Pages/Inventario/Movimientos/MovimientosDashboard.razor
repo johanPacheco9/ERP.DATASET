@@ -1,4 +1,6 @@
-@page "/movimientos"
+@page "/inventario/movimientos"
+@using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums
+@using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums
 @rendermode InteractiveServer
 
 <div class="inv-page">
@@ -7,9 +9,14 @@
             <h1 class="inv-title">Movimientos</h1>
             <p class="inv-subtitle">Historial de entradas, salidas y ajustes de inventario</p>
         </div>
-        <a href="/ProductosDashboard" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-box-arrow-in-down me-1"></i>Nuevo ingreso
-        </a>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-sm" @onclick="AbrirModalTraspaso">
+                <i class="bi bi-arrow-left-right me-1"></i>Nuevo Traspaso
+            </button>
+            <a href="/ProductosDashboard" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-box-arrow-in-down me-1"></i>Nuevo ingreso
+            </a>
+        </div>
     </div>
 
     @if (_loading)
@@ -25,36 +32,167 @@
         <div class="inv-card">
             <table class="inv-table">
                 <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Tipo</th>
-                        <th>Cantidad</th>
-                        <th>Costo total</th>
-                        <th>Bodega</th>
-                        <th>Motivo</th>
-                        <th>Fecha</th>
-                    </tr>
+                <tr>
+                    <th>#</th>
+                    <th>Tipo</th>
+                    <th>Cantidad</th>
+                    <th>Costo total</th>
+                    <th>Origen ➔ Destino</th>
+                    <th>Motivo</th>
+                    <th>Fecha</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
                 </thead>
                 <tbody>
-                    @foreach (var m in _items)
-                    {
-                        <tr>
-                            <td class="text-muted">@m.MovimientoId</td>
-                            <td>
-                                <span class="inv-badge @GetTipoClass(m.TipoMovimiento)">
-                                    @m.TipoMovimiento.ToString()
-                                </span>
-                            </td>
-                            <td>@m.Cantidad</td>
-                            <td>@m.CostoTotal.ToString("C2")</td>
-                            <td class="text-muted">@m.BodegaId</td>
-                            <td class="text-muted small">@(m.Motivo ?? "—")</td>
-                            <td class="text-muted small">@m.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                        </tr>
-                    }
+                @foreach (var m in _items)
+                {
+                    <tr>
+                        <td class="text-muted">@m.MovimientoId</td>
+                        <td>
+                            <span class="inv-badge @GetTipoClass(m.TipoMovimiento)">
+                                @m.TipoMovimiento.ToString()
+                            </span>
+                        </td>
+                        <td>@m.Cantidad</td>
+                        <td>@m.CostoTotal.ToString("C2")</td>
+                        <td class="small">
+                            @if (!string.IsNullOrEmpty(m.NombreBodegaDestino))
+                            {
+                                <span>@m.NombreBodegaOrigen ➔ @m.NombreBodegaDestino</span>
+                            }
+                            else
+                            {
+                                <span>@(m.NombreBodegaOrigen ?? "—")</span>
+                            }
+                        </td>
+                        <td class="text-muted small">@(m.Motivo ?? "—")</td>
+                        <td class="text-muted small">@m.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => VerDetalle(m.MovimientoId)">
+                                <i class="bi bi-eye"></i> Ver Detalle
+                            </button>
+                        </td>
+                    </tr>
+                }
                 </tbody>
             </table>
         </div>
         <p class="text-muted small mt-2">Mostrando los últimos @_items.Count movimientos</p>
+    }
+
+    <!-- MODAL DE TRASPASO -->
+    @if (_showTransferModal)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Realizar Traspaso entre Bodegas</h5>
+                        <button type="button" class="btn-close" @onclick="CerrarModalTraspaso"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (!string.IsNullOrEmpty(_errorMessage))
+                        {
+                            <div class="alert alert-danger">@_errorMessage</div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Movimiento</label>
+                            <select class="form-select" @bind="_tipoMovimientoSeleccionadoInt">
+                                <option value="0" disabled selected>Seleccione tipo de movimiento...</option>
+                                @foreach (var item in _tiposMovimientoDisponibles)
+                                {
+                                    <option value="@item.Key">@item.Value</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Bodega Origen</label>
+                            <select class="form-select" @bind="_transferRequest.OriginWarehouseId"
+                                    @bind:after="OnOrigenChanged">
+                                <option value="0">Seleccione origen...</option>
+                                @foreach (var b in _warehouses)
+                                {
+                                    <option value="@b.Id">@b.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Bodega Destino</label>
+                            <select class="form-select" @bind="_transferRequest.DestinationWarehouseId">
+                                <option value="0">Seleccione destino...</option>
+                                @foreach (var b in _warehouses.Where(x => x.Id != _transferRequest.OriginWarehouseId))
+                                {
+                                    <option value="@b.Id">@b.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" @bind="_transferRequest.Observations" rows="2"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Unidades disponibles en Origen</label>
+                                <input type="text" class="form-control form-control-sm w-50"
+                                       placeholder="Buscar por SKU, Serial o Nombre..." @bind="_filtroSkuSerial"
+                                       @bind:event="oninput"/>
+                            </div>
+
+                            @if (_loadingUnits)
+                            {
+                                <p class="text-muted">Cargando unidades...</p>
+                            }
+                            else if (!_availableUnits.Any())
+                            {
+                                <p class="text-muted">No hay unidades disponibles en esta bodega.</p>
+                            }
+                            else
+                            {
+                                <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+                                    <table class="table table-sm table-hover align-middle">
+                                        <thead>
+                                        <tr>
+                                            <th style="width: 80px;">Seleccionar</th>
+                                            <th>Producto / Variante</th>
+                                            <th>Serial / IMEI</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        @foreach (var unit in UnidadesFiltradas)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox"
+                                                           checked="@_transferRequest.ProductIds.Contains(unit.Id)"
+                                                           @onchange="(e => ToggleProductSelection(unit.Id, e.Value))"/>
+                                                </td>
+                                                <td>
+                                                    <div class="fw-bold">@unit.ProductoVariante?.ProductoBase?.Name</div>
+                                                    <small class="text-muted">SKU: @unit.ProductoVariante?.SKU</small>
+                                                </td>
+                                                <td><code>@unit.SerialNumber</code></td>
+                                            </tr>
+                                        }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CerrarModalTraspaso">Cancelar</button>
+                        <button type="button" class="btn btn-primary" @onclick="EjecutarTraspaso"
+                                disabled="@_isSubmitting">
+                            @(_isSubmitting ? "Procesando..." : "Confirmar Traspaso")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 </div>

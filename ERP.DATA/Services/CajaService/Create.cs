@@ -8,7 +8,7 @@ namespace ERP.DATA.Services.CajaService;
 
 public partial class CajaManager
 {
-    private async Task<PosTerminalDto> Create(CreateCajaRequest request)
+    public async Task<PosTerminalDto> Create(CreateCajaRequest request)
     {
         // 1. Opcional: Validar que el código o prefijo no existan previamente
         bool codeExists = await _context.PosTerminals
@@ -30,7 +30,8 @@ public partial class CajaManager
             CurrentConsecutive = request.CurrentConsecutive,
             DianResolutionNumber = request.DianResolutionNumber,
             IsActive = request.IsActive,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = "SYSTEM"
         };
 
         // 3. Registrar en el contexto y guardar cambios

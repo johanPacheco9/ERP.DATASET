@@ -6,6 +6,7 @@ public partial class MainDataContext(DbContextOptions<MainDataContext> options) 
 {
     public DbSet<Usuario> Usuarios { get; set; }
     
+    public DbSet<UsuarioStore>  UsuarioStores { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -13,5 +14,7 @@ public partial class MainDataContext(DbContextOptions<MainDataContext> options) 
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    
+    
 }
 

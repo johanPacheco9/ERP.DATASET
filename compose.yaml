@@ -15,7 +15,7 @@
       - AI__OllamaEndpoint=http://erp-ai:11434
     depends_on:
       - erp-db
-      - erp-ai
+      - erp-ailo u
     restart: always
 
   # 2. EL MOTOR DE IA (OLLAMA LOCAL)

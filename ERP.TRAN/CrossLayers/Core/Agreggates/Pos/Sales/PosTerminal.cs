@@ -1,4 +1,4 @@
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
@@ -8,6 +8,9 @@ namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 /// Representa una caja física o terminal de punto de venta (POS) dentro de una sucursal, 
 /// encargada de gestionar el inventario de una bodega específica, controlar los consecutivos 
 /// de facturación ante la DIAN y agrupar los turnos de operación.
+/// Esta entidad tiene relacionada una bodega, pero para el caso donde se vaya  a realizar una venta
+/// con un producto de otra bodega, tuvo que haberse realizado primero un movimiento de traspaso de
+/// dicho producto para ahi si poder venderlo o que aparezca para vender en esta bodega.
 /// </summary>
 public class PosTerminal : EntityWithtraceability
 {

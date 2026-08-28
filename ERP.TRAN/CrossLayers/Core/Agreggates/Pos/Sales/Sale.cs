@@ -2,7 +2,7 @@ using ERP.TRAN.CrossLayers.API.Pos.Payments.Enums;
 using ERP.TRAN.CrossLayers.API.Pos.Sales.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Payments;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 

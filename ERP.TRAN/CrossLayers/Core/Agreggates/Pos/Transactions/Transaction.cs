@@ -1,8 +1,8 @@
 ﻿
 using ERP.TRAN.CrossLayers.API.Pos.Transactions.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Transactions;

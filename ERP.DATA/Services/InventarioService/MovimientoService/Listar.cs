@@ -8,16 +8,13 @@ public partial class MovimientoService
 {
     public async Task<List<MovimientoDetailDto>> ListMovements(ListMovementsRequest request, CancellationToken cancellationToken = default)
     {
-        // 1. Iniciamos la consulta base (Asegúrate de que tu DbSet de movimientos se llame Movements o Movimientos)
         var query = context.Movements
             .AsNoTracking()
-            .Include(m => m.Warehouse) // Necesario si filtras por StoreId a través de la bodega
             .AsQueryable();
 
-        // 2. Aplicamos filtros opcionales (StoreId y Fechas)
         if (request.StoreId.HasValue)
         {
-            query = query.Where(m => m.Warehouse.StoreId == request.StoreId);
+            query = query.Where(m => m.OrigenWarehouse.StoreId == request.StoreId);
         }
 
         if (request.MinDate.HasValue)
@@ -26,7 +23,6 @@ public partial class MovimientoService
         if (request.MaxDate.HasValue)
             query = query.Where(m => m.CreatedAt <= request.MaxDate.Value);
 
-        // 3. Ordenamiento dinámico seguro
         if (!string.IsNullOrWhiteSpace(request.OrderBy))
         {
             query = request.OrderBy.Contains("desc", StringComparison.OrdinalIgnoreCase)
@@ -38,37 +34,72 @@ public partial class MovimientoService
             query = query.OrderByDescending(m => m.CreatedAt);
         }
 
-        // 4. Proyección exacta al DTO (Record) alineada con ProductoVariante y UnidadProducto
-        var projectedQuery = query.Select(m => new MovimientoDetailDto(
-            m.Id,                        // MovimientoId
-            m.ProductoVarianteId,        // ProductoVarianteId (Alineado al nuevo modelo)
-            m.UnidadProductoId,          // UnidadProductoId (O null si es un movimiento por lote/granel)
-            m.WarehouseId,               // BodegaId
-            m.Type,                      // TipoMovimiento
-            m.Quantity,                  // Cantidad
-            m.UnitCost,                  // CostoUnitario
-            m.TotalCost,                 // CostoTotal
-            m.ReferenceId,               // ReferenciaId (ID de la venta, compra o traslado relacionado)
-            m.ReferenceType,             // ReferenciaTipo
-            m.Lote,                      // Lote
-            m.FechaVencimiento,          // FechaVencimiento
-            m.Motive,                    // Motivo
-            m.Observations,              // Observaciones
-            m.CreatedAt,                 // CreatedAt
-            m.CreatedBy                  // CreatedBy
-        ));
-
-        // 5. Paginación
         if (request.PageSize != -1)
         {
             var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
             var pageSize = request.PageSize > 0 ? request.PageSize : 10;
 
-            projectedQuery = projectedQuery
+            query = query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize);
         }
 
-        return await projectedQuery.ToListAsync(cancellationToken);
+        var movements = await query.ToListAsync(cancellationToken);
+
+        var movementIds = movements.Select(m => m.Id).ToList();
+
+        var details = await context.UnitProductMovements
+            .AsNoTracking()
+            .Where(upm => movementIds.Contains(upm.MovimientoId))
+            .Include(upm => upm.UnidadProducto)
+            .Select(upm => new 
+            {
+                upm.MovimientoId,
+                Item = new MovimientoItemDto(
+                    upm.UnidadProductoId,
+                    upm.UnidadProducto.ProductoVarianteId,
+                    upm.UnidadProducto.SerialNumber,
+                    upm.UnidadProducto.Lote,
+                    upm.UnidadProducto.FechaVencimiento
+                )
+            })
+            .ToListAsync(cancellationToken);
+
+        var detailsGrouped = details
+            .GroupBy(d => d.MovimientoId)
+            .ToDictionary(g => g.Key, g => g.Select(d => d.Item).ToList());
+
+        var warehouseIds = movements
+            .SelectMany(m => new[] { m.OrigenWarehouseId, m.DestinationWarehouseId })
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToList();
+
+        var warehouses = await context.Warehouse
+            .AsNoTracking()
+            .Where(w => warehouseIds.Contains(w.Id))
+            .ToDictionaryAsync(w => w.Id, w => w.Name, cancellationToken);
+
+        return movements.Select(m => new MovimientoDetailDto(
+            m.Id,
+            m.OrigenWarehouseId,
+            m.OrigenWarehouseId > 0 && warehouses.TryGetValue(m.OrigenWarehouseId, out var orgName) ? orgName : null,
+            m.DestinationWarehouseId,
+            m.DestinationWarehouseId.HasValue && m.DestinationWarehouseId.Value > 0 && warehouses.TryGetValue(m.DestinationWarehouseId.Value, out var destName) ? destName : null,
+            m.Type,
+            m.Quantity,
+            m.UnitCost,
+            m.TotalCost,
+            m.ReferenceId,
+            m.ReferenceType,
+            m.Lote,
+            m.FechaVencimiento,
+            m.Motive,
+            m.Observations,
+            detailsGrouped.TryGetValue(m.Id, out var itemsList) ? itemsList : new List<MovimientoItemDto>(),
+            m.CreatedAt,
+            m.CreatedBy
+        )).ToList();
     }
 }

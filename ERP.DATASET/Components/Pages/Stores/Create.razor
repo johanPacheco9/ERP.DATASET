@@ -1,0 +1,83 @@
+@page "/tiendas/nueva"
+@using ERP.DATA.Services.VentasService.Stores
+@rendermode InteractiveServer
+@inject StoresManager StoresManager
+@inject NavigationManager Navigation
+
+<div class="max-w-2xl mx-auto p-4 sm:p-6 space-y-6 mt-4">
+    <!-- Header Creación -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-xs border border-emerald-200">
+                    Configuración POS
+                </span>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Nueva Tienda o Sucursal</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Registre una nueva sucursal para operar bodegas y terminales POS.</p>
+        </div>
+        <a href="/tiendas" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center gap-1.5 border border-slate-200">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill text-sm"></i>
+            <span>@_errorMessage</span>
+        </div>
+    }
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+        <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nombre de la Tienda</label>
+            <input type="text" 
+                   @bind="_request.Name" 
+                   class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                   placeholder="Ej. Sucursal Norte" />
+        </div>
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Descripción o Ubicación</label>
+            <textarea @bind="_request.Description" 
+                      rows="3"
+                      class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+                      placeholder="Detalles de la dirección o notas informativas..."></textarea>
+        </div>
+
+        <div class="flex items-center gap-6 pt-2">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" @bind="_request.IsMainStore" class="w-4 h-4 text-emerald-600 bg-slate-50 border-slate-300 rounded focus:ring-emerald-500">
+                <span class="text-xs font-semibold text-slate-700">Establecer como tienda principal</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" @bind="_request.IsActive" class="w-4 h-4 text-emerald-600 bg-slate-50 border-slate-300 rounded focus:ring-emerald-500">
+                <span class="text-xs font-semibold text-slate-700">Sucursal activa</span>
+            </label>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+            <a href="/tiendas" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-200">
+                Cancelar
+            </a>
+            <button type="button" 
+                    @onclick="HandleCreate" 
+                    disabled="@_isSubmitting"
+                    class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-2 disabled:opacity-50">
+                @if (_isSubmitting)
+                {
+                    <div class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-slate-950 border-t-transparent"></div>
+                    <span>Guardando...</span>
+                }
+                else
+                {
+                    <i class="bi bi-check2-circle"></i>
+                    <span>Crear Tienda</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>

@@ -24,29 +24,29 @@ public partial class MovimientoService
             .FirstOrDefaultAsync(v => v.Id == request.ProductoVarianteId, cancellationToken)
             ?? throw new KeyNotFoundException($"La Variante #{request.ProductoVarianteId} no existe.");
 
-        // Opción A: Usando el operador de coalescencia nula (Recomendada y más limpia)
         decimal costoAplicado = (variante.CostoUnitario > 0 ? variante.CostoUnitario : variante.ProductoBase.CostoUnitario) ?? 0m;
 
         using var tx = await context.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
-            // 2. Crear movimiento cabecera en el Kárdex
+            // 2. Crear la Cabecera del Movimiento (Kárdex global)
             var movimiento = new Movement
             {
-                WarehouseId = request.BodegaId,
-                ProductoVarianteId = variante.Id,
+                OrigenWarehouseId = request.BodegaId, 
                 Type = TipoMovimiento.Entrada,
                 Quantity = request.Cantidad,
                 UnitCost = costoAplicado,
                 Lote = request.Lote,
                 FechaVencimiento = request.FechaVencimiento,
                 Motive = request.Motivo,
+                Observations = request.Motivo,
                 CreatedBy = "system",
                 CreatedAt = DateTime.UtcNow
             };
 
             context.Movements.Add(movimiento);
+            await context.SaveChangesAsync(cancellationToken); // Guardar para generar el Id de la cabecera
 
             // 3. Incrementar o crear el saldo general en WarehouseStock
             var stock = await context.WarehouseStock
@@ -73,12 +73,11 @@ public partial class MovimientoService
                 stock.FechaActualizacion = DateTime.UtcNow;
             }
 
-            // 4. Si el producto requiere seriales (o se enviaron en el request), instanciar UnidadProducto
+            // 4. Manejo de unidades físicas rastreables si aplica
             if (variante.ProductoBase.RequiereSerial || (request.Seriales != null && request.Seriales.Any()))
             {
-                var serialesList = request.Seriales ?? new List<string>();
+                var serialesList = request.Seriales ?? [];
 
-                // Crear las unidades físicas rastreables
                 var unidades = Enumerable.Range(0, request.Cantidad).Select(i => new UnidadProducto
                 {
                     ProductoVarianteId = variante.Id,
@@ -92,12 +91,21 @@ public partial class MovimientoService
                 }).ToList();
 
                 context.UnidadesProductos.AddRange(unidades);
+                await context.SaveChangesAsync(cancellationToken); // Guardar para obtener los IDs de las unidades físicas
 
-                // Si es una sola unidad con serial, enlazamos el movimiento directamente
-                if (unidades.Count == 1)
+                // Registrar cada unidad creada en la tabla intermedia de detalles (UnitProductMovement)
+                foreach (var unidad in unidades)
                 {
-                    await context.SaveChangesAsync(cancellationToken);
-                    movimiento.UnidadProductoId = unidades.First().Id;
+                    context.UnitProductMovements.Add(new UnitProductMovement
+                    {
+                        UnidadProductoId = unidad.Id,
+                        MovimientoId = movimiento.Id,
+                        TipoMovimiento = TipoMovimiento.Entrada,
+                        BodegaOrigenId = request.BodegaId,
+                        BodegaDestinoId = null,
+                        Motivo = request.Motivo ?? "Entrada de inventario",
+                        Observaciones = request.Motivo
+                    });
                 }
             }
 

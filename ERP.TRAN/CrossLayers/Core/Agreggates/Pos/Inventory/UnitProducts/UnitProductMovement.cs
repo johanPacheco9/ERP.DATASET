@@ -10,17 +10,22 @@ namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 public class UnitProductMovement
 {
     public int Id { get; set; }
-    public int ProductoId { get; set; }
     
-    public int MovimientoId { get; set; }
-    public TipoMovimiento TipoMovimiento { get; set; }
-
     public int BodegaOrigenId { get; set; }
     public int? BodegaDestinoId { get; set; }
 
     public string Motivo { get; set; } = null!;
     public string? Observaciones { get; set; }
-
-    public ProductoVariante ProductoVariante { get; set; } = null!;
+    
+    public TipoMovimiento TipoMovimiento { get; set; }
+    
+    /// <summary>
+    /// Relaciones
+    /// </summary>
+    
+    public int UnidadProductoId { get; set; }
+    public UnidadProducto UnidadProducto { get; set; } = null!;
+    
+    public int MovimientoId { get; set; }
     public Movement Movimiento { get; set; } = null!;
 }

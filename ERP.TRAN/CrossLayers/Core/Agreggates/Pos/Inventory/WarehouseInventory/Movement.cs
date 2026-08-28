@@ -1,21 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 
 /// <summary>
-/// Movimiento de Kárdex. Registra entradas, salidas y ajustes de stock por variante.
+/// Movimiento de Kárdex (Cabecera). Registra la operación global de entradas, salidas y transferencias.
 /// </summary>
 public class Movement : EntityWithtraceability
 {
     public int Id { get; set; }
-
-    // === UBICACIÓN Y SKU ===
-    public int WarehouseId { get; set; }
-  
-
+    
     // === CLASIFICACIÓN Y CANTIDAD ===
     public TipoMovimiento Type { get; set; }
     public int Quantity { get; set; }
@@ -39,19 +35,23 @@ public class Movement : EntityWithtraceability
     // === JUSTIFICACIÓN ===
     public string? Motive { get; set; }
     public string? Observations { get; set; }
+    
+    // === UBICACIÓN ===
+    /// <summary>
+    /// Bodega principal afectada (Entrada, Salida, Baja) o Bodega de Origen en una Transferencia.
+    /// </summary>
+    public int OrigenWarehouseId { get; set; }
+    public Warehouse OrigenWarehouse { get; set; } = null!;
 
-    // === NAVEGACIÓN ===
-    public Warehouse Warehouse { get; set; } = null!;
-    
     /// <summary>
-    /// Relacion con Unidad producto si es para un producto con serial.
+    /// Bodega de destino (Únicamente aplica para transferencias entre bodegas).
     /// </summary>
-    public int? UnidadProductoId { get; set; }
-    public UnidadProducto? UnidadProducto { get; set; }
+    public int? DestinationWarehouseId { get; set; }
+    public Warehouse? DestinationWarehouse { get; set; }
     
+    // === DETALLE (RELACIÓN 1 A MUCHOS) ===
     /// <summary>
-    /// Relacion con la variante.
+    /// Detalle de los productos unitarios o variantes afectadas en este movimiento global.
     /// </summary>
-    public int ProductoVarianteId { get; set; }
-    public ProductoVariante ProductoVariante { get; set; } = null!;
+    public ICollection<UnitProductMovement> UnitProductMovements { get; set; } = new List<UnitProductMovement>();
 }

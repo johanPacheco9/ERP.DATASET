@@ -1,0 +1,87 @@
+@page "/inventario/movimientos/{Id:int}"
+
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Detalle del Movimiento #@Id</h3>
+        <button class="btn btn-secondary" @onclick="Volver">Volver</button>
+    </div>
+
+    @if (_loading)
+    {
+        <p>Cargando información del movimiento...</p>
+    }
+    else if (_movimiento == null)
+    {
+        <div class="alert alert-warning">No se encontró el movimiento especificado.</div>
+    }
+    else
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <strong>Tipo:</strong> <span class="badge bg-secondary">@_movimiento.TipoMovimiento</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Bodega Origen:</strong> @_movimiento.NombreBodegaOrigen
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Bodega Destino:</strong> @_movimiento.NombreBodegaDestino ?? "N/A"
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Cantidad Total:</strong> @_movimiento.Cantidad
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Costo Unitario:</strong> @_movimiento.CostoUnitario.ToString("C")
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Costo Total:</strong> @_movimiento.CostoTotal.ToString("C")
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Fecha:</strong> @_movimiento.CreatedAt.ToLocalTime().ToString("g")
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Usuario:</strong> @_movimiento.CreatedBy
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4>Ítems / Unidades Afectadas</h4>
+        <div class="card">
+            <div class="card-body">
+                @if (_movimiento.Items == null || !_movimiento.Items.Any())
+                {
+                    <p class="text-muted">Este movimiento no tiene ítems detallados asociados.</p>
+                }
+                else
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID Unidad</th>
+                                <th>ID Variante</th>
+                                <th>Serial</th>
+                                <th>Lote</th>
+                                <th>Vencimiento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in _movimiento.Items)
+                            {
+                                <tr>
+                                    <td>@item.UnidadProductoId</td>
+                                    <td>@item.ProductoVarianteId</td>
+                                    <td>@(item.SerialNumber ?? "N/A")</td>
+                                    <td>@(item.Lote ?? "N/A")</td>
+                                    <td>@(item.FechaVencimiento?.ToShortDateString() ?? "N/A")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    }
+</div>

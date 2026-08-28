@@ -1,6 +1,8 @@
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,16 +43,15 @@ public partial class MovimientoService
             stock.CurrentStock -= salida.Cantidad;
             stock.FechaActualizacion = DateTime.UtcNow;
 
-            // 3. Resolver costo unitario (con fallback a ProductoBase y coalescencia para evitar error CS0266)
-            decimal unitCost = (variante.CostoUnitario > 0 
-                ? variante.CostoUnitario 
-                : variante.ProductoBase.CostoUnitario) ?? 0m;
-
-            // 4. Crear el registro del movimiento de salida en el Kárdex
+            // 3. Resolver costo unitario
+            decimal unitCost = (variante.CostoUnitario.HasValue && variante.CostoUnitario.Value > 0) 
+                ? variante.CostoUnitario.Value 
+                : variante.ProductoBase.CostoUnitario;
+            
+            // 4. Crear el registro de la cabecera del movimiento en el Kárdex
             var movimiento = new Movement
             {
-                WarehouseId = salida.BodegaId,
-                ProductoVarianteId = variante.Id,
+                OrigenWarehouseId = salida.BodegaId,
                 Type = TipoMovimiento.Salida,
                 Quantity = salida.Cantidad,
                 UnitCost = unitCost,
@@ -64,16 +65,60 @@ public partial class MovimientoService
             };
 
             context.Movements.Add(movimiento);
+            await context.SaveChangesAsync(cancellationToken); // Guardar para obtener el Id de la cabecera
 
-            // 5. Guardar cambios y confirmar transacción
+            // 5. Manejar el detalle de unidades si el producto maneja inventario físico/serializado
+            var unidadesAfectadas = await context.UnidadesProductos
+                .Where(u => u.ProductoVarianteId == salida.ProductoVarianteId &&
+                            u.BodegaId == salida.BodegaId &&
+                            u.Status == UnidadProductoStatus.Available)
+                .Take(salida.Cantidad)
+                .ToListAsync(cancellationToken);
+
+            var itemsList = new List<MovimientoItemDto>();
+
+            foreach (var unidad in unidadesAfectadas)
+            {
+                unidad.Status = UnidadProductoStatus.Sold;
+                unidad.UpdatedAt = DateTime.UtcNow;
+                unidad.UpdatedBy = "systemuser";
+
+                context.UnitProductMovements.Add(new UnitProductMovement
+                {
+                    UnidadProductoId = unidad.Id,
+                    MovimientoId = movimiento.Id,
+                    TipoMovimiento = TipoMovimiento.Salida,
+                    BodegaOrigenId = salida.BodegaId,
+                    BodegaDestinoId = null,
+                    Motivo = salida.Motivo ?? "Salida de inventario",
+                    Observaciones = salida.Observaciones
+                });
+
+                itemsList.Add(new MovimientoItemDto(
+                    unidad.Id,
+                    unidad.ProductoVarianteId,
+                    unidad.SerialNumber,
+                    unidad.Lote,
+                    unidad.FechaVencimiento
+                ));
+            }
+
             await context.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
 
+            // Obtener el nombre de la bodega para el DTO
+            var nombreBodega = await context.Warehouse
+                .Where(w => w.Id == salida.BodegaId)
+                .Select(w => w.Name)
+                .FirstOrDefaultAsync(cancellationToken) ?? string.Empty;
+
+            // Retorno adaptado a la nueva estructura con la lista de items
             return new MovimientoDetailDto(
                 movimiento.Id,
-                movimiento.ProductoVarianteId,
-                movimiento.UnidadProductoId,
-                movimiento.WarehouseId,
+                salida.BodegaId,
+                nombreBodega,
+                null,
+                null,
                 movimiento.Type,
                 movimiento.Quantity,
                 movimiento.UnitCost,
@@ -84,6 +129,7 @@ public partial class MovimientoService
                 movimiento.FechaVencimiento,
                 movimiento.Motive,
                 movimiento.Observations,
+                itemsList,
                 movimiento.CreatedAt,
                 movimiento.CreatedBy
             );

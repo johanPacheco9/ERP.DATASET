@@ -1,4 +1,5 @@
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,7 +33,7 @@ public partial class MainDataContext
         {
             e.ToTable("SaleLineItems");
             e.HasKey(l => l.Id);
-    
+
             // Relación con la Venta (Cascada al eliminar la venta)
             e.HasOne(l => l.Sale)
                 .WithMany(s => s.Lines)
@@ -50,6 +51,23 @@ public partial class MainDataContext
                 .WithMany()
                 .HasForeignKey(l => l.UnidadProductoId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+
+        modelBuilder.Entity<Movement>(entity =>
+        {
+            // Configuración para la bodega de origen
+            entity.HasOne(m => m.OrigenWarehouse)
+                .WithMany()
+                .HasForeignKey(m => m.OrigenWarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configuración para la bodega de destino (permite nulos por si es entrada/salida simple)
+            entity.HasOne(m => m.DestinationWarehouse)
+                .WithMany()
+                .HasForeignKey(m => m.DestinationWarehouseId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

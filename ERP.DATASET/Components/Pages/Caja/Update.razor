@@ -1,0 +1,219 @@
+@page "/tiendas/editar/{Id:int}"
+@using ERP.DATA.Services.VentasService.Stores
+@rendermode InteractiveServer
+@inject StoresManager StoresManager
+@inject NavigationManager Navigation
+
+<div class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6 mt-4">
+    <!-- Header Edición -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-xs border border-emerald-200">
+                    Sucursal #@Id
+                </span>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Editar Tienda y Terminales POS</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Modifique los datos generales y administre las cajas registradoras de esta sucursal.</p>
+        </div>
+        <a href="/tiendas" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center gap-1.5 border border-slate-200">
+            <i class="bi bi-arrow-left"></i> Volver al listado
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill text-sm"></i>
+            <span>@_errorMessage</span>
+        </div>
+    }
+
+    <!-- Grid Principal: Formulario de Tienda a la izquierda / Cajas a la derecha o apilado -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Columna Izquierda: Datos Generales de la Tienda (Ocupa 1 espacio) -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4 lg:col-span-1 h-fit">
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">Información General</h2>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nombre de la Tienda</label>
+                <input type="text" 
+                       @bind="_request.Name" 
+                       class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Descripción</label>
+                <textarea @bind="_request.Description" 
+                          rows="3"
+                          class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+            </div>
+
+            <div class="space-y-2 pt-1">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" @bind="_request.IsMainStore" class="w-4 h-4 text-emerald-600 bg-slate-50 border-slate-300 rounded focus:ring-emerald-500">
+                    <span class="text-xs font-semibold text-slate-700">Tienda principal</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" @bind="_request.IsActive" class="w-4 h-4 text-emerald-600 bg-slate-50 border-slate-300 rounded focus:ring-emerald-500">
+                    <span class="text-xs font-semibold text-slate-700">Sucursal activa</span>
+                </label>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100">
+                <button type="button" 
+                        @onclick="HandleUpdate" 
+                        disabled="@_isSubmitting"
+                        class="w-full px-4 py-2.5 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                    @if (_isSubmitting)
+                    {
+                        <div class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-slate-950 border-t-transparent"></div>
+                        <span>Guardando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-check2-circle"></i>
+                        <span>Guardar Cambios</span>
+                    }
+                </button>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Listado y Creación de Cajas POS (Ocupa 2 espacios) -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4 lg:col-span-2">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Cajas Físicas (POS) Asignadas</h2>
+                <button @onclick="OpenCreateCajaModal" class="px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-colors border border-emerald-200 flex items-center gap-1.5">
+                    <i class="bi bi-plus-circle-fill"></i> Nueva Caja en Sucursal
+                </button>
+            </div>
+
+            <!-- Tabla de Cajas de esta Tienda -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-bold tracking-wider">
+                            <th class="py-3 px-4">Terminal / Código</th>
+                            <th class="py-3 px-3">Prefijo / Consecutivo</th>
+                            <th class="py-3 px-3 text-center">Estado</th>
+                            <th class="py-3 px-4 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                        @if (_cajas == null || !_cajas.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="py-8 text-center text-slate-400">
+                                    <i class="bi bi-display text-2xl mb-1 block text-slate-300"></i>
+                                    <p>No hay cajas registradas en esta sucursal todavía.</p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var caja in _cajas)
+                            {
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <div class="font-bold text-slate-800">@caja.Name</div>
+                                        <span class="text-[10px] text-slate-400 font-mono">Código: @caja.Code</span>
+                                    </td>
+                                    <td class="py-3 px-3 font-mono">
+                                        <span class="text-slate-600">Prefijo: <strong>@caja.Prefix</strong></span><br/>
+                                        <span class="text-slate-400 text-[10px]">Actual: #@caja.CurrentConsecutive</span>
+                                    </td>
+                                    <td class="py-3 px-3 text-center">
+                                        @if (caja.IsActive)
+                                        {
+                                            <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">Inactiva</span>
+                                        }
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <a href="/cajas/editar/@caja.Id" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 inline-flex items-center gap-1 border border-slate-200 transition-colors">
+                                            <i class="bi bi-gear text-[11px]"></i> Configurar
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal para Crear Caja Rápida asociada a esta Tienda -->
+@if (_showCajaModal)
+{
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-800">Nueva Caja para esta Sucursal</h3>
+                <button @onclick="CloseCajaModal" class="text-slate-400 hover:text-slate-600">
+                    <i class="bi bi-x-lg text-sm"></i>
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_cajaModalError))
+            {
+                <div class="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-xl text-xs flex items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>@_cajaModalError</span>
+                </div>
+            }
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Nombre de la Caja</label>
+                    <input type="text" @bind="_nuevaCaja.Name" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Ej. Caja Rápida 03" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Código</label>
+                        <input type="text" @bind="_nuevaCaja.Code" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="CAJA-03" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Prefijo DIAN</label>
+                        <input type="text" @bind="_nuevaCaja.Prefix" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono uppercase text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="POS" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Almacén Asociado</label>
+                    <select @bind="_nuevaCaja.WarehouseId" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="0">Seleccione almacén de bodega...</option>
+                        <!-- Aquí puedes iterar las bodegas reales de la tienda -->
+                        <option value="1">Bodega Principal</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button @onclick="CloseCajaModal" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors">
+                    Cancelar
+                </button>
+                <button @onclick="SaveNewCaja" disabled="@_isSavingCaja" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5 disabled:opacity-50">
+                    @if (_isSavingCaja)
+                    {
+                        <div class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-slate-950 border-t-transparent"></div>
+                        <span>Creando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-check-lg"></i>
+                        <span>Crear Terminal</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}

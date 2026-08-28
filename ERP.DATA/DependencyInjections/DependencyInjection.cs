@@ -9,6 +9,7 @@ using ERP.DATA.Services.InventarioService.CategoriaService;
 using ERP.DATA.Services.InventarioService.MovimientoService;
 using ERP.DATA.Services.InventarioService.ProductoVarianteService;
 using ERP.DATA.Services.InventarioService.UnidadProductoService;
+using ERP.DATA.Services.VentasService.Stores;
 using Microsoft.Extensions.DependencyInjection;
 using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
 
@@ -32,7 +33,7 @@ public static class DependencyInjection
         services.AddTransient<SaleService>();
         services.AddTransient<PaymentsService>();
         services.AddTransient<CajaManager>();
-
+        services.AddTransient<StoresManager>();
         return services;
     }
 }
