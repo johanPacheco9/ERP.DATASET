@@ -19,7 +19,6 @@ public partial class MovimientosDashboard
 
     private bool _loading = true;
     private List<MovimientoDetailDto> _items = new();
-
     // Control del Modal de Traspaso
     private bool _showTransferModal = false;
     private bool _loadingUnits = false;
@@ -68,9 +67,7 @@ public partial class MovimientosDashboard
             .Where(x => 
             {
                 var tipo = (TipoMovimiento)x.Key;
-                return tipo == TipoMovimiento.Transferencia || 
-                       tipo == TipoMovimiento.Baja || 
-                       tipo == TipoMovimiento.Perdida;
+                return tipo == TipoMovimiento.Transferencia;
             })
             .ToList();
             
