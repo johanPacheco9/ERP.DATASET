@@ -1,66 +1,96 @@
 using ERP.DATA.Services.InventarioService.AuditService;
-using ERP.DATA.Services.InventarioService.UnidadProductoService;
+using ERP.DATA.Services.InventarioService.AuditService.Responses;
+using ERP.DATA.Services.InventarioService.MovimientoService;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
-using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
-using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
+using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Request;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
 
-namespace ERP.DATASET.Components.Pages.Inventario.Auditorias;
+namespace ERP.DATASET.Components.Pages.Inventario.Auditorias; // Ajusta a tu namespace correspondiente
 
-public partial class AuditoriaDetalle
+public partial class AuditoriaDetalle : ComponentBase
 {
+    // TODO: reemplazar por el Auth0Id real del usuario autenticado cuando esté listo el login.
+    private const string _PlaceholderAuth0Id = "dev-placeholder";
+
     [Parameter] public int Id { get; set; }
 
-    [Inject] private AuditoriaService AuditService { get; set; } = null!;
-    [Inject] private UnidadProductoManager UnidadProductoManager { get; set; } = null!;
-    [Inject] private ProductoBaseService ProductoBaseService { get; set; } = null!;
+    [Inject] private AuditoriaService AuditoriaService { get; set; } = null!;
+    [Inject] private MovimientoService MovimientoService { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     private bool _loading = true;
-    private AuditDetailDto? _audit;
-    private List<UnitProductAuditSummaryDto> _unidades = new();
+    private AuditProgressDto _audit;
+    private List<AuditUnitDto> _unidades = [];
+    private List<ProductLookupDto> _productos = [];
+    private List<ProductVariantLookupDto> _surplusVariants = [];
 
+    private AuditDetailDto? _auditDetailDto;
     private string? _scanInput;
-    private int _physicalWarehouseId;
     private string? _feedbackMessage;
-    private string _feedbackClass = "alert-info";
-    private int _porcentajeConteo;
+    private string _feedbackClass = "alert-success";
 
+    // Modales y formularios
     private bool _showEditModal;
+    private AuditUnitDto? _selectedUnit;
+    private EditUnitAuditModel _editForm = new();
+
     private bool _showSurplusModal;
-    private bool _showCloseModal;
+    private SurplusUnitModel _surplusForm = new();
     private bool _savingSurplus;
+    private List<AuditUnitDto> _pendingSurplusUnits = [];
+
+    private bool _showLossModal;
+    private AuditUnitDto? _unitToLoss;
+    private string _lossObservations = string.Empty;
+    private bool _sendingLoss;
+
+    private bool _showCloseModal;
+    private CloseAuditModel _closeForm = new();
     private bool _closingAudit;
 
-    private UnitProductAuditSummaryDto? _selectedUnit;
-    private UpdateUnitAuditedProductForm _editForm = new();
-    private SurplusUnitForm _surplusForm = new();
-    private CloseAuditForm _closeForm = new();
-    private List<ProductoSummaryDto> _productos = new();
-    private List<ProductoVarianteDetailDto> _surplusVariants = new();
+    private bool _showRejectModal;
+    private RejectAuditModel _rejectForm = new();
+    private bool _rejectingAudit;
 
+    // Ahora contempla tanto el cierre normal como el rechazo por inconsistencias
     private bool AuditIsClosed =>
-        _audit?.StatusDisplay.Contains("Completada", StringComparison.OrdinalIgnoreCase) == true ||
-        _audit?.StatusDisplay.Contains("Rechazada", StringComparison.OrdinalIgnoreCase) == true;
+        _audit?.Status == AuditStatus.Completada.GetDisplayName() ||
+        _audit?.Status == AuditStatus.RejectWithinconsistences.GetDisplayName();
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        _feedbackMessage = null;
+
         try
         {
-            await LoadData();
-            if (_audit != null) _physicalWarehouseId = _audit.WarehouseId ?? 0;
-            await LoadProducts();
+            using var cts = new CancellationTokenSource();
+        
+            // 1. Cargas la cabecera / progreso general
+            _audit = await AuditoriaService.GetAuditProgress(Id, cts.Token);
+
+            // 2. Cargas la lista actualizada de unidades auditadas (¡Esto era lo que faltaba!)
+            _unidades = await AuditoriaService.GetAuditUnits(Id, cts.Token);
+
+            // 3. Recalcula los sobrantes pendientes de identificar (para el modal)
+            _pendingSurplusUnits = _unidades
+                .Where(u => u.StatusCode == UnitProductAuditStatus.ExcessProduct && u.ProductoVariantId == 0)
+                .ToList();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error critico en inicializacion: {ex.Message}");
+            ShowFeedback($"Error al cargar la auditoría: {ex.Message}", isError: true);
         }
         finally
         {
@@ -68,90 +98,57 @@ public partial class AuditoriaDetalle
         }
     }
 
-    private async Task LoadData()
-    {
-        _audit = await AuditService.GetAuditById(Id, CancellationToken.None);
-        if (_audit == null) return;
-
-        _unidades = await AuditService.ListUnitAuditedProducts(Id, CancellationToken.None);
-        _unidades = _unidades
-            .OrderBy(u => GetStatusOrder(u.StatusDisplay))
-            .ThenBy(u => u.Serial)
-            .ToList();
-
-        _porcentajeConteo = _audit.TotalExpectedUnits > 0
-            ? (int)Math.Round((double)(_audit.TotalCountedUnits * 100) / _audit.TotalExpectedUnits)
-            : 0;
-    }
-
-    private async Task LoadProducts()
-    {
-        var result = await ProductoBaseService.ListAsync(
-            request: new ListProductRequest(pageNumber: 1, pageSize: 1),
-            searchTerm: null,
-            categoryName: null,
-            stockFilter: null,
-            cancellationToken: CancellationToken.None
-        );
-        
-        _productos = result.ToList();
-    }
-
     private async Task HandleScanKeyUp(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter") await ProcessScan();
+        if (e.Key == "Enter")
+        {
+            await ProcessScan();
+        }
     }
 
     private async Task ProcessScan()
     {
-        if (string.IsNullOrWhiteSpace(_scanInput) || AuditIsClosed) return;
+        if (string.IsNullOrWhiteSpace(_scanInput)) return;
 
-        var request = new RegisterFoundUnitsRequest
-        {
-            AuditId = Id,
-            PhysicalWarehouseId = _physicalWarehouseId,
-            ProductsIds = new List<string> { _scanInput.Trim() }
-        };
+        string code = _scanInput.Trim();
+        _scanInput = string.Empty;
 
         try
         {
-            var result = await AuditService.RegisterFoundUnits(request, CancellationToken.None);
-            if (result.Successful > 0)
+            var result = await AuditoriaService.RegisterScanAsync(Id, code);
+
+            if (result.IsSuccess)
             {
-                _feedbackMessage = $"{result.Items.First().Message} (Serial: {_scanInput})";
-                _feedbackClass = "alert-success";
-                await LoadData();
+                if (result.IsSuccess)
+                {
+                    ShowFeedback($"Unidad '{code}' encontrada y confirmada correctamente.");
+                }
+                else
+                {
+                    ShowFeedback($"'{code}' no pertenece a esta auditoría: se registró como unidad EN EXCESO. Complétala en \"Identificar Sobrante\".");
+                    _feedbackClass = "alert-warning";
+                }
+                await LoadData(); // Recarga los datos para actualizar la tabla y contadores
             }
             else
             {
-                _feedbackMessage = $"Aviso: {result.Items.First().Message}";
-                _feedbackClass = "alert-warning";
+                ShowFeedback(result.Error.Message, isError: true);
             }
         }
         catch (Exception ex)
         {
-            _feedbackMessage = $"Error operativo: {ex.Message}";
-            _feedbackClass = "alert-danger";
+            ShowFeedback($"Error al procesar lectura: {ex.Message}", isError: true);
         }
-
-        _scanInput = string.Empty;
     }
 
-    private void OpenEditUnitModal(UnitProductAuditSummaryDto unit)
+    private void OpenEditUnitModal(AuditUnitDto unit)
     {
-        if (AuditIsClosed) return;
-
         _selectedUnit = unit;
-        _editForm = new UpdateUnitAuditedProductForm
+        _editForm = new EditUnitAuditModel
         {
-            Id = unit.Id,
-            AuditId = Id,
-            Status = ParseStatusDisplay(unit.StatusDisplay),
+            Status = unit.StatusCode, // Asume que tienes el enum o valor numérico
             UbicacionFisica = unit.UbicacionFisica,
-            EstadoFisico = unit.EstadoFisico,
-            Observaciones = unit.Observaciones,
-            MotivoDiferencia = unit.MotivoDiferencia,
-            RequiereAccionCorrectiva = unit.RequiereAccionCorrectiva
+            Observaciones = unit.Observaciones
         };
         _showEditModal = true;
     }
@@ -162,102 +159,71 @@ public partial class AuditoriaDetalle
 
         try
         {
-            var transationalRequest = new UpdateUnitProductAuditRequest("auth0|operario_bodega_actual")
+            var success = await AuditoriaService.UpdateUnitProductAudit(new UpdateUnitProductAuditRequest
             {
-                Id = _editForm.Id,
-                AuditId = _editForm.AuditId,
+                Id = _selectedUnit.Id,
                 Status = _editForm.Status,
                 UbicacionFisica = _editForm.UbicacionFisica,
-                EstadoFisico = _editForm.EstadoFisico,
                 Observaciones = _editForm.Observaciones,
-                MotivoDiferencia = _editForm.MotivoDiferencia,
-                RequiereAccionCorrectiva = _editForm.RequiereAccionCorrectiva
-            };
+                _UpdaterAuth0Id = 1
+            });
 
-            var updatedDto = await UnidadProductoManager.Update(transationalRequest, CancellationToken.None);
+            if (!success)
+            {
+                ShowFeedback("No se encontró la unidad a actualizar.", isError: true);
+                return;
+            }
 
-            if (updatedDto != null)
-            {
-                _showEditModal = false;
-                _feedbackMessage = $"Unidad {_selectedUnit.Serial} actualizada por el operador.";
-                _feedbackClass = "alert-success";
-                await LoadData();
-            }
-            else
-            {
-                _feedbackMessage = "El servidor rechazo el procesamiento de la unidad.";
-                _feedbackClass = "alert-danger";
-            }
+            _showEditModal = false;
+            ShowFeedback("Unidad actualizada correctamente.");
+            await LoadData();
         }
         catch (Exception ex)
         {
-            _feedbackMessage = $"Error al actualizar: {ex.Message}";
-            _feedbackClass = "alert-danger";
+            ShowFeedback($"Error al actualizar unidad: {ex.Message}", isError: true);
         }
     }
 
     private void TriggerAddSurplusModal()
     {
-        if (AuditIsClosed) return;
-
-        _surplusForm = new SurplusUnitForm
-        {
-            PhysicalWarehouseId = _audit?.WarehouseId ?? _physicalWarehouseId
-        };
-        _surplusVariants = new List<ProductoVarianteDetailDto>();
+        _surplusForm = new SurplusUnitModel();
+        _surplusVariants.Clear();
         _showSurplusModal = true;
     }
 
-    private void OnSurplusProductChanged(ChangeEventArgs e)
+    private async Task OnSurplusProductChanged(ChangeEventArgs e)
     {
-        _surplusForm.ProductId = int.TryParse(e.Value?.ToString(), out var productId)
-            ? productId
-            : 0;
-        _surplusForm.ProductoVariantId = null;
-        _surplusVariants = _productos
-            .FirstOrDefault(p => p.Id == _surplusForm.ProductId)?
-            .ProductoVariantes
-            .Where(v => v.Activo)
-            .ToList() ?? new List<ProductoVarianteDetailDto>();
+        if (int.TryParse(e.Value?.ToString(), out int productId))
+        {
+            _surplusForm.ProductId = productId;
+            // Cargar variantes para el producto seleccionado
+            // _surplusVariants = await AuditService.GetVariantsByProductAsync(productId);
+        }
+        else
+        {
+            _surplusForm.ProductId = 0;
+            _surplusVariants.Clear();
+        }
     }
 
     private async Task SaveSurplusUnit()
     {
-        if (_audit == null) return;
-
-        if (string.IsNullOrWhiteSpace(_surplusForm.Code) ||
-            _surplusForm.ProductId <= 0 ||
-            !_surplusForm.ProductoVariantId.HasValue ||
-            _surplusForm.PhysicalWarehouseId <= 0)
-        {
-            _feedbackMessage = "Complete serial, producto, variante y bodega para registrar el sobrante.";
-            _feedbackClass = "alert-warning";
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(_surplusForm.Code)) return;
 
         _savingSurplus = true;
         try
         {
-            var result = await AuditService.RegisterSurplusUnit(new RegisterSurplusUnitRequest
-            {
-                AuditId = Id,
-                Code = _surplusForm.Code.Trim(),
-                ProductId = _surplusForm.ProductId,
-                ProductoVariantId = _surplusForm.ProductoVariantId,
-                PhysicalWarehouseId = _surplusForm.PhysicalWarehouseId,
-                Observations = _surplusForm.Observations,
-                _AuditorAuth0Id = "auth0|operario_bodega_actual"
-            }, CancellationToken.None);
-
+            // TODO: reemplaza RegisterSurplusAsync (crear nuevo) por un método que
+            // ACTUALICE el registro ExcessProduct ya existente para este Serial,
+            // completando ProductoVarianteId/ProductoBaseId.
+            // await AuditoriaService.ResolveSurplusUnitAsync(Id, _surplusForm.Code, _surplusForm.ProductoVariantId, _surplusForm.Observations);
             _showSurplusModal = false;
-            _feedbackMessage = $"Sobrante {result.Serial} registrado para conciliacion.";
-            _feedbackClass = "alert-success";
+            ShowFeedback("Sobrante identificado correctamente.");
             await LoadData();
         }
         catch (Exception ex)
         {
-            _feedbackMessage = $"Error al registrar sobrante: {ex.Message}";
-            _feedbackClass = "alert-danger";
+            ShowFeedback($"Error al identificar sobrante: {ex.Message}", isError: true);
         }
         finally
         {
@@ -265,35 +231,88 @@ public partial class AuditoriaDetalle
         }
     }
 
+    private void OpenLossModal(AuditUnitDto unit)
+    {
+        _unitToLoss = unit;
+        _lossObservations = string.Empty;
+        _showLossModal = true;
+    }
+
+    private async Task ConfirmSendToLoss()
+    {
+        if (_unitToLoss == null || _audit == null) return;
+
+        _sendingLoss = true;
+        try
+        {
+            // TODO: RegistrarMovimientoInventario rechaza esto porque la unidad está en
+            // InAuditLock (no Available). Se necesita un método dedicado en AuditoriaService
+            // que marque esta línea como pérdida DENTRO de la auditoría (actualiza
+            // UnitProductAudits.Status, descuenta stock y desbloquea la unidad),
+            // en vez de usar MovimientoService directamente.
+            // var result = await AuditoriaService.SendUnitToLossAsync(Id, _unitToLoss.UnidadProductoId, _lossObservations);
+
+            var result = await MovimientoService.RegistrarMovimientoInventario(
+                new RegistrarMovimientoRequest
+                {
+                    OriginWarehouseId = _audit.WarehouseId ?? 0,
+                    DestinationWarehouseId = 2, // Reemplaza por tu bodega de pérdidas configurada
+                    TipoMovimiento = TipoMovimiento.Perdida,
+                    ProductIds = [_unitToLoss.UnidadProductoId],
+                    Observations = string.IsNullOrWhiteSpace(_lossObservations)
+                        ? $"Envío a pérdidas desde auditoría #{_audit.AuditId}"
+                        : _lossObservations
+                },
+                CancellationToken.None);
+
+            if (result.IsSuccess)
+            {
+                _showLossModal = false;
+                ShowFeedback("Unidad enviada a pérdidas correctamente.");
+                await LoadData();
+            }
+            else
+            {
+                ShowFeedback($"No se pudo enviar a pérdidas: {result.Error.Message}", isError: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback(ex.Message, isError: true);
+        }
+        finally
+        {
+            _sendingLoss = false;
+        }
+    }
+
     private void OpenCloseAuditModal()
     {
-        if (_audit == null || AuditIsClosed) return;
-
-        _closeForm = new CloseAuditForm { Conclusions = _audit.Conclusions };
+        _closeForm = new CloseAuditModel();
         _showCloseModal = true;
     }
 
     private async Task CloseAudit()
     {
         _closingAudit = true;
+
+        var request = new CloseAuditRequest
+        {
+            _CloserAuth0Id = 1,
+            AuditId = _audit.AuditId,
+            Conclusions = "PruebaCierre"
+        };
+        
         try
         {
-            await AuditService.CloseAudit(new CloseAuditRequest
-            {
-                AuditId = Id,
-                Conclusions = _closeForm.Conclusions,
-                _CloserAuth0Id = "auth0|supervisor_actual"
-            }, CancellationToken.None);
-
+            await AuditoriaService.CloseAudit(request, CancellationToken.None);
             _showCloseModal = false;
-            _feedbackMessage = "Auditoria cerrada correctamente.";
-            _feedbackClass = "alert-success";
+            ShowFeedback("Auditoría cerrada exitosamente.");
             await LoadData();
         }
         catch (Exception ex)
         {
-            _feedbackMessage = $"Error al cerrar auditoria: {ex.Message}";
-            _feedbackClass = "alert-danger";
+            ShowFeedback($"Error al cerrar la auditoría: {ex.Message}", isError: true);
         }
         finally
         {
@@ -301,59 +320,99 @@ public partial class AuditoriaDetalle
         }
     }
 
-    private static string _GetStatusClass(string status)
+    private void OpenRejectAuditModal()
     {
-        if (string.IsNullOrEmpty(status)) return "bg-light text-dark border-secondary-subtle";
-        var lowerStatus = status.ToLower();
-        if (lowerStatus.Contains("no encontrado") || lowerStatus.Contains("notfound") || lowerStatus.Contains("pendiente"))
-            return "bg-danger-subtle text-danger border-danger-subtle";
-        if (lowerStatus.Contains("sobrante") || lowerStatus.Contains("excess") || lowerStatus.Contains("exceso"))
-            return "bg-warning-subtle text-warning border-warning-subtle";
-        if (lowerStatus.Contains("mismatch") || lowerStatus.Contains("diferencia"))
-            return "bg-info-subtle text-info border-info-subtle";
-        if (lowerStatus.Contains("encontrado") || lowerStatus.Contains("found") || lowerStatus.Contains("correcto"))
-            return "bg-success-subtle text-success border-success-subtle";
-        return "bg-light text-dark border-secondary-subtle";
+        _rejectForm = new RejectAuditModel();
+        _showRejectModal = true;
     }
 
-    private static UnitProductAuditStatus ParseStatusDisplay(string statusDisplay)
+    private async Task ConfirmRejectAudit()
     {
-        foreach (UnitProductAuditStatus status in Enum.GetValues(typeof(UnitProductAuditStatus)))
+        if (string.IsNullOrWhiteSpace(_rejectForm.Reason))
         {
-            if (string.Equals(status.ToString(), statusDisplay, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(status.GetDisplayName(), statusDisplay, StringComparison.OrdinalIgnoreCase))
-            {
-                return status;
-            }
+            ShowFeedback("Debe indicar el motivo del rechazo.", isError: true);
+            return;
         }
 
-        return UnitProductAuditStatus.NotFound;
-    }
-
-    private static int GetStatusOrder(string statusDisplay)
-    {
-        var status = ParseStatusDisplay(statusDisplay);
-        return status switch
+        _rejectingAudit = true;
+        try
         {
-            UnitProductAuditStatus.NotFound => 0,
-            UnitProductAuditStatus.StatusMismatch => 1,
-            UnitProductAuditStatus.ExcessProduct => 2,
-            UnitProductAuditStatus.Found => 3,
-            _ => 4
-        };
+            // await AuditoriaService.RejectAuditAsync(new RejectAuditRequest { AuditId = Id, Reason = _rejectForm.Reason });
+            _showRejectModal = false;
+            ShowFeedback("Auditoría rechazada. Las unidades bloqueadas fueron liberadas.");
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback($"Error al rechazar la auditoría: {ex.Message}", isError: true);
+        }
+        finally
+        {
+            _rejectingAudit = false;
+        }
     }
 
-    private sealed class SurplusUnitForm
+    private void ShowFeedback(string message, bool isError = false)
     {
-        public string? Code { get; set; }
+        _feedbackMessage = message;
+        _feedbackClass = isError ? "alert-danger" : "alert-success";
+    }
+
+    private string _GetStatusClass(string status) => status switch
+    {
+        "Completada" or "Disponible" or "Cerrada" => "bg-success",
+        "En progreso" => "bg-primary",
+        "Pendiente de revisión" or "No Encontrado" => "bg-warning text-dark",
+        "Dañado" or "Pérdida" or "No Coincide" => "bg-danger",
+        "Rechazada por inconsistencias" => "bg-dark",
+        _ => "bg-secondary"
+    };
+
+    // Modelos auxiliares para formularios y DTOs (puedes moverlos a archivos separados)
+    public class AuditDto
+    {
+        public int Id { get; set; }
+        public int WarehouseId { get; set; }
+        public string WarehouseName { get; set; } = string.Empty;
+        public int Status { get; set; }
+        public string StatusDisplay { get; set; } = string.Empty;
+    }
+
+    public class EditUnitAuditModel
+    {
+        public UnitProductAuditStatus Status { get; set; }
+        public string UbicacionFisica { get; set; } = string.Empty;
+        public string Observaciones { get; set; } = string.Empty;
+    }
+
+    public class SurplusUnitModel
+    {
+        public string Code { get; set; } = string.Empty;
         public int ProductId { get; set; }
-        public int? ProductoVariantId { get; set; }
-        public int PhysicalWarehouseId { get; set; }
-        public string? Observations { get; set; }
+        public int ProductoVariantId { get; set; }
+        public string Observations { get; set; } = string.Empty;
     }
 
-    private sealed class CloseAuditForm
+    public class CloseAuditModel
     {
-        public string? Conclusions { get; set; }
+        public string Conclusions { get; set; } = string.Empty;
+    }
+
+    public class RejectAuditModel
+    {
+        public string Reason { get; set; } = string.Empty;
+    }
+
+    public class ProductLookupDto
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+    }
+
+    public class ProductVariantLookupDto
+    {
+        public int Id { get; set; }
+        public string CodigoVariante { get; set; } = string.Empty;
+        public string CodigoBarras { get; set; } = string.Empty;
     }
 }

@@ -50,7 +50,7 @@ public partial class CrearAuditoria
                 ResponsibleId = _form.ResponsibleId,
                 Observations = _form.Observations,
                 IncludeReservedUnits = _form.IncludeReservedUnits,
-                _CreatorAuth0Id = "system"
+                _CreatorAuth0Id = 1
             };
 
             var audit = await AuditService.CreateAudit(request, CancellationToken.None);

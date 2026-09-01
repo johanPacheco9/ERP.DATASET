@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-
-namespace ERP.TRAN.CrossLayers.API.Inventario.Bodega.Enums;
+namespace ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
 public enum WarehouseType
 {
     [Display(Name = "Bodega principal")]

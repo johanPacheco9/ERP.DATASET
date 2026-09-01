@@ -1,6 +1,6 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Enums;
-using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
 
 namespace ERP.DATASET.Components.Pages.Inventario.NewFolder;
 

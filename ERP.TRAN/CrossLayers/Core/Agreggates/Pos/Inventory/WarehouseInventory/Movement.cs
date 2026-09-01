@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
@@ -48,6 +49,10 @@ public class Movement : EntityWithtraceability
     /// </summary>
     public int? DestinationWarehouseId { get; set; }
     public Warehouse? DestinationWarehouse { get; set; }
+    
+    public int? AuditId { get; set; }
+    public Audit? Audit { get; set; }
+    
     
     // === DETALLE (RELACIÓN 1 A MUCHOS) ===
     /// <summary>

@@ -5,6 +5,9 @@ public enum UnitProductAuditStatus
 {
     [Display(Name = "Encontrado en local")]
     Found = 10,
+    
+    [Display(Name = "Encontrado en auditoría")]
+    FoundOnAudit = 15,
 
     [Display(Name = "No encontrado")]
     NotFound = 20,

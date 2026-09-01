@@ -11,6 +11,12 @@ public sealed class RegistrarMovimientoRequest
     
     public int? DestinationWarehouseId { get; set; } // Solo requerido si es Transferencia
     
+    /// <summary>
+    /// Opcional, se puede obtener una bodega por el originwarehouseId.
+    /// en este caso se usará para obtener la bodega de perdidas o bajas de una tienda.
+    /// </summary>
+    public int? StoreId { get; set; }
+    
     public TipoMovimiento TipoMovimiento { get; set; }
 
     [Display(Name = "Observaciones")]

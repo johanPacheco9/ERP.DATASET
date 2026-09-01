@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+namespace ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 
+/// <summary>
+/// Enum que refleja los estados del ciclo de vida de una unidad de producto física.
+/// </summary>
 public enum UnidadProductoStatus
 {
     [Display(Name = "Disponible")]
@@ -19,12 +22,15 @@ public enum UnidadProductoStatus
     [Display(Name = "Perdido")]
     Lost = 50,
 
-    [Display(Name = "Dañado")]
+    [Display(Name = "Dañado / Dado de baja")]
     Damaged = 60,
 
-    [Display(Name = "Separado")]
+    [Display(Name = "Separado / Apartado")]
     Separated = 70,
     
     [Display(Name = "Bloqueado por auditoría")]
-    InAuditLock = 80
+    InAuditLock = 80,
+    
+    [Display(Name = "Recuperado")]
+    Recovered = 90
 }

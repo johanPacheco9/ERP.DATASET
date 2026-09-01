@@ -20,7 +20,7 @@ public partial class SupplierService
             Phone = proveedor.Phone,
             IsActive = proveedor.IsActive,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = "01"
+            CreatedBy = 1
         };
         context.Supplier.Add(proveedor);
         await context.SaveChangesAsync(cancellationToken);

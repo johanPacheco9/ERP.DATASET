@@ -1,7 +1,7 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Enums;
-using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
+﻿using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
 
 namespace ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 

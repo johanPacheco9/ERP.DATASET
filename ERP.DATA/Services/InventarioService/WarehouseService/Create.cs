@@ -18,7 +18,7 @@ public partial class WarehouseService
                 Max_Capacity = bodega.CapacidadMaxima,
                 Type = bodega.TipoBodega,
                 StoreId = bodega.storeId,
-                CreatedBy = "SYSTEMUSER",
+                CreatedBy = 1,
                 CreatedAt = DateTime.UtcNow
             };
 

@@ -39,4 +39,6 @@ public class Audit : EntityWithtraceability
     public Category? Category { get; set; }
     public ProductoBase? Product { get; set; }
     public ICollection<UnidadProductoAuditada> UnidadProductoAuditada {get; set; } = new List<UnidadProductoAuditada>();
+    //Relacion para saber que movimientos generó la auditoria.
+    public ICollection<Movement> Movements { get; set; } = new List<Movement>();
 }

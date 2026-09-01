@@ -1,7 +1,7 @@
 ﻿using ERP.TRAN.CrossLayers.API.Base.ResultPattern;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
@@ -38,15 +38,16 @@ public partial class MovimientoService
         }
 
         var esTransferencia = request.TipoMovimiento == TipoMovimiento.Transferencia;
+        var esPerdida = request.TipoMovimiento == TipoMovimiento.Perdida;
 
-        if (esTransferencia)
+        if (esTransferencia || esPerdida)
         {
             if (!request.DestinationWarehouseId.HasValue)
             {
                 return Result.Failure(
                     Error.Validation(
                         "Warehouse.DestinationRequired",
-                        "La transferencia requiere una bodega destino."
+                        esTransferencia ? "La transferencia requiere una bodega destino." : "El registro de pérdida requiere especificar una bodega destino."
                     )
                 );
             }
@@ -73,14 +74,15 @@ public partial class MovimientoService
             return Result.Failure(Error.NotFound("Warehouse.NotFound", "No existe la bodega especificada."));
         }
 
-        if (esTransferencia)
+        Warehouse? bodegaDestino = null;
+        if (esTransferencia || esPerdida)
         {
-            var bodegaDestino = await context.Warehouse
+            bodegaDestino = await context.Warehouse
                 .FirstOrDefaultAsync(x => x.Id == request.DestinationWarehouseId!.Value, cancellationToken);
 
             if (bodegaDestino is null)
             {
-                return Result.Failure(Error.NotFound("Warehouse.DestinationNotFound", "No existe la bodega destino."));
+                return Result.Failure(Error.NotFound("Warehouse.DestinationNotFound", "No existe la bodega destino especificada."));
             }
         }
 
@@ -142,7 +144,7 @@ public partial class MovimientoService
         }
 
         List<WarehouseStock> stockDestinoList = [];
-        if (esTransferencia)
+        if (esTransferencia || esPerdida)
         {
             stockDestinoList = await context.WarehouseStock
                 .Where(s => s.WarehouseId == request.DestinationWarehouseId!.Value &&
@@ -165,7 +167,7 @@ public partial class MovimientoService
                 ReferenceType = ObtenerReferenciaGeneral(request.TipoMovimiento),
                 Observations = request.Observations,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = "System"
+                CreatedBy = 1
             };
 
             context.Movements.Add(movement);
@@ -187,9 +189,8 @@ public partial class MovimientoService
                         break;
 
                     case TipoMovimiento.Perdida:
-                        RegistrarSalidaDefinitivaUnitaria(
-                            request, producto, stockOrigenList, UnidadProductoStatus.Lost,
-                            "Pérdida de inventario", movement);
+                        RegistrarPerdidaUnitaria(
+                            request, producto, stockOrigenList, stockDestinoList, bodegaDestino!, movement);
                         break;
 
                     case TipoMovimiento.Entrada:
@@ -246,7 +247,6 @@ public partial class MovimientoService
     {
         var destinationWarehouseId = request.DestinationWarehouseId!.Value;
 
-        // Añadimos el detalle relacionándolo con la cabecera mediante MovimientoId
         context.UnitProductMovements.Add(new UnitProductMovement
         {
             UnidadProductoId = producto.Id,
@@ -362,5 +362,50 @@ public partial class MovimientoService
 
         var stockOrigen = stockOrigenList.First(s => s.ProductoVarianteId == producto.ProductoVarianteId);
         stockOrigen.CurrentStock -= 1;
+    }
+    
+    private void RegistrarPerdidaUnitaria(
+        RegistrarMovimientoRequest request,
+        UnidadProducto producto,
+        List<WarehouseStock> stockOrigenList,
+        List<WarehouseStock> stockDestinoList,
+        Warehouse bodegaPerdidas,
+        Movement movement)
+    {
+        var destinationWarehouseId = bodegaPerdidas.Id;
+
+        context.UnitProductMovements.Add(new UnitProductMovement
+        {
+            UnidadProductoId = producto.Id,
+            MovimientoId = movement.Id,
+            TipoMovimiento = TipoMovimiento.Perdida,
+            BodegaOrigenId = request.OriginWarehouseId,
+            BodegaDestinoId = destinationWarehouseId,
+            Motivo = "Pérdida de inventario",
+            Observaciones = request.Observations
+        });
+
+        var stockOrigen = stockOrigenList.First(s => s.ProductoVarianteId == producto.ProductoVarianteId);
+        stockOrigen.CurrentStock -= 1;
+
+        var stockDestino = stockDestinoList.FirstOrDefault(s => s.ProductoVarianteId == producto.ProductoVarianteId);
+        if (stockDestino != null)
+        {
+            stockDestino.CurrentStock += 1;
+        }
+        else
+        {
+            stockDestino = new WarehouseStock
+            {
+                WarehouseId = destinationWarehouseId,
+                ProductoVarianteId = producto.ProductoVarianteId,
+                CurrentStock = 1
+            };
+            context.WarehouseStock.Add(stockDestino);
+            stockDestinoList.Add(stockDestino);
+        }
+
+        producto.BodegaId = destinationWarehouseId;
+        producto.Status = UnidadProductoStatus.Lost;
     }
 }

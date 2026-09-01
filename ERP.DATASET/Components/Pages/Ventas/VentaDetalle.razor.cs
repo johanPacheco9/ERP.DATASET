@@ -78,7 +78,7 @@ public partial class VentaDetalle
                 PaidAt = _paymentForm.PaidAt,
                 Reference = _paymentForm.Reference,
                 Notes = _paymentForm.Notes,
-                _CreatorAuth0Id = "cajero-pos"
+                _CreatorId = 1
             }, CancellationToken.None);
             
             _showPaymentModal = false;

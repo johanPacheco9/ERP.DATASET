@@ -10,7 +10,7 @@ public class AddPaymentRequest
     public DateTime? PaidAt { get; set; }
     public string? Reference { get; set; }
     public string? Notes { get; set; }
-    public string _CreatorAuth0Id { get; set; } = "system";
+    public int _CreatorId { get; set; }
 
     public bool ParametersAreValid(out string? errors)
     {

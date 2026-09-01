@@ -8,6 +8,7 @@ public class AuditUnitDto
     public int UnidadProductoId { get; set; }
     public string Serial { get; set; } = string.Empty;
     public string ProductoName { get; set; } = string.Empty;
+    public int  ProductoVariantId { get; set; }
     public UnitProductAuditStatus StatusCode { get; set; }
     public string StatusDisplay { get; set; } = string.Empty;
     public string UbicacionFisica { get; set; } = string.Empty;

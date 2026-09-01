@@ -1,8 +1,8 @@
 using Bogus;
 using ERP.DATA.Repositories;
-using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Enums;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
@@ -30,7 +30,7 @@ public static class OneShotDatabaseSeeder
                 {
                     Name = name,
                     Code = $"CAT-{i + 1}",
-                    CreatedBy = "system",
+                    CreatedBy = 1,
                     CreatedAt = now,
                     IsActive = true
                 }).ToList();
@@ -49,7 +49,7 @@ public static class OneShotDatabaseSeeder
                 {
                     Name = i == 1 ? "Main Store" : $"Store {i}",
                     IsMainStore = i == 1,
-                    CreatedBy = "system",
+                    CreatedBy = 1,
                     CreatedAt = now,
                     IsActive = true
                 }).ToList();
@@ -73,7 +73,7 @@ public static class OneShotDatabaseSeeder
                     Type = WarehouseType.Principal,
                     Max_Capacity = faker.Random.Decimal(1000, 5000),
                     StoreId = 1,
-                    CreatedBy = "system",
+                    CreatedBy = 1,
                     CreatedAt = now,
                     IsActive = true
                 }).ToList();
@@ -92,7 +92,7 @@ public static class OneShotDatabaseSeeder
                 {
                     Name = faker.Company.CompanyName(),
                     Email = faker.Internet.Email(),
-                    CreatedBy = "system",
+                    CreatedBy = 1,
                     CreatedAt = now,
                     IsActive = true
                 }).ToList();
@@ -140,7 +140,7 @@ public static class OneShotDatabaseSeeder
                     PrecioVenta = faker.Random.Decimal(120, 200),
                     UnidadMedida = "Unidad",
                     BaseStatus = ProductoBaseStatus.Active,
-                    CreatedBy = "system",
+                    CreatedBy = 1,
                     CreatedAt = now,
                     IsActive = true
                 }).ToList();
@@ -163,7 +163,7 @@ public static class OneShotDatabaseSeeder
                     SKU = $"{p.Code}-V{i}",
                     PrecioVenta = faker.Random.Decimal(150, 300),
                     CostoUnitario = faker.Random.Decimal(80, 150),
-                    CreatedBy = "system",
+                    CreatedBy = 1,
                     CreatedAt = now,
                     IsActive = true
                 })
@@ -195,7 +195,7 @@ public static class OneShotDatabaseSeeder
                         Lote = $"LOT-{faker.Random.Number(100, 999)}",
                         Status = UnidadProductoStatus.Available,
                         UbicacionFisica = $"Estante {faker.Random.AlphaNumeric(3).ToUpper()}",
-                        CreatedBy = "system",
+                        CreatedBy = 1,
                         CreatedAt = now,
                         IsActive = true
                     };
@@ -216,7 +216,7 @@ public static class OneShotDatabaseSeeder
                               StockMinimo = 5,
                               StockMaximo = 150,
                               FechaActualizacion = now,
-                              CreatedBy = "system",
+                              CreatedBy = 1,
                               CreatedAt = now,
                               IsActive = true
                           }).ToList();

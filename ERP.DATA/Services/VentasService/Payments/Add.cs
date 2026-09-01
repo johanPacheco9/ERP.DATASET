@@ -33,7 +33,7 @@ public partial class PaymentsService
             Reference = request.Reference,
             Notes = request.Notes,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = request._CreatorAuth0Id
+            CreatedBy = request._CreatorId
         };
 
         context.SalePayments.Add(payment);
@@ -45,7 +45,7 @@ public partial class PaymentsService
                 ? PaymentStatus.Partial
                 : PaymentStatus.Pending;
         sale.UpdatedAt = DateTime.UtcNow;
-        sale.UpdatedBy = request._CreatorAuth0Id;
+        sale.UpdatedBy = request._CreatorId;
 
         await context.SaveChangesAsync(cancellationToken);
 

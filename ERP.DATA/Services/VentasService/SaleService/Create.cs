@@ -37,7 +37,7 @@ public partial class SaleService
                 StoreId = request.StoreId,
                 Status = SaleStatus.Completed,
                 Notes = request.Notes,
-                CreatedBy = request._CreatorAuth0Id ?? "system",
+                CreatedBy = 1,
                 CreatedAt = DateTime.UtcNow,
                 FactusStatus = "Pendiente"
             };
@@ -79,7 +79,7 @@ public partial class SaleService
                     line.ProductoVarianteId,
                     qty,
                     $"Venta {sale.SaleNumber}",
-                    request._CreatorAuth0Id ?? "system",
+                    request._CreatorAuth0Id,
                     sale.Id,
                     line.SerialNumber,
                     cancellationToken);
@@ -96,7 +96,7 @@ public partial class SaleService
                     TaxAmount = lineTax,
                     LineTotal = lineTotal ?? 0,
                     MovementId = movementId,
-                    CreatedBy = request._CreatorAuth0Id ?? "system",
+                    CreatedBy = 1,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -117,7 +117,7 @@ public partial class SaleService
                 Amount = request.PaymentAmount,
                 Method = request.PaymentMethod,
                 PaidAt = DateTime.UtcNow,
-                CreatedBy = request._CreatorAuth0Id ?? "system",
+                CreatedBy = 1,
                 CreatedAt = DateTime.UtcNow
             };
             context.SalePayments.Add(payment);

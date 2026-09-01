@@ -1,6 +1,8 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
 using ERP.TRAN.CrossLayers.Utilities.Base.Requests;
-using System.ComponentModel.DataAnnotations;
+
+namespace ERP.TRAN.CrossLayers.API.Inventario.Audit.Request;
 
 /// <summary>
 /// Solicitud para crear una nueva auditoría de inventario
@@ -26,17 +28,20 @@ public class CreateAuditRequest : BaseCreateRequest
     public AuditType Type { get; set; }
 
     /// <summary>
-    /// ID de la bodega a auditar (null = todas las bodegas)
+    /// ID de la bodega a auditar. Siempre obligatorio: una auditoría física
+    /// se ejecuta sobre un único espacio físico, nunca sobre varias bodegas a la vez.
     /// </summary>
-    public int? WarehouseId { get; set; }
+    [Required(ErrorMessage = "La bodega es requerida")]
+    public int WarehouseId { get; set; }
 
     /// <summary>
-    /// ID de la categoría a auditar (null = todas las categorías)
+    /// ID de la categoría a auditar. Requerido cuando Type es Cyclical (método ABC).
     /// </summary>
     public int? CategoryId { get; set; }
 
     /// <summary>
-    /// ID del producto específico a auditar (null = todos los productos)
+    /// ID del producto específico a auditar. Requerido cuando Type es Selective o PostMovement
+    /// (conteo dirigido: reclamo de cliente, descuadre puntual, verificación tras un movimiento).
     /// </summary>
     public int? ProductId { get; set; }
 
@@ -44,13 +49,11 @@ public class CreateAuditRequest : BaseCreateRequest
     /// ID del responsable de ejecutar la auditoría
     /// </summary>
     [Required(ErrorMessage = "El responsable es requerido")]
-    // [MaxLength(100)]  ← ELIMINADO ❌
     public int ResponsibleId { get; set; }
 
     /// <summary>
     /// ID del supervisor que aprobará la auditoría (opcional)
     /// </summary>
-    // [MaxLength(100)]  ← ELIMINADO ❌
     public int? SupervisorId { get; set; }
 
     /// <summary>
@@ -92,16 +95,28 @@ public class CreateAuditRequest : BaseCreateRequest
             errorList.Add("El responsable es requerido.");
         }
 
-        // Validar alcance: no puede tener ProductId sin WarehouseId
-        if (ProductId.HasValue && !WarehouseId.HasValue)
+        // Validar bodega: siempre obligatoria
+        if (WarehouseId <= 0)
         {
-            errorList.Add("Si especifica un producto, debe especificar también una bodega.");
+            errorList.Add("Debe especificar una bodega para auditar.");
         }
 
-        // Al menos debe especificar una bodega para auditorías
-        if (!WarehouseId.HasValue)
+        // Reglas de alcance según el tipo de auditoría.
+        // Nota: General, Surprise, Monthly y Annual no imponen alcance específico
+        // (pueden auditar toda la bodega, o combinarse con CategoryId/ProductId a discreción).
+        switch (Type)
         {
-            errorList.Add("Debe especificar al menos una bodega para auditar.");
+            case AuditType.Cyclical when !CategoryId.HasValue:
+                errorList.Add("La auditoría cíclica requiere especificar una categoría (método ABC).");
+                break;
+
+            case AuditType.Selective when !ProductId.HasValue:
+                errorList.Add("La auditoría selectiva requiere especificar un producto.");
+                break;
+
+            case AuditType.PostMovement when !ProductId.HasValue:
+                errorList.Add("La auditoría post-movimiento requiere especificar el producto afectado.");
+                break;
         }
 
         // Validar código si se proporciona

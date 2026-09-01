@@ -460,7 +460,7 @@ public partial class CrearVenta
                 WarehouseId = _warehouseId,
                 StoreId = 1,
                 Notes = _notes,
-                _CreatorAuth0Id = "cajero-pos",
+                _CreatorAuth0Id = 1,
                 PaymentAmount = _paymentMethod == PaymentMethod.Credit ? 0 : Math.Min(_paymentAmount, CartTotal),
                 PaymentMethod = _paymentMethod,
                 Lines = _cart.Select(c => new SaleLineRequest

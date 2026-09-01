@@ -42,8 +42,8 @@ public partial class AuditoriaService
             audit.TotalStatusDifferences,
             audit.Observations,
             audit.Conclusions,
-            audit.CreatedAt,
-            audit.CreatedBy ?? "system"
+            audit.CreatedAt, 
+            "Corregir"
         );
     }
 }

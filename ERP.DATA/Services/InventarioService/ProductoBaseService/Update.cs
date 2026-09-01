@@ -39,7 +39,7 @@ public partial class ProductoBaseService
         producto.IsActive = updatedProductoBase.IsActive;
 
         producto.UpdatedAt = DateTime.UtcNow;
-        producto.UpdatedBy = "01";
+        producto.UpdatedBy = 1;
 
         context.ProductoBase.Update(producto);
         await context.SaveChangesAsync(cancellationToken);

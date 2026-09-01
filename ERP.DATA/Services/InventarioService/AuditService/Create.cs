@@ -1,8 +1,7 @@
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
@@ -34,12 +33,12 @@ public partial class AuditoriaService
         {
             throw new InvalidOperationException($"Ya hay una auditoría en progreso para la bodega requerida.");
         }
-
-        // 1. Apuntar a UnidadesProductos e incluir la relación con Variante y ProductoBase para los filtros
+        
+        
         var productsToAuditQuery = _context.UnidadesProductos
             .Include(u => u.ProductoVariante)
-                .ThenInclude(v => v.ProductoBase)
-            .Where(s => s.Status == UnidadProductoStatus.Available);
+            .ThenInclude(v => v.ProductoBase)
+            .Where(s => s.Status == UnidadProductoStatus.Available && s.BodegaId == request.WarehouseId);
 
         if (request.IncludeReservedUnits)
         {
@@ -50,10 +49,10 @@ public partial class AuditoriaService
                             s.Status == UnidadProductoStatus.Separated);
         }
 
-        if (request.WarehouseId.HasValue)
+        if (request.WarehouseId != 0)
         {
             productsToAuditQuery = productsToAuditQuery
-                .Where(u => u.BodegaId == request.WarehouseId.Value);
+                .Where(u => u.BodegaId == request.WarehouseId);
         }
 
         if (request.CategoryId.HasValue)
@@ -108,8 +107,7 @@ public partial class AuditoriaService
 
             _context.Audit.Add(audit);
             await _context.SaveChangesAsync(cancellationToken);
-
-            // 3. Mapear las líneas de la auditoría y congelar el stock de las unidades físicas
+            
             var unitProductAudits = new List<UnidadProductoAuditada>();
 
             foreach (var unit in productsToAudit)
@@ -119,9 +117,13 @@ public partial class AuditoriaService
                     AuditId = audit.Id,
                     UnitProductId = unit.Id,
                     ProductoVarianteId = unit.ProductoVarianteId,
+                    ProductoBaseId = unit.ProductoVariante?.ProductoBaseId ?? 0, 
                     BodegaId = unit.BodegaId,
-                    Serial = unit.SerialNumber ?? unit.ProductoVariante.SKU,
-                    Status = UnitProductAuditStatus.NotFound, // Inicia como no encontrado hasta que se escanee
+                    Serial = unit.SerialNumber ?? unit.ProductoVariante?.SKU ?? string.Empty,
+                    Status = UnitProductAuditStatus.NotFound,
+                    
+                    OriginalUnitStatus = unit.Status, 
+        
                     CreatedBy = request._CreatorAuth0Id,
                     CreatedAt = DateTime.UtcNow
                 });
@@ -130,8 +132,6 @@ public partial class AuditoriaService
                 unit.UpdatedAt = DateTime.UtcNow;
                 unit.UpdatedBy = request._CreatorAuth0Id;
             }
-
-            // Persistimos las líneas intermedias y los cambios de estado
             _context.UnitProductAudits.AddRange(unitProductAudits);
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -161,7 +161,7 @@ public partial class AuditoriaService
                 audit.Observations,
                 audit.Conclusions,
                 audit.CreatedAt,
-                audit.CreatedBy
+                "Corregir cuando esté la relacion con user"
             );
         }
         catch (Exception e)

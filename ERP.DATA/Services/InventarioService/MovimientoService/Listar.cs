@@ -99,7 +99,7 @@ public partial class MovimientoService
             m.Observations,
             detailsGrouped.TryGetValue(m.Id, out var itemsList) ? itemsList : new List<MovimientoItemDto>(),
             m.CreatedAt,
-            m.CreatedBy
+            "Corregir, no existe sesion aun"
         )).ToList();
     }
 }

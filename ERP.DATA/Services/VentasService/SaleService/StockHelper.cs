@@ -1,6 +1,6 @@
 using ERP.DATA.Repositories;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,7 @@ internal static class StockHelper
         int productoVarianteId,
         int quantity,
         string motivo,
-        string createdBy,
+        int createdBy,
         int? saleId,
         string? serialNumber,
         CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ internal static class StockHelper
 
             unidad.Status = UnidadProductoStatus.Sold;
             unidad.UpdatedAt = DateTime.UtcNow;
-            unidad.UpdatedBy = createdBy;
+            unidad.UpdatedBy = 1;
 
             unidadProductoId = unidad.Id;
         }
@@ -83,7 +83,7 @@ internal static class StockHelper
             Motive = motivo,
             Observations = saleId.HasValue ? $"Venta #{saleId}" : motivo,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = createdBy
+            CreatedBy = 1
         };
 
         context.Movements.Add(movimiento);

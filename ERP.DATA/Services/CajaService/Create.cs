@@ -31,7 +31,7 @@ public partial class CajaManager
             DianResolutionNumber = request.DianResolutionNumber,
             IsActive = request.IsActive,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = "SYSTEM"
+            CreatedBy = 1
         };
 
         // 3. Registrar en el contexto y guardar cambios

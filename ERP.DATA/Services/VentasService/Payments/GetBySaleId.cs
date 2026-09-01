@@ -27,7 +27,7 @@ public partial class PaymentsService
                 p.PaidAt,
                 p.Reference,
                 p.Notes,
-                p.CreatedBy
+                "Corregir"
             )).ToList();
 
             var totalPaid = payments.Sum(p => p.Amount);

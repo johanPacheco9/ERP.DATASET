@@ -13,7 +13,7 @@ public abstract class BaseCreateRequest : IValidatableRequest
     /// </summary>
     [Required(ErrorMessage = "Debe indicar el usuario creador")]
     // ReSharper disable once InconsistentNaming
-    public string _CreatorAuth0Id { get; set; } = null!;
+    public int _CreatorAuth0Id { get; set; } 
 
     /// <summary>
     ///     Devuelve si los parámetros de la solicitud son válidos.

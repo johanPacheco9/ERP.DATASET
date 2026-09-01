@@ -64,7 +64,7 @@ public partial class ProductVariantService
                 PrecioVenta = request.PrecioVenta,
                 CostoUnitario = request.CostoUnitario,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = "SYSTEM",
+                CreatedBy = 1,
                 IsActive = true
             }).ToList();
 

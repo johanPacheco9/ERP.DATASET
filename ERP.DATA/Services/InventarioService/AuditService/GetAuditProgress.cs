@@ -44,6 +44,7 @@ public partial class AuditoriaService
 
         return new AuditProgressDto(
             AuditId:           audit.Id,
+            audit.WarehouseId,
             WarehouseName:     audit.Warehouse?.Name,
             Status:            audit.Status.GetDisplayName(),
             StartDate:         audit.StartDate,

@@ -3,7 +3,7 @@ using ERP.DATA.Services.InventarioService.MovimientoService;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;

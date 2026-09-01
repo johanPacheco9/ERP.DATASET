@@ -1,7 +1,7 @@
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using Microsoft.EntityFrameworkCore;
@@ -61,7 +61,7 @@ public partial class MovimientoService
                 ReferenceId = salida.ReferenciaId,
                 ReferenceType = salida.ReferenciaTipo,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = "systemuser"
+                CreatedBy = 1
             };
 
             context.Movements.Add(movimiento);
@@ -81,7 +81,7 @@ public partial class MovimientoService
             {
                 unidad.Status = UnidadProductoStatus.Sold;
                 unidad.UpdatedAt = DateTime.UtcNow;
-                unidad.UpdatedBy = "systemuser";
+                unidad.UpdatedBy = 1;
 
                 context.UnitProductMovements.Add(new UnitProductMovement
                 {
@@ -131,7 +131,7 @@ public partial class MovimientoService
                 movimiento.Observations,
                 itemsList,
                 movimiento.CreatedAt,
-                movimiento.CreatedBy
+                "Corregir con usuario.nombre"
             );
         }
         catch

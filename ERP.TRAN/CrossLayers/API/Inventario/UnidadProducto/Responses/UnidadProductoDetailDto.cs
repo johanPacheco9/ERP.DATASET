@@ -1,4 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 
 namespace ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Responses;
 

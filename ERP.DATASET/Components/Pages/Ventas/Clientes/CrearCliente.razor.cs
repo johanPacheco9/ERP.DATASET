@@ -31,7 +31,7 @@ public partial class CrearCliente
                 Address = _form.Address,
                 City = _form.City,
                 TaxRegime = _form.TaxRegime,
-                _CreatorAuth0Id = "system"
+                _CreatorAuth0Id = 1
             };
 
             await ClientService.CreateAsync(request, CancellationToken.None);

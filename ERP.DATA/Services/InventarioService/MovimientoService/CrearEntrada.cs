@@ -1,6 +1,6 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
@@ -41,7 +41,7 @@ public partial class MovimientoService
                 FechaVencimiento = request.FechaVencimiento,
                 Motive = request.Motivo,
                 Observations = request.Motivo,
-                CreatedBy = "system",
+                CreatedBy = 1,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -62,7 +62,7 @@ public partial class MovimientoService
                     ProductoVarianteId = variante.Id,
                     CurrentStock = request.Cantidad,
                     FechaActualizacion = DateTime.UtcNow,
-                    CreatedBy = "system",
+                    CreatedBy = 1,
                     CreatedAt = DateTime.UtcNow
                 };
                 context.WarehouseStock.Add(stock);
@@ -86,7 +86,7 @@ public partial class MovimientoService
                     Lote = request.Lote,
                     FechaVencimiento = request.FechaVencimiento,
                     Status = UnidadProductoStatus.Available,
-                    CreatedBy = "system",
+                    CreatedBy = 1,
                     CreatedAt = DateTime.UtcNow
                 }).ToList();
 

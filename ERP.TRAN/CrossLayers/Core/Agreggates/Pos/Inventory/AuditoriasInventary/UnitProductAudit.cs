@@ -1,5 +1,6 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
@@ -22,7 +23,10 @@ public class UnidadProductoAuditada : EntityWithtraceability
 
     public string Serial { get; set; } = null!;
 
-    public UnitProductAuditStatus Status { get; set; }
+    public UnitProductAuditStatus Status { get; set; } // Estado dentro de la auditoría (Found, NotFound, etc.)
+    
+    // NUEVO: Guarda el estado físico que tenía la unidad antes de ser bloqueada
+    public UnidadProductoStatus OriginalUnitStatus { get; set; }
 
     public string? Observaciones { get; set; }
     public string? MotivoDiferencia { get; set; }

@@ -1,5 +1,5 @@
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Enums;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.API.Pos.Sales.Responses;
 using Microsoft.EntityFrameworkCore;
 

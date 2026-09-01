@@ -13,5 +13,10 @@ public enum AuditStatus
 
     [Display(Name = "En progreso")]
     InProgress = 350,
+    
+    [Display(Name = "Cerrada con inconsistencias")]
+    ClosedWithInconsistences = 400,
+
+
 
 }

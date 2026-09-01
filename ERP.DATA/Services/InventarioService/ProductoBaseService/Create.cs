@@ -61,7 +61,7 @@ public partial class ProductoBaseService
             EsPerecedero = request.EsPerecedero,
             BaseStatus = 0,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = "SYSTEM",
+            CreatedBy = 1,
             IsActive = true
         };
 

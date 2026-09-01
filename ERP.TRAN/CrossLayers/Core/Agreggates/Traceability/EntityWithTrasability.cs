@@ -3,11 +3,11 @@ public class EntityWithtraceability
 {
 
     public int Id { get; set; }
-    public string CreatedBy { get; set; } = null!;
+    public int CreatedBy { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public string? UpdatedBy { get; set; }
+    public int UpdatedBy { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 

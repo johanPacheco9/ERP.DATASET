@@ -1,8 +1,8 @@
 ﻿using ERP.TRAN.CrossLayers.Core.Utilities.Base.Requests;
 
-namespace ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Request;
+namespace ERP.TRAN.CrossLayers.API.Inventario.Audit.Request;
 
-public sealed class UpdateProductoRequest(string updaterId)
+public sealed class UpdateProductoRequest(int updaterId)
     : BaseUpdateRequest(updaterId)
 {
     public string Detalles { get; set; } = null!;

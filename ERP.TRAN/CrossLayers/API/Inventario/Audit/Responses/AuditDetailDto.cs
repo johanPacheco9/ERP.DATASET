@@ -42,7 +42,7 @@ public class CloseAuditRequest
     public string? Conclusions { get; set; }
 
     /// <summary>Auth0 ID de quien cierra la auditoría.</summary>
-    public string _CloserAuth0Id { get; set; } = string.Empty;
+    public int _CloserAuth0Id { get; set; }
 }
 
 
@@ -80,6 +80,7 @@ public record SurplusUnitDto(
 /// </summary>
 public record AuditProgressDto(
     int AuditId,
+    int? WarehouseId,
     string? WarehouseName,
     string Status,
     DateTime StartDate,

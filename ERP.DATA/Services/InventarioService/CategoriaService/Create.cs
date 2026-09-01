@@ -29,9 +29,7 @@ public partial class CategoriaService
                 Description = request.Descripcion, // Usamos 'Descripcion' del DTO
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
-                CreatedBy = "system",
-                UpdatedAt = null,
-                UpdatedBy = null
+                CreatedBy = 1,
             };
 
             context.Category.Add(categoria);

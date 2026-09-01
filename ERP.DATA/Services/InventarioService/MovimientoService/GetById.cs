@@ -67,7 +67,7 @@ public partial class MovimientoService
             movimiento.Observations,
             items,
             movimiento.CreatedAt,
-            movimiento.CreatedBy
+            "Corregir, no existe sesion aun"
         );
     }
 }

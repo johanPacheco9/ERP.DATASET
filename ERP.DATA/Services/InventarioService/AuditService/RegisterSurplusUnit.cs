@@ -71,7 +71,7 @@ public partial class AuditoriaService
             Serial = code,
             Status = UnitProductAuditStatus.ExcessProduct,
             Observaciones = request.Observations,
-            CreatedBy = request._AuditorAuth0Id,
+            CreatedBy = 1,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -89,6 +89,6 @@ public partial class AuditoriaService
             request.ProductoVariantId.Value,
             request.PhysicalWarehouseId,
             surplusUnit.UpdatedAt ?? DateTime.UtcNow,
-            surplusUnit.CreatedBy);
+            "");
     }
 }

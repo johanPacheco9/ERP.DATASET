@@ -1,5 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Enums;
-using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
 
 namespace ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
 
