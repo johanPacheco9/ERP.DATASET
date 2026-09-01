@@ -70,7 +70,7 @@ public partial class CrearVenta
     private IEnumerable<BarcodeLookupResultDto> FilteredCatalog =>
         _selectedCategory == 0
             ? _catalogProducts
-            : _catalogProducts.Where(p => _categorias.Any(c => c.Id == _selectedCategory && c.Nombre == p.Categoria));
+            : _catalogProducts.Where(p => p.Categorias != null && p.Categorias.Any(c => c.Id == _selectedCategory));
 
     private IEnumerable<ClientSummaryDto> FilteredClients
     {

@@ -2,8 +2,8 @@
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
-using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Responses;
 using Microsoft.AspNetCore.Components;
 using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
 

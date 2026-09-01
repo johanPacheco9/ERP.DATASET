@@ -1,11 +1,9 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
-namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
+namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 
 public class Audit : EntityWithtraceability
 {
@@ -14,7 +12,6 @@ public class Audit : EntityWithtraceability
     public DateTime? EndDate { get; set; }
 
     public int? WarehouseId { get; set; } 
-    public int? CategoryId { get; set; } 
     public int? ProductId { get; set; }
 
     public AuditType Type { get; set; }
@@ -36,7 +33,7 @@ public class Audit : EntityWithtraceability
     public string? Conclusions { get; set; }
 
     public Warehouse? Warehouse { get; set; }
-    public Category? Category { get; set; }
+    public ICollection<AuditCategory> CategoriasAuditadas { get; set; } = new List<AuditCategory>();
     public ProductoBase? Product { get; set; }
     public ICollection<UnidadProductoAuditada> UnidadProductoAuditada {get; set; } = new List<UnidadProductoAuditada>();
     //Relacion para saber que movimientos generó la auditoria.

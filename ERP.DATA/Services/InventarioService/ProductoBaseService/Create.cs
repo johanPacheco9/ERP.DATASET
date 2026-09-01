@@ -8,13 +8,8 @@ namespace ERP.DATA.Services.InventarioService.ProductoBaseService;
 public partial class ProductoBaseService
 {
     /// <summary>
-    /// Se usa para crear el cátalogo, no las unidades del producto.
+    /// Se usa para crear el catálogo, no las unidades del producto.
     /// </summary>
-    /// <param name="request"></param>enton
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
     public async Task<int> AddProductoAsync(
         CreateProductoRequest request,
         CancellationToken cancellationToken = default)
@@ -24,23 +19,22 @@ public partial class ProductoBaseService
 
         var codigoProducto = request.Codigo.Trim().ToUpper();
 
-        var exists = await EntityFrameworkQueryableExtensions
-            .AnyAsync<ProductoBase>(context.ProductoBase, p => p.Code == codigoProducto, cancellationToken);
+        var exists = await context.ProductoBase
+            .AnyAsync(p => p.Code == codigoProducto, cancellationToken);
 
         if (exists)
             throw new InvalidOperationException($"Ya existe un producto con el código '{codigoProducto}'.");
 
         if (!request.BodegaId.HasValue)
         {
-            
+            // Lógica si aplica bodega por defecto o validación
         }
-        
+
         var producto = new ProductoBase
         {
             Code = codigoProducto,
             Name = request.Nombre,
             Description = request.Descripcion,
-            CategoryId = request.CategoriaId,
             SupplierId = request.ProveedorId,
             UnidadMedida = request.Unidad_Medida ?? "UND",
             Peso = request.Peso,
@@ -64,6 +58,21 @@ public partial class ProductoBaseService
             CreatedBy = 1,
             IsActive = true
         };
+        
+        
+        if (request.CategoriasIds != null && request.CategoriasIds.Any())
+        {
+            foreach (var catId in request.CategoriasIds)
+            {
+                producto.Categorias.Add(new ProductoBaseCategory
+                {
+                    CategoryId = catId
+                });
+            }
+        }
+        
+        // Si en el futuro tu request permite múltiples IDs, harías un foreach:
+        // foreach (var catId in request.CategoriasIds) { producto.ProductoCategorias.Add(new ProductoBaseCategory { CategoryId = catId }); }
 
         context.ProductoBase.Add(producto);
         await context.SaveChangesAsync(cancellationToken);

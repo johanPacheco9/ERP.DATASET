@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
@@ -24,11 +26,7 @@ public class Movement : EntityWithtraceability
     // Calculado en memoria
     [NotMapped]
     public decimal TotalCost => Quantity * UnitCost;
-
-    // === TRAZABILIDAD Y REFERENCIAS CRUZADAS ===
-    public int? ReferenceId { get; set; }
-    public string? ReferenceType { get; set; } // 'compra', 'venta', 'ajuste_manual', 'traslado', etc.
-
+    
     // === LOTES Y VENCIMIENTOS (Aplica si la variante o base maneja lotes) ===
     public string? Lote { get; set; }
     public DateTime? FechaVencimiento { get; set; }
@@ -53,6 +51,11 @@ public class Movement : EntityWithtraceability
     public int? AuditId { get; set; }
     public Audit? Audit { get; set; }
     
+    public int? SaleId { get; set; }
+    public Sale? Sale { get; set; }
+    
+    public int? CompraId { get; set; }
+    public OrdenCompra? OrdenDeCompra { get; set; }
     
     // === DETALLE (RELACIÓN 1 A MUCHOS) ===
     /// <summary>

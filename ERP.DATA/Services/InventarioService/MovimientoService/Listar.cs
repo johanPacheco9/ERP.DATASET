@@ -91,8 +91,6 @@ public partial class MovimientoService
             m.Quantity,
             m.UnitCost,
             m.TotalCost,
-            m.ReferenceId,
-            m.ReferenceType,
             m.Lote,
             m.FechaVencimiento,
             m.Motive,

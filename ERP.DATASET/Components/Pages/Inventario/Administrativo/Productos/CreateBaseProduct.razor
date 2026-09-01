@@ -35,7 +35,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Categoría</label>
-                        <InputSelect @bind-Value="request.CategoriaId" class="form-select">
+                        <InputSelect @bind-Value="request.CategoriasIds" class="form-select">
                             <option value="0">-- Seleccione --</option>
         
                             @if (_categorias != null)
@@ -46,7 +46,7 @@
                                 }
                             }
                         </InputSelect>
-                        <ValidationMessage For="@(() => request.CategoriaId)" />
+                        <ValidationMessage For="@(() => request.CategoriasIds)" />
                     </div>
 
                     <div class="col-md-12">

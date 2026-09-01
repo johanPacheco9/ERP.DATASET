@@ -58,8 +58,6 @@ public partial class MovimientoService
                 Lote = salida.Lote,
                 Motive = salida.Motivo,
                 Observations = salida.Observaciones,
-                ReferenceId = salida.ReferenciaId,
-                ReferenceType = salida.ReferenciaTipo,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = 1
             };
@@ -123,8 +121,6 @@ public partial class MovimientoService
                 movimiento.Quantity,
                 movimiento.UnitCost,
                 movimiento.TotalCost,
-                movimiento.ReferenceId,
-                movimiento.ReferenceType,
                 movimiento.Lote,
                 movimiento.FechaVencimiento,
                 movimiento.Motive,

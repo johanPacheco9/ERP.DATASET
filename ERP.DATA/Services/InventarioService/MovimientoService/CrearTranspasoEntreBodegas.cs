@@ -164,7 +164,6 @@ public partial class MovimientoService
                 Type = request.TipoMovimiento,
                 Quantity = productos.Count, // Cantidad total de ítems afectados en este lote
                 UnitCost = 0,
-                ReferenceType = ObtenerReferenciaGeneral(request.TipoMovimiento),
                 Observations = request.Observations,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = 1

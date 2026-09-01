@@ -113,7 +113,17 @@
                         </td>
 
                         <td class="category-cell">
-                            <span class="category-tag">@product.CategoriaNombre</span>
+                            @if (product.Categorias != null && product.Categorias.Any())
+                            {
+                                @foreach (var cat in product.Categorias)
+                                {
+                                    <span class="category-tag">@cat.Name</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin categoría</span>
+                            }
                         </td>
 
                         <td class="price-cell">

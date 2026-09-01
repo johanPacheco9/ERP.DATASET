@@ -27,7 +27,7 @@ public partial class ProductoBaseService
         producto.ExentoIVA = updatedProductoBase.ExentoIVA;
         producto.GravadoICA = updatedProductoBase.GravadoICA;
         producto.CodigoTributario = updatedProductoBase.CodigoTributario;
-        producto.CategoryId = updatedProductoBase.CategoryId;
+        producto.Categorias = updatedProductoBase.Categorias;
         producto.SupplierId = updatedProductoBase.SupplierId;
         producto.UnidadMedida = updatedProductoBase.UnidadMedida;
         producto.Peso = updatedProductoBase.Peso;

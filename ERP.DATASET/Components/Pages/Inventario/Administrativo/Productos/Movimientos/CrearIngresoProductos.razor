@@ -52,14 +52,14 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Categoria</label>
-                                <InputSelect class="form-select" @bind-Value="_form.CategoriaId">
+                                <InputSelect class="form-select" @bind-Value="_form.CategoriaIds">
                                     <option value="0">Seleccione categoria...</option>
                                     @foreach (var cat in _categorias ?? [])
                                     {
                                         <option value="@cat.Id">@cat.Nombre</option>
                                     }
                                 </InputSelect>
-                                <ValidationMessage For="@(() => _form.CategoriaId)" />
+                                <ValidationMessage For="@(() => _form.CategoriaIds)" />
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Costo unitario</label>

@@ -1,4 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Responses;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERP.DATA.Services.InventarioService.ProductoBaseService;
@@ -15,7 +15,7 @@ public partial class ProductoBaseService
                 p.Code,
                 p.Name,
                 p.Description,
-                p.CategoryId,
+                p.Categorias.Select(pc => new CategoryDto(pc.Category.Id, pc.Category.Name)).ToList(),
                 p.SupplierId,
                 p.UnidadMedida,
                 p.ImagenUrl,

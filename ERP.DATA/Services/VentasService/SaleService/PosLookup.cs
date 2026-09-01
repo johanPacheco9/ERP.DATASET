@@ -1,3 +1,4 @@
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.API.Pos.Sales.Responses;
@@ -21,8 +22,8 @@ public partial class SaleService
         var unidadFisica = await context.UnidadesProductos
             .AsNoTracking()
             .Include(u => u.ProductoVariante)
-                .ThenInclude(v => v.ProductoBase)
-                    .ThenInclude(b => b.Categoria)
+            .ThenInclude(v => v.ProductoBase)
+            .ThenInclude(b => b.Categorias).ThenInclude(productoBaseCategory => productoBaseCategory.Category)
             .FirstOrDefaultAsync(u => u.Status == UnidadProductoStatus.Available &&
                                       u.BodegaId == warehouseId &&
                                       u.SerialNumber == cleanCode, cancellationToken);
@@ -55,7 +56,7 @@ public partial class SaleService
                 stockVariante,
                 productoBase.ImagenUrl,
                 productoBase.UnidadMedida ?? "UND",
-                productoBase.Categoria?.Name 
+                productoBase.Categorias?.Select(s=>new CategoriaDetailDto(s.Category.Id, s.Category.Name,s.Category.Description,s.Category.CreatedAt, s.Category.UpdatedAt)).ToList()
             );
         }
 
@@ -63,7 +64,7 @@ public partial class SaleService
         var varianteMatch = await context.ProductoVariantes
             .AsNoTracking()
             .Include(v => v.ProductoBase)
-                .ThenInclude(b => b.Categoria)
+            .ThenInclude(b => b.Categorias).ThenInclude(productoBaseCategory => productoBaseCategory.Category)
             .FirstOrDefaultAsync(v => v.Status == ProductoVarianteStatus.Active &&
                                       (v.CodigoBarras == cleanCode || v.SKU == cleanCode), cancellationToken);
 
@@ -93,7 +94,7 @@ public partial class SaleService
                 stockVariante,                 // AvailableStock
                 productoBase.ImagenUrl,        // ImagenUrl
                 productoBase.UnidadMedida ?? "UND", // UnidadMedida
-                productoBase.Categoria?.Name   // Categoria
+                productoBase.Categorias?.Select(s=>new CategoriaDetailDto(s.Category.Id, s.Category.Name,s.Category.Description,s.Category.CreatedAt, s.Category.UpdatedAt)).ToList()   // Categoria
             );
         }
 
@@ -102,7 +103,7 @@ public partial class SaleService
 
     public async Task<List<BarcodeLookupResultDto>> SearchProductsForPosAsync(
         string? query,
-        int? categoryId,
+        List<int>? categoryIds,
         int warehouseId,
         int limit = 30,
         CancellationToken cancellationToken = default)
@@ -110,13 +111,13 @@ public partial class SaleService
         var variantesQuery = context.ProductoVariantes
             .AsNoTracking()
             .Include(v => v.ProductoBase)
-                .ThenInclude(b => b.Categoria)
+                .ThenInclude(b => b.Categorias)
             .Where(v => v.Status == ProductoVarianteStatus.Active &&
                         v.ProductoBase.BaseStatus == ProductoBaseStatus.Active);
 
-        if (categoryId.HasValue && categoryId.Value > 0)
+        if (categoryIds.Any() && categoryIds.Count > 0)
         {
-            variantesQuery = variantesQuery.Where(v => v.ProductoBase.CategoryId == categoryId.Value);
+            variantesQuery = variantesQuery.Where(v => v.ProductoBase.Categorias.Any(ct=> categoryIds.Contains(ct.CategoryId)));
         }
 
         if (!string.IsNullOrWhiteSpace(query))
@@ -150,23 +151,22 @@ public partial class SaleService
             var price = v.PrecioVenta > 0 ? v.PrecioVenta : b.PrecioVenta;
 
             result.Add(new BarcodeLookupResultDto(
-                b.Id,                    // LineaProductoId
-                v.Id,                    // ProductoId
-                b.Name,                  // Name
-                b.Code,                  // Code
-                v.SKU,                   // SKU
-                v.CodigoBarras ?? b.Code,// CodigoBarras
-                null,                    // Serial
-                price ?? 0,                   // PrecioVenta
-                taxRate,                 // PorcentajeIVA
-                b.ExentoIVA,             // ExentoIVA
-                stock,                   // AvailableStock
-                b.ImagenUrl,             // ImagenUrl
-                b.UnidadMedida ?? "UND", // UnidadMedida
-                b.Categoria?.Name        // Categoria
+                b.Id,                  
+                v.Id,                    
+                b.Name,                  
+                b.Code,                  
+                v.SKU,                   
+                v.CodigoBarras ?? b.Code,
+                null,              
+                price ?? 0,   
+                taxRate,     
+                b.ExentoIVA,             
+                stock,                   
+                b.ImagenUrl,             
+                b.UnidadMedida ?? "UND",
+                b.Categorias?.Select(s=>new CategoriaDetailDto(s.Category.Id, s.Category.Name,s.Category.Description,s.Category.CreatedAt, s.Category.UpdatedAt)).ToList() 
             ));
         }
-
         return result;
     }
 }

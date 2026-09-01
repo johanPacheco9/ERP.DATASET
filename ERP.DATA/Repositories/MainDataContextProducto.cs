@@ -1,5 +1,4 @@
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
@@ -42,5 +41,10 @@ public partial class MainDataContext
 
     public DbSet<SaleLineItem> SaleLineItems { get; set; }
     
+    public DbSet<Marca> Marca { get; set; }
+    
+    public DbSet<ProductoProveedor> ProductoProveedor { get; set; }
+
+    public DbSet<ProductoBaseCategory> ProductoBaseCategories { get; set; }
 }
 

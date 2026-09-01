@@ -91,8 +91,6 @@ public partial class MovimientoService
                 Cantidad: itemsDto.Count,
                 CostoUnitario: 0,
                 CostoTotal: 0,
-                ReferenciaId: null,
-                ReferenciaTipo: null,
                 Lote: null,
                 FechaVencimiento: null,
                 Motivo: request.Observations ?? "Pérdida de inventario por auditoría",

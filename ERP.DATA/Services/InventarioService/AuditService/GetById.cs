@@ -1,6 +1,6 @@
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +13,7 @@ public partial class AuditoriaService
         var audit = await _context.Audit
             .AsNoTracking()
             .Include(a => a.Warehouse)
-            .Include(a => a.Category)
+            .Include(a => a.CategoriasAuditadas).ThenInclude(auditCategory => auditCategory.Category)
             .Include(a => a.Product)
             .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
@@ -26,7 +26,7 @@ public partial class AuditoriaService
             audit.EndDate,
             audit.WarehouseId,
             audit.Warehouse?.Name,
-            audit.Category?.Name,
+            audit.CategoriasAuditadas.Select(ct => new CategoriaDetailDto(ct.CategoryId,ct.Category.Name,ct.Category.Description,ct.Category.CreatedAt,ct.Category.UpdatedAt)).ToList(),
             audit.ProductId,
             audit.Product?.Name,
             audit.Type.GetDisplayName(),

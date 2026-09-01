@@ -1,3 +1,5 @@
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
+
 namespace ERP.TRAN.CrossLayers.API.Pos.Sales.Responses;
 
 public sealed record BarcodeLookupResultDto(
@@ -14,5 +16,5 @@ public sealed record BarcodeLookupResultDto(
     int AvailableStock,
     string? ImagenUrl,
     string UnidadMedida,
-    string? Categoria
+    List<CategoriaDetailDto>? Categorias
 );

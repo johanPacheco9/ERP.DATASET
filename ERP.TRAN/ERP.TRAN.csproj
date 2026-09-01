@@ -23,6 +23,7 @@
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Enums\" />
     <Folder Include="CrossLayers\API\Inventario\Proveedor\Services\" />
     <Folder Include="CrossLayers\API\Pos\Clients\Responses\" />
+    <Folder Include="CrossLayers\API\Pos\Compras\Requests\" />
     <Folder Include="CrossLayers\API\Pos\Transactions\Responses\" />
     <Folder Include="CrossLayers\API\Stores\Responses\" />
     <Folder Include="CrossLayers\Core\Agreggates\Pos\Transfers\" />

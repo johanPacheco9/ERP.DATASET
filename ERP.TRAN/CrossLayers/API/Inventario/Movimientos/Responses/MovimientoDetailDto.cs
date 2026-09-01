@@ -25,9 +25,6 @@ public record MovimientoDetailDto(
     int Cantidad,
     decimal CostoUnitario,
     decimal CostoTotal,
-    // Trazabilidad y referencias
-    int? ReferenciaId,
-    string? ReferenciaTipo,
     string? Lote,
     DateTime? FechaVencimiento,
     // Motivo y observaciones

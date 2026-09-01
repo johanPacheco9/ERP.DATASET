@@ -1,6 +1,5 @@
 using Ardalis.GuardClauses;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.Producto.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Requests;
 using System.ComponentModel;

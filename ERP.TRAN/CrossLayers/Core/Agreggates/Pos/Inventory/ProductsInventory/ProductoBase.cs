@@ -36,20 +36,31 @@ public class ProductoBase : EntityWithtraceability
     public bool EsPerecedero { get; set; }
     public bool RequiereSerial { get; set; }         // Indica si se debe instanciar UnidadProducto
     public string UnidadMedida { get; set; } = "unidades";
-
-    // === CATEGORIZACIÓN Y METADATOS ===
-    public int CategoryId { get; set; }
+    
     public int? SupplierId { get; set; }
     public string? ImagenUrl { get; set; }
     public string? Notas { get; set; }
     public string? Tags { get; set; }
     public ProductoBaseStatus BaseStatus { get; set; }
-
-    // === RELACIONES ===
-    public Category Categoria { get; set; } = null!;
-    public Proveedor? Proveedor { get; set; }
+    
+    /// <summary>
+    /// Proveedores de un producto.
+    /// </summary>
+    public ICollection<ProductoProveedor> Proveedores { get; set; }
+        = new List<ProductoProveedor>();
+    
+    /// <summary>
+    /// Variantes ligadas al producto.
+    /// </summary>
     public ICollection<ProductoVariante> Variantes { get; set; } = new List<ProductoVariante>();
+    
+    
+    public ICollection<ProductoBaseCategory> Categorias { get; set; } = new List<ProductoBaseCategory>();
 
+    public int MarcaId { get; set; }
+    public Marca? Marca { get; set; }
+    
     // === HELPERS ===
-    public bool TieneVariantes => Variantes.Count > 1;
+    public bool TieneVariantes => Variantes.Count > 0;
+    
 }

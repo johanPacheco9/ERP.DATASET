@@ -37,7 +37,7 @@ public class CreateAuditRequest : BaseCreateRequest
     /// <summary>
     /// ID de la categoría a auditar. Requerido cuando Type es Cyclical (método ABC).
     /// </summary>
-    public int? CategoryId { get; set; }
+    public List<int>? CategoryIds { get; set; }
 
     /// <summary>
     /// ID del producto específico a auditar. Requerido cuando Type es Selective o PostMovement
@@ -106,8 +106,8 @@ public class CreateAuditRequest : BaseCreateRequest
         // (pueden auditar toda la bodega, o combinarse con CategoryId/ProductId a discreción).
         switch (Type)
         {
-            case AuditType.Cyclical when !CategoryId.HasValue:
-                errorList.Add("La auditoría cíclica requiere especificar una categoría (método ABC).");
+            case AuditType.Cyclical when CategoryIds == null || !CategoryIds.Any():
+                errorList.Add("La auditoría cíclica requiere especificar al menos una categoría (método ABC).");
                 break;
 
             case AuditType.Selective when !ProductId.HasValue:

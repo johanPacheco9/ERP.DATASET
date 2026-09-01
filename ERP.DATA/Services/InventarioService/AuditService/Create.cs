@@ -2,7 +2,6 @@ using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
-using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.AuditsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -34,34 +33,22 @@ public partial class AuditoriaService
             throw new InvalidOperationException($"Ya hay una auditoría en progreso para la bodega requerida.");
         }
         
-        
         var productsToAuditQuery = _context.UnidadesProductos
             .Include(u => u.ProductoVariante)
-            .ThenInclude(v => v.ProductoBase)
-            .Where(s => s.Status == UnidadProductoStatus.Available && s.BodegaId == request.WarehouseId);
+                .ThenInclude(v => v.ProductoBase)
+                    .ThenInclude(pb => pb.Categorias)
+            .Where(s => (request.IncludeReservedUnits 
+                ? s.Status == UnidadProductoStatus.Available || s.Status == UnidadProductoStatus.Separated 
+                : s.Status == UnidadProductoStatus.Available) 
+                && s.BodegaId == request.WarehouseId);
 
-        if (request.IncludeReservedUnits)
-        {
-            productsToAuditQuery = _context.UnidadesProductos
-                .Include(u => u.ProductoVariante)
-                    .ThenInclude(v => v.ProductoBase)
-                .Where(s => s.Status == UnidadProductoStatus.Available ||
-                            s.Status == UnidadProductoStatus.Separated);
-        }
-
-        if (request.WarehouseId != 0)
+        if (request.CategoryIds != null && request.CategoryIds.Any())
         {
             productsToAuditQuery = productsToAuditQuery
-                .Where(u => u.BodegaId == request.WarehouseId);
+                .Where(u => u.ProductoVariante.ProductoBase.Categorias
+                    .Any(pc => request.CategoryIds.Contains(pc.CategoryId)));
         }
 
-        if (request.CategoryId.HasValue)
-        {
-            productsToAuditQuery = productsToAuditQuery
-                .Where(u => u.ProductoVariante.ProductoBase.CategoryId == request.CategoryId.Value);
-        }
-
-        // Si tu request usa ProductId para referirse al ProductoBase
         if (request.ProductId.HasValue)
         {
             productsToAuditQuery = productsToAuditQuery
@@ -81,13 +68,12 @@ public partial class AuditoriaService
 
         try
         {
-            // 2. Crear la cabecera de la Auditoría
+            // 2. Crear la cabecera de la Auditoría (sin campos de categoría obsoletos)
             var audit = new Audit
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = null,
                 WarehouseId = request.WarehouseId,
-                CategoryId = request.CategoryId,
                 ProductId = request.ProductId,
                 Type = request.Type,
                 Status = AuditStatus.Pendiente,
@@ -107,6 +93,21 @@ public partial class AuditoriaService
 
             _context.Audit.Add(audit);
             await _context.SaveChangesAsync(cancellationToken);
+
+            // 3. Guardar la relación en la tabla intermedia de categorías auditadas
+            if (request.CategoryIds != null && request.CategoryIds.Any())
+            {
+                var auditCategories = request.CategoryIds.Select(catId => new AuditCategory
+                {
+                    AuditId = audit.Id,
+                    CategoryId = catId,
+                    CreatedBy = request._CreatorAuth0Id,
+                    CreatedAt = DateTime.UtcNow
+                }).ToList();
+
+                _context.Set<AuditCategory>().AddRange(auditCategories);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
             
             var unitProductAudits = new List<UnidadProductoAuditada>();
 
@@ -122,7 +123,7 @@ public partial class AuditoriaService
                     Serial = unit.SerialNumber ?? unit.ProductoVariante?.SKU ?? string.Empty,
                     Status = UnitProductAuditStatus.NotFound,
                     
-                    OriginalUnitStatus = unit.Status, 
+                    OriginalUnitStatus = unit.Status,
         
                     CreatedBy = request._CreatorAuth0Id,
                     CreatedAt = DateTime.UtcNow
@@ -144,7 +145,7 @@ public partial class AuditoriaService
                 audit.EndDate,
                 audit.WarehouseId,
                 warehouse.Name,
-                audit.Category?.Name,
+                null, // O un join formateado de las categorías desde la relación si tu DTO lo requiere
                 audit.ProductId,
                 audit.Product?.Name,
                 audit.Type.GetDisplayName(),

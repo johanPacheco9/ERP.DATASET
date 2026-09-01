@@ -67,7 +67,7 @@ public partial class CrearIngresoProductos : ComponentBase
     {
         _errores.Clear();
 
-        if (_form.CategoriaId <= 0)
+        if (!_form.CategoriaIds.Any())
             _errores.Add("Debe seleccionar una categoría.");
 
         if (_errores.Any())
@@ -91,7 +91,7 @@ public partial class CrearIngresoProductos : ComponentBase
                 ExentoIVA = _form.ExentoIVA,
                 GravadoICA = _form.GravadoICA,
                 CodigoTributario = _form.CodigoTributario?.Trim(),
-                CategoriaId = _form.CategoriaId,
+                CategoriasIds = _form.CategoriaIds,
                 ProveedorId = _form.ProveedorId,
                 Unidad_Medida = _form.Unidad_Medida,
                 Peso = _form.Peso,

@@ -59,8 +59,6 @@ public partial class MovimientoService
             movimiento.Quantity,
             movimiento.UnitCost,
             movimiento.TotalCost,
-            movimiento.ReferenceId,
-            movimiento.ReferenceType,
             movimiento.Lote,
             movimiento.FechaVencimiento,
             movimiento.Motive,

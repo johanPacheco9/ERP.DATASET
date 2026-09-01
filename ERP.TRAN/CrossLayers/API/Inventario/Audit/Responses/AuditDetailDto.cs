@@ -1,4 +1,5 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 
 namespace ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
 
@@ -8,7 +9,7 @@ public sealed record AuditDetailDto(
     DateTime? EndDate,
     int? WarehouseId,
     string? WarehouseName,
-    string? CategoryName,
+    List<CategoriaDetailDto>  Categorias,
     int? ProductId,
     string? ProductName,
     string TypeDisplay,

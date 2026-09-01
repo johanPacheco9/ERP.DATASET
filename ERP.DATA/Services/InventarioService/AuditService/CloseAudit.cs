@@ -1,6 +1,7 @@
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Auditorias.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
@@ -23,7 +24,7 @@ public partial class AuditoriaService
     {
         var audit = await _context.Audit
             .Include(a => a.Warehouse)
-            .Include(a => a.Category)
+            .Include(a => a.CategoriasAuditadas).ThenInclude(auditCategory => auditCategory.Category)
             .Include(a => a.Product)
             .FirstOrDefaultAsync(a => a.Id == request.AuditId, cancellationToken);
 
@@ -97,7 +98,6 @@ public partial class AuditoriaService
                     Type = TipoMovimiento.Perdida,
                     Quantity = faltantes.Count,
                     UnitCost = 0,
-                    ReferenceType = $"Pérdida detectada en auditoría #{audit.Id}",
                     Observations = request.Conclusions,
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = request._CloserAuth0Id
@@ -157,7 +157,6 @@ public partial class AuditoriaService
                     Type = TipoMovimiento.Entrada,
                     Quantity = sobrantes.Count,
                     UnitCost = 0,
-                    ReferenceType = $"Sobrante incorporado desde auditoría #{audit.Id}",
                     Observations = request.Conclusions,
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = request._CloserAuth0Id
@@ -240,13 +239,24 @@ public partial class AuditoriaService
             await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
+            // Mapear la lista de categorías desde audit.CategoriasAuditadas
+            var categoriasDto = audit.CategoriasAuditadas?
+                .Select(ac => new CategoriaDetailDto(
+                    ac.Category.Id,
+                    ac.Category.Name,
+                    ac.Category.Description,
+                    ac.Category.CreatedAt,
+                    ac.Category.UpdatedAt
+                ))
+                .ToList() ?? new List<CategoriaDetailDto>();
+
             return new AuditDetailDto(
                 audit.Id,
                 audit.StartDate,
                 audit.EndDate,
                 audit.WarehouseId,
                 audit.Warehouse?.Name,
-                audit.Category?.Name,
+                categoriasDto,
                 audit.ProductId,
                 audit.Product?.Name,
                 audit.Type.GetDisplayName(),
@@ -263,7 +273,7 @@ public partial class AuditoriaService
                 audit.Observations,
                 audit.Conclusions,
                 audit.CreatedAt,
-                "Corregir"
+                "Corregir creado por"
             );
         }
         catch (Exception)

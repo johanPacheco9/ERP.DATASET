@@ -41,7 +41,7 @@ public class CrearProductoForm
 
     [Required(ErrorMessage = "Debe seleccionar una categoría.")]
     [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una categoría válida.")]
-    public int CategoriaId { get; set; }
+    public List<int> CategoriaIds { get; set; }
 
     public int? ProveedorId { get; set; }
 
