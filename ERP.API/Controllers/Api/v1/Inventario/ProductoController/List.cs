@@ -44,7 +44,14 @@ public sealed class List
         CancellationToken cancellationToken
     )
     {
-        var productosPaged = await _productoService.ListAsync(request, cancellationToken);
+        // var productosPaged = await _productoService.ListAsync(request, cancellationToken);
+        var productosPaged = await _productoService.ListAsync(
+    request: request,
+    searchTerm: null,
+    categoryName: null,
+    stockFilter: null,
+    cancellationToken: cancellationToken
+);
 
         var dtoItems = productosPaged
             .Select(p => new ProductoSummaryDto(

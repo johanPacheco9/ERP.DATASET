@@ -68,7 +68,10 @@ public partial class SaleService
                 var taxRate = line.TaxRate ?? (variante.ProductoBase.ExentoIVA ? 0m : variante.ProductoBase.PorcentajeIVA);
                 
                 var lineSubtotal = unitPrice * qty;
-                var lineTax = Math.Round(lineSubtotal ?? 0 * taxRate, 2);
+                // var lineTax = Math.Round(lineSubtotal ?? 0 * taxRate, 2);
+                // FIX bug IVA: se necesita el paréntesis porque ?? tiene menor precedencia que *
+                //  (antes "lineSubtotal ?? 0 * taxRate" ignoraba taxRate y duplicaba el total de la línea)
+                var lineTax = Math.Round((lineSubtotal ?? 0) * taxRate, 2);
                 var lineTotal = lineSubtotal + lineTax;
 
                 // 2. Descontar Inventario vía StockHelper (usando el ProductoBaseId de la relación real de la variante)
@@ -89,7 +92,8 @@ public partial class SaleService
                 {
                     SaleId = sale.Id,
                     ProductoVarianteId = line.ProductoVarianteId,
-                    UnidadProductoId = movementId, // O el ID real de la unidad de producto encontrada por serial
+                    // FIX: antes se asignaba movementId por error (era el Id del kárdex, no de la unidad física).
+                    // Ahora se usa el UnidadProductoId real que devuelve StockHelper (null si no es venta por serial).
                     Quantity = qty,
                     UnitPrice = unitPrice ?? 0,
                     TaxRate = taxRate,

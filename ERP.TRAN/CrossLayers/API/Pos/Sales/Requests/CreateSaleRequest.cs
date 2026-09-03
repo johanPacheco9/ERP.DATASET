@@ -24,6 +24,10 @@ public sealed class CreateSaleRequest : BaseCreateRequest
             list.Add("Seleccione un cliente.");
         if (WarehouseId <= 0)
             list.Add("Seleccione una bodega.");
+            // FIX: PaymentAmount no se validaba y podía llegar negativo, contaminando
+    // los cálculos de saldo/estado de pago desde la creación de la venta.
+             if (PaymentAmount < 0)
+        list.Add("El monto de pago no puede ser negativo.");
         if (Lines == null || !Lines.Any())
             list.Add("Agregue al menos un producto a la venta.");
         else
