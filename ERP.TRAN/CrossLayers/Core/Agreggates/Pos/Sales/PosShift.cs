@@ -22,7 +22,7 @@ public class PosShift : EntityWithtraceability
     /// <summary>
     /// Propiedad de navegación hacia la entidad de usuarios del sistema.
     /// </summary>
-    public Usuario Usuarios { get; set; } = null!;
+    public Usuario Cajero { get; set; } = null!;
 
     /// <summary>
     /// Fecha y hora exacta en la que se abrió el turno (UTC).

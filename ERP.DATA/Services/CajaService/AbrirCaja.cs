@@ -21,8 +21,8 @@ public partial class CajaManager
         // 2. Crear la nueva entidad de turno
         var nuevoTurno = new PosShift
         {
-            PosTerminalId = request.PosTerminalId,
-            CajeroId = request.CashierId,
+            PosTerminalId = 1,
+            CajeroId = 1,
             OpenedAt = DateTime.UtcNow,
             InitialCash = request.InitialCash,
             Status = PosShiftStatus.Open,
@@ -32,7 +32,9 @@ public partial class CajaManager
             CreditSales = 0,
             CashWithdrawals = 0,
             CashAdditions = 0,
-            TotalExpectedCash = request.InitialCash
+            TotalExpectedCash = request.InitialCash,
+            CreatedBy = 1,
+            CreatedAt = DateTime.UtcNow,
         };
 
         _context.PosShifts.Add(nuevoTurno);

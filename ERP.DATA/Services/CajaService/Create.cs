@@ -43,7 +43,7 @@ public partial class CajaManager
             .Include(t => t.Store)
             .Include(t => t.Warehouse)
             .Include(t => t.Shifts)
-            .ThenInclude(posShift => posShift.Usuarios) // Opcional: por si necesitas evaluar si tiene turnos activos
+            .ThenInclude(posShift => posShift.Cajero) // Opcional: por si necesitas evaluar si tiene turnos activos
             .FirstAsync(t => t.Id == terminalEntity.Id);
 
         // Validar si tiene turno activo en el momento de la creación (por defecto recién creada no debería, pero se evalúa)
@@ -64,7 +64,7 @@ public partial class CajaManager
             IsActive: createdTerminal.IsActive,
             HasActiveShift: activeShift != null,
             ActiveShiftId: activeShift?.Id,
-            ActiveCashierName: activeShift?.Usuarios.UserName
+            ActiveCashierName: activeShift?.Cajero.UserName
         );
     }
 }
