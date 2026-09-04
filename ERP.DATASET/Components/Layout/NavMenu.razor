@@ -138,6 +138,11 @@
                         @if (!IsCollapsed) { <span>Proveedores</span> }
                     </NavLink>
                     
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="/inventario/compras">
+                        <i class="bi bi-cart3 text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                        @if (!IsCollapsed) { <span>Órdenes de Compra</span> }
+                    </NavLink>
+                    
                     <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="tiendas">
                         <i class="bi bi-truck text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
                         @if (!IsCollapsed) { <span>Tiendas</span> }

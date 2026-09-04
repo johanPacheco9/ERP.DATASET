@@ -7,7 +7,7 @@ public enum WarehouseType
     Principal = 10,
 
     [Display(Name = "Warehouse de pérdidas")]
-    LossWarehouse = 10,
+    LossWarehouse = 15,
 
     [Display(Name ="Warehouse de bajas")]
     WriteOffWarehouse = 20,

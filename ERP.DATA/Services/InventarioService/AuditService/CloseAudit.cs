@@ -217,7 +217,7 @@ public partial class AuditoriaService
             audit.TotalMatches = unitAudits.Count(u => u.Status == UnitProductAuditStatus.Found);
             audit.TotalMissing = faltantes.Count;
             audit.TotalSurplus = sobrantes.Count;
-            audit.TotalLocationDifferences = unitAudits.Count(u => u.Status == UnitProductAuditStatus.StatusMismatch);
+            audit.TotalLocationDifferences = 0; // Not supported by enum
             audit.TotalStatusDifferences = unitAudits.Count(u => u.Status == UnitProductAuditStatus.StatusMismatch);
 
             // Asignación de estado final condicional sin sobrescrituras erróneas

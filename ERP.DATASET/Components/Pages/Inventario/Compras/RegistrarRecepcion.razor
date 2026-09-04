@@ -1,0 +1,29 @@
+@page "/inventario/compras/{Id:int}/recepcion"
+@using ERP.DATA.Services.InventarioService.OrdenesDeCompra
+@using ERP.DATA.Services.InventarioService.RecepcionService
+@using ERP.DATA.Services.InventarioService.WarehouseService
+@using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests
+@inject OrdenesDeCompraManager Ordenes
+@inject RecepcionCompraManager Recepciones
+@inject WarehouseService Bodegas
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Recepción de compra</PageTitle>
+<div class="p-6 bg-slate-50 min-h-screen max-w-6xl">
+    <a href="/inventario/compras/@Id" class="text-sm text-slate-500 hover:text-blue-600"><i class="bi bi-arrow-left"></i> Volver a la orden</a>
+    <h1 class="mt-3 text-2xl font-bold text-slate-800">Recepción física de mercancía</h1>
+    <p class="mt-1 text-sm text-slate-500">Registra lo entregado por el proveedor y la bodega de recepción.</p>
+    @if (!string.IsNullOrWhiteSpace(Error)) { <div class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">@Error</div> }
+    @if (Cargando) { <div class="mt-8 text-slate-500">Cargando orden...</div> }
+    else if (Orden is null) { <div class="mt-8 text-red-600">La orden no existe.</div> }
+    else
+    {
+        <div class="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="grid gap-4 md:grid-cols-2"><div><label class="mb-1 block text-sm font-medium">Bodega destino</label><select @bind="BodegaId" class="w-full rounded-lg border border-slate-300 p-2 text-sm"><option value="0">Seleccione una bodega</option>@foreach (var bodega in ListaBodegas.Where(b => b.IsActive)) { <option value="@bodega.Id">@bodega.Name</option> }</select></div><div><label class="mb-1 block text-sm font-medium">Guía / remisión</label><input @bind="Guia" class="w-full rounded-lg border border-slate-300 p-2 text-sm" /></div></div>
+            <label class="mt-4 mb-1 block text-sm font-medium">Observaciones</label><textarea @bind="Observaciones" class="w-full rounded-lg border border-slate-300 p-2 text-sm" rows="2"></textarea>
+            <div class="mt-6 overflow-x-auto rounded-lg border border-slate-200"><table class="w-full text-sm"><thead class="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th class="p-3">Producto</th><th class="p-3 text-right">Pedido</th><th class="p-3 w-40">Recibido</th><th class="p-3">Novedad</th></tr></thead><tbody class="divide-y divide-slate-100">@foreach (var linea in Lineas) { <tr><td class="p-3 font-medium">@linea.Nombre <span class="block text-xs font-normal text-slate-500">@linea.Sku</span></td><td class="p-3 text-right">@linea.Esperada</td><td class="p-3"><input @bind="linea.Recibida" type="number" min="0" max="@linea.Esperada" step="1" class="w-full rounded border border-slate-300 p-2" /></td><td class="p-3"><input @bind="linea.Observacion" class="w-full rounded border border-slate-300 p-2" placeholder="Faltante, avería..." /></td></tr> }</tbody></table></div>
+            <div class="mt-6 flex justify-end gap-3"><a href="/inventario/compras/@Id" class="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancelar</a><button @onclick="Guardar" disabled="@Guardando" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">@(Guardando ? "Registrando..." : "Registrar recepción")</button></div>
+        </div>
+    }
+</div>

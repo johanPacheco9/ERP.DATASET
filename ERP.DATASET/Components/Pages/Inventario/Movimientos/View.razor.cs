@@ -1,4 +1,4 @@
-using ERP.DATA.Services.InventarioService.MovimientoService;
+using ERP.DATA.Services.InventarioService.Movimientos;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Responses;
 using Microsoft.AspNetCore.Components;
 
@@ -8,7 +8,7 @@ public partial class View
 {
     [Parameter] public int Id { get; set; }
 
-    [Inject] private MovimientoService MovimientoService { get; set; } = null!;
+    [Inject] private MovimientosManager MovimientosManager { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     private bool _loading = true;
@@ -17,7 +17,7 @@ public partial class View
     protected override async Task OnInitializedAsync()
     {
         _loading = true;
-        _movimiento = await MovimientoService.GetMovementByIdAsync(Id);
+        _movimiento = await MovimientosManager.GetMovementByIdAsync(Id);
         _loading = false;
     }
 

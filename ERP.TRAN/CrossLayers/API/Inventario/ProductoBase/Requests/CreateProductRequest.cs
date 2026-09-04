@@ -21,6 +21,7 @@ public sealed class CreateProductoRequest : BaseCreateRequest, IValidatableReque
     public string? CodigoTributario { get; set; }
     public List<int> CategoriasIds { get; set; }
     public int? ProveedorId { get; set; }
+    public int? MarcaId { get; set; }
     
     public int? BodegaId { get; set; } //Si no se manda, se usará la bodega principal. 
     public string Unidad_Medida { get; set; } = "UND";

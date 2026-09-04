@@ -1,4 +1,4 @@
-﻿using ERP.DATA.Services.InventarioService.MovimientoService;
+using ERP.DATA.Services.InventarioService.Movimientos;
 using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.MovimientosController;
 
-public sealed class CreateEntradaEndpoint(ILogger<CreateEntradaEndpoint> logger, MovimientoService movimientoService)
+public sealed class CreateEntradaEndpoint(ILogger<CreateEntradaEndpoint> logger, MovimientosManager movimientosManager)
     : BaseCreateEndpoint<RegistrarMovimientoEntradaRequest, CreateEntradaEndpoint>(logger)
 {
     [Tags("Inventario - Movimientos")]
@@ -27,7 +27,7 @@ public sealed class CreateEntradaEndpoint(ILogger<CreateEntradaEndpoint> logger,
             return BadRequest(new { errors = validationErrors });
         }
        
-        var resultado = await movimientoService.RegistrarEntradaAsync(request, cancellationToken);
+        var resultado = await movimientosManager.Registrar(request, cancellationToken);
 
         if (resultado == -1)
             return StatusCode(500, "Error registrando movimiento de entrada.");

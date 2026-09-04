@@ -183,9 +183,6 @@ namespace ERP.DATA.Migrations
                     b.Property<decimal>("Impuestos")
                         .HasColumnType("numeric");
 
-                    b.Property<string>("Observaciones")
-                        .HasColumnType("text");
-
                     b.Property<int>("ProveedorId")
                         .HasColumnType("integer");
 
@@ -202,7 +199,121 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProveedorId");
 
-                    b.ToTable("OrdenCompra");
+                    b.ToTable("OrdenesDeCompra");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.OrdenCompraObservaciones", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EstadoAsociado")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("OrdenCompraId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrdenCompraId");
+
+                    b.ToTable("OrdenCompraObservaciones");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.Recepciones.DetalleRecepcionCompra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CantidadEsperada")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("CantidadRecibida")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("DetalleOrdenCompraId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ObservacionItem")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProductoVarianteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RecepcionCompraId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DetalleOrdenCompraId");
+
+                    b.HasIndex("RecepcionCompraId");
+
+                    b.ToTable("DetallesRecepcion");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.Recepciones.RecepcionCompra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BodegaId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("FechaRecepcion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GuiaRemisionProveedor")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("text");
+
+                    b.Property<int>("OrdenCompraId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrdenCompraId");
+
+                    b.ToTable("RecepcionesDeCompra");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory.Category", b =>
@@ -780,7 +891,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Supplier");
+                    b.ToTable("Proveedor");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.UnidadProducto", b =>
@@ -1108,6 +1219,80 @@ namespace ERP.DATA.Migrations
                     b.HasIndex("WarehouseId");
 
                     b.ToTable("WarehouseStock");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.QualityReviews.QualityReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ObservacionesGenerales")
+                        .HasColumnType("text");
+
+                    b.Property<int>("OrdenCompraId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrdenCompraId");
+
+                    b.ToTable("QualityReviews");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.QualityReviews.QualityReviewDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CantidadAprobada")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("CantidadRechazada")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("CantidadRecibida")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("DetalleOrdenCompraId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MotivoRechazo")
+                        .HasColumnType("text");
+
+                    b.Property<int>("QualityReviewId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DetalleOrdenCompraId");
+
+                    b.HasIndex("QualityReviewId");
+
+                    b.ToTable("QualityReviewDetails");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShift", b =>
@@ -1582,6 +1767,47 @@ namespace ERP.DATA.Migrations
                     b.Navigation("Proveedor");
                 });
 
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.OrdenCompraObservaciones", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.OrdenCompra", "OrdenCompra")
+                        .WithMany("Observaciones")
+                        .HasForeignKey("OrdenCompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OrdenCompra");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.Recepciones.DetalleRecepcionCompra", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.DetalleOrdenCompra", "DetalleOrdenCompra")
+                        .WithMany()
+                        .HasForeignKey("DetalleOrdenCompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.Recepciones.RecepcionCompra", "RecepcionCompra")
+                        .WithMany("Detalles")
+                        .HasForeignKey("RecepcionCompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DetalleOrdenCompra");
+
+                    b.Navigation("RecepcionCompra");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.Recepciones.RecepcionCompra", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.OrdenCompra", "OrdenCompra")
+                        .WithMany()
+                        .HasForeignKey("OrdenCompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OrdenCompra");
+                });
+
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary.Audit", b =>
                 {
                     b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoBase", "Product")
@@ -1837,6 +2063,36 @@ namespace ERP.DATA.Migrations
                     b.Navigation("Warehouse");
                 });
 
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.QualityReviews.QualityReview", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.OrdenCompra", "OrdenCompra")
+                        .WithMany()
+                        .HasForeignKey("OrdenCompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OrdenCompra");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.QualityReviews.QualityReviewDetail", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.DetalleOrdenCompra", "DetalleOrdenCompra")
+                        .WithMany()
+                        .HasForeignKey("DetalleOrdenCompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.QualityReviews.QualityReview", "QualityReview")
+                        .WithMany("Detalles")
+                        .HasForeignKey("QualityReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DetalleOrdenCompra");
+
+                    b.Navigation("QualityReview");
+                });
+
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShift", b =>
                 {
                     b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosTerminal", "PosTerminal")
@@ -1973,6 +2229,13 @@ namespace ERP.DATA.Migrations
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.OrdenCompra", b =>
                 {
                     b.Navigation("Detalles");
+
+                    b.Navigation("Observaciones");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.Recepciones.RecepcionCompra", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory.Category", b =>
@@ -2036,6 +2299,11 @@ namespace ERP.DATA.Migrations
                     b.Navigation("Movement");
 
                     b.Navigation("StockProductos");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.QualityReviews.QualityReview", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShift", b =>

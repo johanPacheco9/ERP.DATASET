@@ -195,18 +195,3 @@
     }
 </div>
 
-@if (_nuevoProductoModal)
-{
-    <div class="modal d-block mt-0" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
-                </div>
-                <div class="modal-body pt-0">  <!-- ← Usar modal-body correctamente -->
-                    <CrearIngresoProductos OnClose="CerrarModal" />
-                </div>
-            </div>
-        </div>
-    </div>
-}

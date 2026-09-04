@@ -1,10 +1,13 @@
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.Recepciones;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.QualityReviews;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 using Microsoft.EntityFrameworkCore;
 namespace ERP.DATA.Repositories;
@@ -46,5 +49,19 @@ public partial class MainDataContext
     public DbSet<ProductoProveedor> ProductoProveedor { get; set; }
 
     public DbSet<ProductoBaseCategory> ProductoBaseCategories { get; set; }
-}
 
+    public DbSet<QualityReview> QualityReviews { get; set; }
+    
+    public DbSet<QualityReviewDetail> QualityReviewDetails { get; set; }
+    public DbSet<OrdenCompra> OrdenesDeCompra { get; set; }
+    
+    public DbSet<DetalleOrdenCompra>  DetalleOrdenCompra { get; set; }
+    
+    public DbSet<Proveedor> Proveedores { get; set; }
+
+    public DbSet<RecepcionCompra> RecepcionesDeCompra { get; set; }
+
+    public DbSet<DetalleRecepcionCompra> DetallesRecepcion { get; set; }
+
+    public DbSet<OrdenCompraObservaciones> OrdenCompraObservaciones { get; set; }
+}

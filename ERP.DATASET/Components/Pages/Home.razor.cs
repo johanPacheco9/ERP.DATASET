@@ -1,5 +1,5 @@
 using ERP.DATA.Services.InventarioService.AuditService;
-using ERP.DATA.Services.InventarioService.MovimientoService;
+using ERP.DATA.Services.InventarioService.Movimientos;
 using ERP.DATA.Services.InventarioService.UnidadProductoService;
 using ERP.DATA.Services.InventarioService.WarehouseService;
 using ERP.DATA.Services.VentasService.Payments;
@@ -19,7 +19,7 @@ public partial class Home
 {
     [Inject] private ProductoBaseService ProductoService { get; set; } = null!;
     [Inject] private WarehouseService WarehouseService { get; set; } = null!;
-    [Inject] private MovimientoService MovimientoService { get; set; } = null!;
+    [Inject] private MovimientosManager MovimientosManager { get; set; } = null!;
     [Inject] private AuditoriaService AuditService { get; set; } = null!;
     [Inject] private UnidadProductoManager UnidadProductoManager { get; set; } = null!;
     [Inject] private SaleService SaleService { get; set; } = null!;
@@ -54,7 +54,7 @@ public partial class Home
                 CancellationToken.None);
             _bodegas = bodegas.TotalCount;
 
-            var movs = await MovimientoService.ListMovements(
+            var movs = await MovimientosManager.ListMovements(
                 new ListMovementsRequest(1, 500, null));
             _movimientos = movs.Count;
 

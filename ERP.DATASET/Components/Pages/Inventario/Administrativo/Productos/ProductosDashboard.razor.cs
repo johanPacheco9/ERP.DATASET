@@ -1,7 +1,6 @@
 ﻿using ERP.DATA.Services.InventarioService.CategoriaService;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Responses;
 using Microsoft.AspNetCore.Components;
@@ -11,6 +10,7 @@ namespace ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos;
 
 public partial class ProductosDashboard
 {
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     private string _searchText = string.Empty;
     private string _selectedCategory = string.Empty;
     private string _stockFilter = string.Empty;
@@ -148,7 +148,7 @@ public partial class ProductosDashboard
 
     private void NuevoProducto()
     {
-        _nuevoProductoModal = true;
+        NavigationManager.NavigateTo("/inventario/productos/nuevo");
     }
 
     private async Task CerrarModal()

@@ -19,9 +19,7 @@ public static class PagedListExtensions
 
         if (pageSize == PaginationLiterals.UnlimitedResultsPageSizeFlag)
         {
-            items = await source.Skip(pageNumber - 1)
-                .Select(converter)
-                .ToListAsync();
+            items = await source.Select(converter).ToListAsync();
         }
         else if (pageSize > 0)
         {

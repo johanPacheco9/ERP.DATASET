@@ -1,0 +1,116 @@
+@page "/inventario/compras"
+@using ERP.DATA.Services.InventarioService.OrdenesDeCompra
+@using ERP.TRAN.CrossLayers.API.Inventario.OrdenDeCompra.Responses
+@using ERP.TRAN.CrossLayers.API.Pos.Compras.Responses
+@using ERP.DATA.Services.Inventario.ProveedorService
+@using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Responses
+@inject OrdenesDeCompraManager OrdenesDeCompraManager
+@inject SupplierService ProveedorService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Órdenes de Compra - ERP</PageTitle>
+
+<div class="p-6 bg-slate-50 min-h-screen">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-slate-800">Órdenes de Compra</h1>
+        <a href="/inventario/compras/crear" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+            <i class="bi bi-plus-lg"></i>
+            Nueva Orden
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-end">
+        <div class="w-64">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Estado</label>
+            <select @bind="FiltroStatus" class="w-full border-slate-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 p-2 border">
+                <option value="">Todos los estados</option>
+                @foreach (var status in Enum.GetValues<OrdenCompraStatus>())
+                {
+                    <option value="@status">@status.ToString()</option>
+                }
+            </select>
+        </div>
+        <div class="w-64">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Proveedor</label>
+            <select @bind="FiltroProveedorId" class="w-full border-slate-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 p-2 border">
+                <option value="">Todos los proveedores</option>
+                @if (Proveedores != null)
+                {
+                    @foreach (var p in Proveedores)
+                    {
+                        <option value="@p.Id">@p.Name</option>
+                    }
+                }
+            </select>
+        </div>
+        <button @onclick="CargarOrdenes" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-300">
+            Filtrar
+        </button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        @if (Cargando)
+        {
+            <div class="p-8 text-center text-slate-500">Cargando órdenes...</div>
+        }
+        else if (!Ordenes.Any())
+        {
+            <div class="p-8 text-center text-slate-500">
+                <i class="bi bi-inbox text-4xl mb-3 block opacity-50"></i>
+                No se encontraron órdenes de compra.
+            </div>
+        }
+        else
+        {
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                        <th class="p-4 font-semibold">ID</th>
+                        <th class="p-4 font-semibold">Fecha</th>
+                        <th class="p-4 font-semibold">Proveedor</th>
+                        <th class="p-4 font-semibold">Total</th>
+                        <th class="p-4 font-semibold">Estado</th>
+                        <th class="p-4 font-semibold">Proceso</th>
+                        <th class="p-4 font-semibold"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    @foreach (var orden in Ordenes)
+                    {
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-medium text-slate-700">#@orden.Id.ToString("D5")</td>
+                            <td class="p-4 text-slate-600">@orden.FechaCompra.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="p-4 text-slate-700 font-medium">@orden.ProveedorNombre</td>
+                            <td class="p-4 text-slate-700 font-medium">@orden.Total.ToString("C")</td>
+                            <td class="p-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium @GetStatusCssClass(orden.Status)">
+                                    @orden.StatusDisplay
+                                </span>
+                            </td>
+                            <td class="p-4">
+                                <div class="flex gap-2">
+                                    @if (orden.TieneRecepcion)
+                                    {
+                                        <span class="text-green-600" title="Recepcionada"><i class="bi bi-box-seam"></i></span>
+                                    }
+                                    @if (orden.TieneControlCalidad)
+                                    {
+                                        <span class="text-blue-600" title="Control Calidad"><i class="bi bi-shield-check"></i></span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="p-4 text-right">
+                                <a href="/inventario/compras/@orden.Id" class="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
+                                    Ver Detalle
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

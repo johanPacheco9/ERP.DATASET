@@ -37,7 +37,7 @@ public sealed class CreateProveedorEndpoint : BaseCreateEndpoint<CreateProveedor
             Phone = request.Telefono,
             IsActive = request.Activo,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = "system"
+            CreatedBy = 1
         };
 
         var proveedorCreado = await _proveedorService.AddProveedorAsync(proveedor, cancellationToken);

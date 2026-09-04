@@ -69,4 +69,8 @@ public class CrearProductoForm
     public bool Es_Perecedero { get; set; }
     public DateTime? FechaCaducidad { get; set; }
     public bool HasVariantes { get; set; }
+    
+    public int BodegaId { get; set; }
+    
+    public int MarcaId { get; set; }
 }

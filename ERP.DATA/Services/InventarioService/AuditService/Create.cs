@@ -26,7 +26,7 @@ public partial class AuditoriaService
         }
         
         var hasAuditInProgress = await _context.Audit
-            .AnyAsync(s => s.WarehouseId == warehouse.Id && s.Status != AuditStatus.Completada, cancellationToken);
+            .AnyAsync(s => s.WarehouseId == warehouse.Id && (s.Status == AuditStatus.Pendiente || s.Status == AuditStatus.InProgress), cancellationToken);
         
         if (hasAuditInProgress)
         {
@@ -37,10 +37,10 @@ public partial class AuditoriaService
             .Include(u => u.ProductoVariante)
                 .ThenInclude(v => v.ProductoBase)
                     .ThenInclude(pb => pb.Categorias)
-            .Where(s => (request.IncludeReservedUnits 
-                ? s.Status == UnidadProductoStatus.Available || s.Status == UnidadProductoStatus.Separated 
-                : s.Status == UnidadProductoStatus.Available) 
-                && s.BodegaId == request.WarehouseId);
+            .Where(s => s.BodegaId == request.WarehouseId && 
+                        (request.IncludeReservedUnits 
+                            ? (s.Status == UnidadProductoStatus.Available || s.Status == UnidadProductoStatus.Separated) 
+                            : s.Status == UnidadProductoStatus.Available));
 
         if (request.CategoryIds != null && request.CategoryIds.Any())
         {

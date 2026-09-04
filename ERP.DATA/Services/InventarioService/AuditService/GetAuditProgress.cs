@@ -31,12 +31,12 @@ public partial class AuditoriaService
             .ToListAsync(cancellationToken);
 
         int expected   = unitAudits.Where(g => g.Status != UnitProductAuditStatus.ExcessProduct).Sum(g => g.Count);
-        int found      = unitAudits.FirstOrDefault(g => g.Status == UnitProductAuditStatus.ExcessProduct)?.Count ?? 0;
+        int found      = unitAudits.Where(g => g.Status == UnitProductAuditStatus.Found || g.Status == UnitProductAuditStatus.FoundOnAudit).Sum(g => g.Count);
         int notFound   = unitAudits.FirstOrDefault(g => g.Status == UnitProductAuditStatus.NotFound)?.Count ?? 0;
         int surplus    = unitAudits.FirstOrDefault(g => g.Status == UnitProductAuditStatus.ExcessProduct)?.Count ?? 0;
-        int locDiff    = unitAudits.FirstOrDefault(g => g.Status == UnitProductAuditStatus.NotFound)?.Count ?? 0;
+        int locDiff    = 0; // Location difference not supported in this enum yet
         int statusDiff = unitAudits.FirstOrDefault(g => g.Status == UnitProductAuditStatus.StatusMismatch)?.Count ?? 0;
-        int counted    = found + locDiff + statusDiff;
+        int counted    = found + surplus + statusDiff;
 
         double completionPct = expected > 0
             ? Math.Round((double)counted / expected * 100, 2)

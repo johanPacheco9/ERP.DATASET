@@ -17,10 +17,10 @@ public class OrdenCompra
     public decimal Impuestos { get; set; }
     public decimal Total { get; set; }
 
-    public string? Observaciones { get; set; }
-
     public Proveedor Proveedor { get; set; } = null!;
 
     public ICollection<DetalleOrdenCompra> Detalles { get; set; }
         = new List<DetalleOrdenCompra>();
+    
+    public ICollection<OrdenCompraObservaciones> Observaciones { get; set; } = new List<OrdenCompraObservaciones>();
 }

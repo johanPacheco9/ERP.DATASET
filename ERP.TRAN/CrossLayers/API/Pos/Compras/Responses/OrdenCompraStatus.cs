@@ -27,6 +27,6 @@ public enum OrdenCompraStatus
     [Display(Name = "Cancelada")]
     Cancelled = 70,
 
-    [Display(Name = "Cerrada")]
-    Closed = 80
+    [Display(Name = "Finalizada")]
+    Finalized = 80
 }

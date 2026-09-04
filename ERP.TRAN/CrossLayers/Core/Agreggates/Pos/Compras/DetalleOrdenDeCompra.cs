@@ -10,6 +10,7 @@ public class DetalleOrdenCompra
 
     public int ProductoVarianteId { get; set; }
 
+    //Cantidad de productos que ingresaran en la compra(genera movimiento de inventario tipo entrada => antes, a control de calidad) 
     public decimal Cantidad { get; set; }
 
     public decimal CostoUnitario { get; set; }

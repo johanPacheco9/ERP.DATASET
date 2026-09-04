@@ -1,0 +1,311 @@
+@page "/inventario/productos/nuevo"
+@using ERP.DATASET.Components
+@rendermode InteractiveServer
+
+<PageTitle>Nuevo producto - ERP</PageTitle>
+
+<div class="container py-4 max-w-5xl">
+    <!-- Header principal -->
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4 pb-3 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1 text-dark">Nuevo producto</h2>
+            <p class="text-secondary mb-0">Crea la línea base y define los SKUs del catálogo.</p>
+        </div>
+        
+        <!-- Stepper moderno -->
+        <div class="d-flex align-items-center gap-1 bg-white p-1 border rounded-pill shadow-sm">
+            <div class="px-3 py-1 rounded-pill small fw-medium @(_paso == 1 ? "bg-primary text-white" : "text-secondary")">1. Base</div>
+            <div class="px-3 py-1 rounded-pill small fw-medium @(_paso == 2 ? "bg-primary text-white" : "text-secondary")">2. Tipo</div>
+            <div class="px-3 py-1 rounded-pill small fw-medium @(_paso == 3 ? "bg-primary text-white" : "text-secondary")">3. SKUs</div>
+            <div class="px-3 py-1 rounded-pill small fw-medium @(_paso == 4 ? "bg-success text-white" : "text-secondary")">4. Listo</div>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="alert alert-info d-flex align-items-center shadow-sm" role="alert">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Procesando solicitud, por favor espere...
+        </div>
+    }
+
+    @if (_errores.Any())
+    {
+        <div class="alert alert-danger shadow-sm border-0 mb-4">
+            <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Se encontraron los siguientes errores:</div>
+            <ul class="mb-0 ps-3">
+                @foreach (var error in _errores)
+                {
+                    <li class="small">@error</li>
+                }
+            </ul>
+        </div>
+    }
+
+    @if (_paso == 1)
+    {
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h5 class="fw-semibold text-dark mb-3">Información general</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-secondary">Código base</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-upc"></i></span>
+                                <input @bind="_form.Codigo" class="form-control text-uppercase" placeholder="PROD-001"/>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small text-secondary">Nombre comercial</label>
+                            <input @bind="_form.Nombre" class="form-control" placeholder="Ej: Camiseta deportiva dry-fit"/>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Categorías</label>
+                            <div class="d-flex flex-wrap gap-2 p-2 border rounded-3 bg-light" style="max-height: 160px; overflow-y: auto;">
+                                @if (_categorias != null && _categorias.Any())
+                                {
+                                    @foreach (var cat in _categorias)
+                                    {
+                                        var isChecked = _form.CategoriaIds?.Contains(cat.Id) ?? false;
+                                        <input type="checkbox" 
+                                               class="btn-check" 
+                                               value="@cat.Id" 
+                                               checked="@isChecked" 
+                                               @onchange="(e) => ToggleCategoria(cat.Id, e.Value)" 
+                                               id="cat-@cat.Id"/>
+                                        <label class="btn btn-sm @(isChecked ? "btn-primary" : "btn-outline-secondary") rounded-pill px-3 shadow-none" for="cat-@cat.Id">
+                                            @cat.Nombre
+                                        </label>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted small p-1">No hay categorías disponibles</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Marca</label>
+                            <select @bind="_form.MarcaId" class="form-select">
+                                <option value="0">-- Seleccione marca --</option>
+                                @foreach (var marca in _marcas)
+                                {
+                                    <option value="@marca.Id">@marca.Nombre</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12"><hr class="text-muted my-1 opacity-25"></div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Costo unitario referencial</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">$</span>
+                                <input type="number" @bind="_form.Costo_Unitario" class="form-control" step="0.01"/>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Precio de venta</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">$</span>
+                                <input type="number" @bind="_form.Precio_Venta" class="form-control" step="0.01"/>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-secondary">Descripción</label>
+                            <textarea @bind="_form.Descripcion" class="form-control" rows="2" placeholder="Detalles generales del producto..."></textarea>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-secondary">Unidad de medida</label>
+                            <select @bind="_form.Unidad_Medida" class="form-select">
+                                <option value="UND">Unidades</option>
+                                <option value="KG">Kilogramos</option>
+                                <option value="MT">Metros</option>
+                                <option value="LT">Litros</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-secondary">% IVA</label>
+                            <input type="number" @bind="_form.PorcentajeIVA" class="form-control" step="0.01"/>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input type="checkbox" @bind="_form.ExentoIVA" class="form-check-input" id="exentoIvaProducto"/>
+                                <label class="form-check-label fw-medium small" for="exentoIvaProducto">Exento de IVA</label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Imagen URL</label>
+                            <input @bind="_form.Imagen_Url" class="form-control" placeholder="https://..."/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Etiquetas (Tags)</label>
+                            <input @bind="_form.Tags" class="form-control" placeholder="rotacion, tienda, promo"/>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-outline-secondary px-4" @onclick="Cerrar">Cancelar</button>
+                        <button type="button" class="btn btn-primary px-4 shadow-sm" @onclick="CrearProducto" disabled="@_isLoading">
+                            Guardar base y continuar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-light">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+                        <h6 class="fw-bold text-dark mb-0">Sobre el producto base</h6>
+                    </div>
+                    <p class="small text-secondary mb-3">La base define nombre, categorías, marca, precios de referencia e impuestos estándar. Posteriormente configuras los SKUs individuales.</p>
+                    <p class="small text-secondary mb-0">El inventario físico o stock se ingresará después mediante una Orden de Compra o Ajuste de Inventario.</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_paso == 2)
+    {
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 text-start bg-white transition-hover position-relative">
+                    <button type="button" class="stretched-link btn border-0 p-0 text-start w-100 h-100" @onclick="CrearVarianteUnica" disabled="@_isLoading">
+                        <div class="bg-primary-subtle text-primary p-3 rounded-4 d-inline-block mb-3">
+                            <i class="bi bi-upc-scan fs-3"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Producto sin variantes</h5>
+                        <p class="text-secondary mb-0 small">Crea un único SKU idéntico al código base configurado: <code class="text-dark bg-light px-2 py-1 rounded">@_form.Codigo</code></p>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 text-start bg-white transition-hover position-relative">
+                    <button type="button" class="stretched-link btn border-0 p-0 text-start w-100 h-100" @onclick="IrADefinirVariantes">
+                        <div class="bg-success-subtle text-success p-3 rounded-4 d-inline-block mb-3">
+                            <i class="bi bi-diagram-3 fs-3"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Producto con variantes</h5>
+                        <p class="text-secondary mb-0 small">Ideal si el artículo se maneja en múltiples tallas, colores, capacidades u otras referencias diferenciadas.</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_paso == 3)
+    {
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h5 class="fw-semibold text-dark mb-3">Configurar nueva variante</h5>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary">Sufijo del SKU</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold">@_form.Codigo-</span>
+                            <input type="text" class="form-control text-uppercase" @bind="_nuevaVariante.CodigoSufijo" placeholder="ROJO-M"/>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary">Atributos distintivos</label>
+                        <input type="text" class="form-control" @bind="_nuevaVariante.Atributos" placeholder="Ej: Color rojo, talla M"/>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Precio de venta</label>
+                            <input type="number" class="form-control" @bind="_nuevaVariante.Precio_Venta" step="0.01"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Costo unitario</label>
+                            <input type="number" class="form-control" @bind="_nuevaVariante.Costo_Unitario" step="0.01"/>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary">Código de barras específico</label>
+                        <input type="text" class="form-control" @bind="_nuevaVariante.Codigo_Barras" placeholder="Opcional..."/>
+                    </div>
+                    <button class="btn btn-outline-primary w-100 py-2 fw-medium mt-2 shadow-sm" @onclick="AgregarVariante" type="button">
+                        <i class="bi bi-plus-lg me-1"></i> Agregar variante a la lista
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden h-100 d-flex flex-column">
+                    <div class="bg-light p-3 border-bottom fw-bold text-dark d-flex justify-content-between align-items-center">
+                        <span>Variantes agregadas</span>
+                        <span class="badge bg-primary rounded-pill">@_variantesTemp.Count</span>
+                    </div>
+                    
+                    <div class="flex-grow-1" style="max-height: 280px; overflow-y: auto;">
+                        @if (!_variantesTemp.Any())
+                        {
+                            <div class="text-center p-4 text-muted small">Aún no hay variantes agregadas en esta sesión.</div>
+                        }
+                        else
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var (variante, index) in _variantesTemp.Select((v, i) => (v, i)))
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                        <div>
+                                            <code class="text-primary fw-bold">@variante.CodigoVariante</code>
+                                            <div class="small text-secondary mt-1">@variante.Atributos</div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0" @onclick="() => EliminarVariante(index)" title="Quitar variante">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="p-3 bg-light border-top d-flex justify-content-between gap-2 mt-auto">
+                        <button class="btn btn-outline-secondary px-3" @onclick="() => _paso = 2" type="button">Volver</button>
+                        <button class="btn btn-success px-4 shadow-sm" @onclick="GuardarTodasLasVariantes" disabled="@(!_variantesTemp.Any() || _isLoading)" type="button">
+                            Guardar variantes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_paso == 4)
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-7">
+                <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+                    <div class="bg-success-subtle text-success p-3 rounded-circle d-inline-flex mx-auto mb-3">
+                        <i class="bi bi-check-lg fs-1"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-2">¡Producto creado con éxito!</h3>
+                    <p class="text-secondary mb-4"><strong>@_form.Nombre</strong> se registró correctamente con <strong>@_totalSkusCreados</strong> SKU(s) generado(s).</p>
+                    
+                    @if (_skusCreados.Any())
+                    {
+                        <div class="d-flex justify-content-center gap-2 flex-wrap mb-4 p-3 bg-light rounded-3 border">
+                            @foreach (var sku in _skusCreados)
+                            {
+                                <span class="badge bg-white text-success border px-3 py-2 shadow-sm fw-mono">@sku</span>
+                            }
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-center gap-3">
+                        <button class="btn btn-outline-primary px-4" @onclick="Reiniciar" type="button">Crear otro producto</button>
+                        <button class="btn btn-primary px-4 shadow-sm" @onclick="Cerrar" type="button">Volver al listado</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

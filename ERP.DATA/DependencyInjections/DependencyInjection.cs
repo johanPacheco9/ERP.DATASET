@@ -6,9 +6,13 @@ using ERP.DATA.Services.VentasService.SaleService;
 using ERP.DATA.Services.InventarioService.AuditService;
 using ERP.DATA.Services.InventarioService.WarehouseService;
 using ERP.DATA.Services.InventarioService.CategoriaService;
-using ERP.DATA.Services.InventarioService.MovimientoService;
+using ERP.DATA.Services.InventarioService.MarcasService;
+using ERP.DATA.Services.InventarioService.Movimientos;
 using ERP.DATA.Services.InventarioService.ProductoVarianteService;
 using ERP.DATA.Services.InventarioService.UnidadProductoService;
+using ERP.DATA.Services.InventarioService.OrdenesDeCompra;
+using ERP.DATA.Services.InventarioService.RecepcionService;
+using ERP.DATA.Services.InventarioService.ControlCalidad;
 using ERP.DATA.Services.VentasService.Stores;
 using Microsoft.Extensions.DependencyInjection;
 using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
@@ -27,13 +31,17 @@ public static class DependencyInjection
         services.AddTransient<CategoriaService>();
         services.AddTransient<SupplierService>();
         services.AddTransient<ProductVariantService>();
-        services.AddTransient<MovimientoService>();
+        services.AddTransient<MovimientosManager>();
         services.AddTransient<UnidadProductoManager>();
         services.AddTransient<ClientService>();
         services.AddTransient<SaleService>();
         services.AddTransient<PaymentsService>();
         services.AddTransient<CajaManager>();
         services.AddTransient<StoresManager>();
+        services.AddTransient<MarcasManager>();
+        services.AddTransient<OrdenesDeCompraManager>();
+        services.AddTransient<RecepcionCompraManager>();
+        services.AddTransient<ControlCalidadManager>();
         return services;
     }
 }

@@ -1,4 +1,4 @@
-﻿using ERP.DATA.Services.InventarioService.MovimientoService;
+﻿using ERP.DATA.Services.InventarioService.Movimientos;
 using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.MovimientosController;
 
-public sealed class CreateExitMovementEndpoint(ILogger<CreateExitMovementEndpoint> logger, MovimientoService movimientoService)
+public sealed class CreateExitMovementEndpoint(ILogger<CreateExitMovementEndpoint> logger, MovimientosManager movimientosManager)
     : BaseCreateEndpoint<CreateExitMovementRequest, CreateExitMovementEndpoint>(logger)
 {
     [Tags("Inventario - Movimientos")]
@@ -28,7 +28,7 @@ public sealed class CreateExitMovementEndpoint(ILogger<CreateExitMovementEndpoin
             return BadRequest(new { errors = validationErrors });
         }
 
-        var resultado = await movimientoService.RegistrarSalidaAsync(request, cancellationToken);
+        var resultado = await movimientosManager.RegistrarSalidaAsync(request, cancellationToken);
 
         return Ok(resultado);
     }

@@ -25,9 +25,6 @@ public sealed class UpdateUnitProductAuditEndpoint : ControllerBase
         [FromBody] UpdateUnitProductAuditRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (!request.ParametersAreValid(out var validationErrors))
-            return BadRequest(new { errors = validationErrors });
-
         request.Id = id;
 
         var updated = await _auditService.UpdateUnitProductAudit(request, cancellationToken);

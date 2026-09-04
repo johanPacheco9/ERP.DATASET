@@ -1,0 +1,248 @@
+@page "/inventario/compras/{Id:int}"
+@using ERP.DATA.Services.InventarioService.OrdenesDeCompra
+@using ERP.DATA.Services.InventarioService.RecepcionService
+@using ERP.DATA.Services.InventarioService.ControlCalidad
+@using ERP.TRAN.CrossLayers.API.Inventario.OrdenDeCompra.Responses
+@using ERP.TRAN.CrossLayers.API.Inventario.Recepcion.Responses
+@using ERP.TRAN.CrossLayers.API.Inventario.ControlCalidad.Responses
+@using ERP.TRAN.CrossLayers.API.Pos.Compras.Responses
+@using ERP.DATA.Services.InventarioService.WarehouseService
+@using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Responses
+@inject OrdenesDeCompraManager OrdenesDeCompraManager
+@inject RecepcionCompraManager RecepcionManager
+@inject ControlCalidadManager CalidadManager
+@inject WarehouseService BodegaService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Detalle Orden #@Id.ToString("D5")</PageTitle>
+
+<div class="p-6 bg-slate-50 min-h-screen">
+    @if (Cargando)
+    {
+        <div class="text-center p-8">Cargando...</div>
+    }
+    else if (Orden == null)
+    {
+        <div class="text-center p-8 text-red-500">Orden no encontrada.</div>
+    }
+    else
+    {
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <a href="/inventario/compras" class="text-slate-500 hover:text-blue-600 text-sm mb-2 inline-flex items-center gap-1">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                    Orden de Compra #@Orden.Id.ToString("D5")
+                    <span class="px-3 py-1 rounded-full text-sm font-medium @GetStatusCssClass(Orden.Status)">
+                        @Orden.StatusDisplay
+                    </span>
+                </h1>
+                <p class="text-slate-600 mt-1">Proveedor: <span class="font-semibold text-slate-800">@Orden.ProveedorNombre</span> | Fecha: @Orden.FechaCompra.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+            
+            <div class="flex gap-2">
+                @if (Orden.Status == "PendingApproval")
+                {
+                    <button @onclick="AprobarOrden" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                        <i class="bi bi-check-lg mr-1"></i> Aprobar Orden
+                    </button>
+                    <button @onclick="CancelarOrden" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-red-200">
+                        Cancelar
+                    </button>
+                }
+                else if (Orden.Status == "Approved")
+                {
+                    <button @onclick="EnviarOrden" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                        <i class="bi bi-send mr-1"></i> Marcar como Enviada
+                    </button>
+                    <a href="/inventario/compras/@Orden.Id/recepcion" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                        <i class="bi bi-box-arrow-in-down mr-1"></i> Recibir Mercancía
+                    </a>
+                }
+                else if (Orden.Status == "Sent")
+                {
+                    <a href="/inventario/compras/@Orden.Id/recepcion" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                        <i class="bi bi-box-arrow-in-down mr-1"></i> Recibir Mercancía
+                    </a>
+                }
+                else if (Orden.Status == "Received" && Orden.QualityReviewId == null)
+                {
+                    <a href="/inventario/compras/@Orden.Id/calidad" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
+                        <i class="bi bi-shield-check mr-1"></i> Iniciar Control Calidad
+                    </a>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(MensajeError))
+        {
+            <div class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">@MensajeError</div>
+        }
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Columna principal -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Detalles de la orden -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                        <h2 class="font-bold text-slate-800">Líneas de la Orden</h2>
+                        <span class="text-sm font-semibold text-slate-600">Total: @Orden.Total.ToString("C")</span>
+                    </div>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-4 font-semibold">Producto</th>
+                                <th class="p-4 font-semibold text-right">Cant.</th>
+                                <th class="p-4 font-semibold text-right">Costo Unit.</th>
+                                <th class="p-4 font-semibold text-right">Desc.</th>
+                                <th class="p-4 font-semibold text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            @foreach (var d in Orden.Detalles)
+                            {
+                                <tr>
+                                    <td class="p-4">
+                                        <div class="font-medium text-slate-800">@d.ProductoNombre</div>
+                                        <div class="text-xs text-slate-500">SKU: @d.SKU</div>
+                                    </td>
+                                    <td class="p-4 text-right font-medium">@d.Cantidad.ToString("0.##")</td>
+                                    <td class="p-4 text-right">@d.CostoUnitario.ToString("C")</td>
+                                    <td class="p-4 text-right text-red-500">@d.Descuento.ToString("C")</td>
+                                    <td class="p-4 text-right font-bold text-slate-800">@d.Total.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="bg-slate-50 text-sm">
+                            <tr>
+                                <td colspan="4" class="p-3 text-right text-slate-600">Subtotal:</td>
+                                <td class="p-3 text-right font-medium text-slate-800">@Orden.Subtotal.ToString("C")</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="p-3 text-right text-slate-600">Impuestos:</td>
+                                <td class="p-3 text-right font-medium text-slate-800">@Orden.Impuestos.ToString("C")</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="p-3 text-right font-bold text-slate-800">Total General:</td>
+                                <td class="p-3 text-right font-bold text-blue-600 text-base">@Orden.Total.ToString("C")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Recepción -->
+                @if (Recepcion != null)
+                {
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-200 bg-emerald-50 flex justify-between items-center">
+                            <h2 class="font-bold text-emerald-800 flex items-center gap-2">
+                                <i class="bi bi-box-seam"></i> Recepción de Mercancía
+                            </h2>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                @Recepcion.StatusDisplay
+                            </span>
+                        </div>
+                        <div class="p-4 border-b border-slate-100 grid grid-cols-2 gap-4 text-sm">
+                            <div><span class="text-slate-500 block text-xs">Bodega Destino</span> <span class="font-medium">@Recepcion.BodegaNombre</span></div>
+                            <div><span class="text-slate-500 block text-xs">Fecha Recepción</span> <span class="font-medium">@Recepcion.FechaRecepcion.ToString("dd/MM/yyyy HH:mm")</span></div>
+                            <div class="col-span-2"><span class="text-slate-500 block text-xs">Guía Remisión</span> <span class="font-medium">@(Recepcion.GuiaRemisionProveedor ?? "N/A")</span></div>
+                        </div>
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                                    <th class="p-3 font-semibold">Producto</th>
+                                    <th class="p-3 font-semibold text-right">Esperado</th>
+                                    <th class="p-3 font-semibold text-right">Recibido</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach (var d in Recepcion.Detalles)
+                                {
+                                    <tr>
+                                        <td class="p-3 text-slate-700">@d.ProductoNombre</td>
+                                        <td class="p-3 text-right text-slate-500">@d.CantidadEsperada.ToString("0.##")</td>
+                                        <td class="p-3 text-right font-bold @(d.CantidadRecibida < d.CantidadEsperada ? "text-amber-600" : "text-emerald-600")">@d.CantidadRecibida.ToString("0.##")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <!-- Control de Calidad -->
+                @if (Calidad != null)
+                {
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-200 bg-indigo-50 flex justify-between items-center">
+                            <h2 class="font-bold text-indigo-800 flex items-center gap-2">
+                                <i class="bi bi-shield-check"></i> Control de Calidad
+                            </h2>
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                @Calidad.StatusDisplay
+                            </span>
+                        </div>
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                                    <th class="p-3 font-semibold">Producto</th>
+                                    <th class="p-3 font-semibold text-right">Recibido</th>
+                                    <th class="p-3 font-semibold text-right text-emerald-600">Aprobado</th>
+                                    <th class="p-3 font-semibold text-right text-red-600">Rechazado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach (var d in Calidad.Items)
+                                {
+                                    <tr>
+                                        <td class="p-3 text-slate-700">@d.ProductoNombre</td>
+                                        <td class="p-3 text-right">@d.CantidadRecibida.ToString("0.##")</td>
+                                        <td class="p-3 text-right font-bold text-emerald-600">@d.CantidadAprobada.ToString("0.##")</td>
+                                        <td class="p-3 text-right font-bold text-red-600">@d.CantidadRechazada.ToString("0.##")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        @if (Calidad.Status == "Pendiente")
+                        {
+                            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+                                <button @onclick="RechazarCalidad" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 transition-colors">Rechazar Lote</button>
+                                <button @onclick="AprobarCalidad" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors">Aprobar e Ingresar a Inventario</button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Columna lateral: Trazabilidad -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                        <h2 class="font-bold text-slate-800">Historial y Observaciones</h2>
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+                            @foreach (var obs in Orden.Observaciones)
+                            {
+                                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-100 text-slate-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                                        <i class="bi bi-chat-text text-sm"></i>
+                                    </div>
+                                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-slate-200 shadow-sm">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <div class="font-bold text-slate-700 text-sm">@obs.EstadoAsociado</div>
+                                            <time class="text-xs font-medium text-slate-500">@obs.Fecha.ToString("dd/MM HH:mm")</time>
+                                        </div>
+                                        <div class="text-slate-600 text-sm">@obs.Texto</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

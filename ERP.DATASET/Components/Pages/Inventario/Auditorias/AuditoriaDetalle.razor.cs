@@ -1,6 +1,6 @@
 using ERP.DATA.Services.InventarioService.AuditService;
 using ERP.DATA.Services.InventarioService.AuditService.Responses;
-using ERP.DATA.Services.InventarioService.MovimientoService;
+using ERP.DATA.Services.InventarioService.Movimientos;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
@@ -21,7 +21,7 @@ public partial class AuditoriaDetalle : ComponentBase
     [Parameter] public int Id { get; set; }
 
     [Inject] private AuditoriaService AuditoriaService { get; set; } = null!;
-    [Inject] private MovimientoService MovimientoService { get; set; } = null!;
+    [Inject] private MovimientosManager MovimientosManager { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     private bool _loading = true;
@@ -252,7 +252,7 @@ public partial class AuditoriaDetalle : ComponentBase
             // en vez de usar MovimientoService directamente.
             // var result = await AuditoriaService.SendUnitToLossAsync(Id, _unitToLoss.UnidadProductoId, _lossObservations);
 
-            var result = await MovimientoService.RegistrarMovimientoInventario(
+            var result = await MovimientosManager.RegistrarMovimientoInventario(
                 new RegistrarMovimientoRequest
                 {
                     OriginWarehouseId = _audit.WarehouseId ?? 0,

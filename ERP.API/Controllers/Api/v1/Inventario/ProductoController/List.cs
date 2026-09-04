@@ -1,4 +1,5 @@
-﻿using ERP.DATA.Utilities.Providers;
+﻿/*
+using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
@@ -85,3 +86,4 @@ public sealed class List
         return Ok(result);
     }
 }
+*/

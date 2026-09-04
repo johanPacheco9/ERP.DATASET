@@ -30,8 +30,6 @@ public sealed class CreateAuditEndpoint : BaseCreateEndpoint<CreateAuditRequest,
         if (!request.ParametersAreValid(out var validationErrors))
             return BadRequest(new { errors = validationErrors });
 
-        request._CreatorAuth0Id ??= User?.Identity?.Name ?? "system";
-
         var audit = await _auditService.CreateAudit(request, cancellationToken);
 
         TraceCreated("Audit", audit.Id);

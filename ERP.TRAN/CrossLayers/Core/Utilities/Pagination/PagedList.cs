@@ -1,4 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.Core.Utilities.Structs;
+﻿using ERP.TRAN.CrossLayers.Core.Utilities.Literals;
+using ERP.TRAN.CrossLayers.Core.Utilities.Structs;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
@@ -15,10 +16,17 @@ public class PagedList<T> : List<T>
 
     public PagedList(List<T> items, int count, int pageNumber, int pageSize)
     {
+        if (pageNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(pageNumber));
+        if (pageSize == 0 || pageSize < PaginationLiterals.UnlimitedResultsPageSizeFlag)
+            throw new ArgumentOutOfRangeException(nameof(pageSize));
+
         TotalCount = count;
         PageSize = pageSize;
         CurrentPage = pageNumber;
-        TotalPages = (int)Math.Ceiling(count / (double)pageSize);
+        TotalPages = pageSize == PaginationLiterals.UnlimitedResultsPageSizeFlag
+            ? 1
+            : (int)Math.Ceiling(count / (double)pageSize);
 
         AddRange(items);
     }
@@ -26,7 +34,9 @@ public class PagedList<T> : List<T>
     public static PagedList<T> ToPagedList(IQueryable<T> source, int pageNumber, int pageSize)
     {
         var count = source.Count();
-        var items = source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        var items = pageSize == PaginationLiterals.UnlimitedResultsPageSizeFlag
+            ? source.ToList()
+            : source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
 
         return new PagedList<T>(items, count, pageNumber, pageSize);
     }
@@ -34,7 +44,9 @@ public class PagedList<T> : List<T>
     public static async Task<PagedList<T>> ToPagedListAsync(IQueryable<T> source, int pageNumber, int pageSize)
     {
         var count = await source.CountAsync();
-        var items = await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+        var items = pageSize == PaginationLiterals.UnlimitedResultsPageSizeFlag
+            ? await source.ToListAsync()
+            : await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
         return new PagedList<T>(items, count, pageNumber, pageSize);
     }

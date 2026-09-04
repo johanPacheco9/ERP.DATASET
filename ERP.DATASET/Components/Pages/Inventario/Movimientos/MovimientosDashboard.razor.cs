@@ -1,5 +1,5 @@
 using ERP.DATA.Repositories;
-using ERP.DATA.Services.InventarioService.MovimientoService;
+using ERP.DATA.Services.InventarioService.Movimientos;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Responses;
@@ -14,7 +14,7 @@ namespace ERP.DATASET.Components.Pages.Inventario.Movimientos;
 
 public partial class MovimientosDashboard
 {
-    [Inject] private MovimientoService MovimientoService { get; set; } = null!;
+    [Inject] private MovimientosManager MovimientosManager { get; set; } = null!;
     [Inject] private MainDataContext Context { get; set; } = null!;
 
     private bool _loading = true;
@@ -77,7 +77,7 @@ public partial class MovimientosDashboard
     private async Task LoadMovementsAsync()
     {
         _loading = true;
-        _items = await MovimientoService.ListMovements(
+        _items = await MovimientosManager.ListMovements(
             new ListMovementsRequest(1, 100, null));
         _loading = false;
     }
@@ -154,7 +154,7 @@ public partial class MovimientosDashboard
         }
 
         _isSubmitting = true;
-        var result = await MovimientoService.RegistrarMovimientoInventario(_transferRequest, default);
+        var result = await MovimientosManager.RegistrarMovimientoInventario(_transferRequest, default);
         _isSubmitting = false;
 
         if (result.IsSuccess)

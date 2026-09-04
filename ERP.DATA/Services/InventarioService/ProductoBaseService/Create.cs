@@ -10,7 +10,7 @@ public partial class ProductoBaseService
     /// <summary>
     /// Se usa para crear el catálogo, no las unidades del producto.
     /// </summary>
-    public async Task<int> AddProductoAsync(
+   public async Task<int> AddProductoAsync(
         CreateProductoRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -36,6 +36,7 @@ public partial class ProductoBaseService
             Name = request.Nombre,
             Description = request.Descripcion,
             SupplierId = request.ProveedorId,
+            MarcaId = request.MarcaId ?? 0, // Asignación correcta de la marca única
             UnidadMedida = request.Unidad_Medida ?? "UND",
             Peso = request.Peso,
             Volumen = request.Volumen,
@@ -59,7 +60,7 @@ public partial class ProductoBaseService
             IsActive = true
         };
         
-        
+        // Mapeo correcto de la relación de muchos a muchos con categorías
         if (request.CategoriasIds != null && request.CategoriasIds.Any())
         {
             foreach (var catId in request.CategoriasIds)
@@ -70,9 +71,6 @@ public partial class ProductoBaseService
                 });
             }
         }
-        
-        // Si en el futuro tu request permite múltiples IDs, harías un foreach:
-        // foreach (var catId in request.CategoriasIds) { producto.ProductoCategorias.Add(new ProductoBaseCategory { CategoryId = catId }); }
 
         context.ProductoBase.Add(producto);
         await context.SaveChangesAsync(cancellationToken);
