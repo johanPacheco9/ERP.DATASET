@@ -1,7 +1,10 @@
-using ERP.TRAN.CrossLayers.API.Pos.Stores.Requests;
-using ERP.TRAN.CrossLayers.API.Pos.Stores.Responses;
-using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
+
+using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums; // GetDisplayName()
 using Microsoft.EntityFrameworkCore;
+
+using ERP.TRAN.CrossLayers.API.Pos.Stores.Requests;
+using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
+using StoreSummaryDto = ERP.TRAN.CrossLayers.API.Stores.Responses.StoreSummaryDto;
 
 namespace ERP.DATA.Services.VentasService.Stores;
 
@@ -32,9 +35,8 @@ public partial class StoresManager
             s.Name,
             s.Description,
             s.IsMainStore,
-            s.IsActive,
-            s.Bodegas.Count,
-            s.Cajas.Count
+            s.Type.GetDisplayName(),
+            s.Bodegas.Count
         ));
 
         // 5. Ejecutar usando tu método real: ToPagedListAsync

@@ -1,4 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
+﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
@@ -10,6 +11,9 @@ public class Store : EntityWithtraceability
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public bool IsMainStore{ get; set; }
+    // public StoreType Type { get; set; } 
+     // clasifica la tienda (Principal, Sucursal, Bodega, Online, etc.)
+    public StoreType Type { get; set; } = StoreType.Sucursal;
 
     public ICollection<Warehouse> Bodegas { get; set; } = new List<Warehouse>();
     

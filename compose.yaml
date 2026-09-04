@@ -34,7 +34,7 @@
     container_name: erp_postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1098825894
+      POSTGRES_PASSWORD: 1234
       POSTGRES_DB: ERP_DB
     volumes:
       - postgres_data:/var/lib/postgresql/data # Mantiene tus datos y seeds vivos en el disco duro

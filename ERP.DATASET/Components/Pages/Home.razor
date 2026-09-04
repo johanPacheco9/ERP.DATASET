@@ -2,163 +2,311 @@
 @page "/dashboard"
 @rendermode InteractiveServer
 
-<div class="inv-page">
-    <div class="inv-header">
+<PageTitle>Inicio · ERP</PageTitle>
+
+<style>
+    @@keyframes inv-marquee {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+    }
+    .inv-marquee-track {
+        animation: inv-marquee 32s linear infinite;
+    }
+    .inv-marquee-wrap:hover .inv-marquee-track {
+        animation-play-state: paused;
+    }
+    .inv-marquee-mask {
+        -webkit-mask-image: linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%);
+    }
+</style>
+
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 font-sans text-slate-900">
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-200">
         <div>
-            <h1 class="inv-title">Inicio</h1>
-            <p class="inv-subtitle">Estado del ERP — módulo inventario en desarrollo</p>
+            <span class="block text-[11px] font-semibold tracking-wide uppercase text-blue-700">
+                ERP · Panel general
+            </span>
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-tight">Inicio</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Estado del sistema — módulo de inventario en desarrollo</p>
         </div>
-        <a href="/inventario" class="btn btn-primary btn-sm">
-            <i class="bi bi-box-seam me-1"></i> Ir a inventario
+        <a href="/inventario"
+           class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-black px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 w-full sm:w-auto">
+            <i class="bi bi-box-seam"></i> Ir a inventario
         </a>
     </div>
 
     @if (_loading)
     {
-        <div class="inv-loading"><span class="spinner-border spinner-border-sm me-2"></span>Cargando datos…</div>
+        <div class="flex items-center justify-center gap-3 py-12 text-sm text-slate-500">
+            <span class="h-4 w-4 rounded-full border-2 border-slate-200 border-t-blue-600 animate-spin"></span>
+            Cargando datos…
+        </div>
     }
     else
     {
-        <div class="row g-3 mb-4">
-            <div class="col-6 col-md">
-                <div class="inv-stat">
-                    <div class="inv-stat-value">@_productos</div>
-                    <div class="inv-stat-label">Líneas de producto</div>
-                </div>
-            </div>
-            <div class="col-6 col-md">
-                <div class="inv-stat">
-                    <div class="inv-stat-value">@_unidades</div>
-                    <div class="inv-stat-label">Unidades en bodega</div>
-                </div>
-            </div>
-            <div class="col-6 col-md">
-                <div class="inv-stat">
-                    <div class="inv-stat-value">@_bodegas</div>
-                    <div class="inv-stat-label">Bodegas</div>
-                </div>
-            </div>
-            <div class="col-6 col-md">
-                <div class="inv-stat">
-                    <div class="inv-stat-value">@_movimientos</div>
-                    <div class="inv-stat-label">Movimientos</div>
-                </div>
-            </div>
-            <div class="col-6 col-md">
-                <div class="inv-stat">
-                    <div class="inv-stat-value">@_auditorias</div>
-                    <div class="inv-stat-label">Auditorías</div>
-                </div>
-            </div>
-            <div class="col-6 col-md">
-                <div class="inv-stat">
-                    <div class="inv-stat-value">@_ventas</div>
-                    <div class="inv-stat-label">Ventas</div>
-                </div>
-            </div>
-            <div class="col-6 col-md">
-                <div class="inv-stat">
-                    <div class="inv-stat-value">@_alertasStock</div>
-                    <div class="inv-stat-label">Alertas stock</div>
-                </div>
-            </div>
-            <div class="col-6 col-md">
-                <div class="inv-stat">
-                    <div class="inv-stat-value">@_saldoCartera.ToString("C0")</div>
-                    <div class="inv-stat-label">Cartera</div>
-                </div>
-            </div>
-        </div>
+        <div class="flex flex-col gap-4">
 
-        <div class="row g-4">
-            <div class="col-lg-7">
-                <div class="inv-card">
-                    <div class="inv-card-header">Mapa del sistema</div>
-                    <div class="p-3">
-                        <div class="inv-roadmap-item">
-                            <span class="inv-roadmap-dot inv-roadmap-dot--done"></span>
-                            <div>
-                                <strong>Inventario — catálogo</strong>
-                                <div class="text-muted small">Productos, categorías, variantes, proveedores</div>
-                            </div>
+            <!-- Ticker de indicadores: tarjetas elevadas individuales dentro del loop, en vez de filas planas pegadas -->
+            <div class="inv-marquee-wrap inv-marquee-mask overflow-hidden rounded-xl border border-slate-200 bg-slate-50/60 py-3">
+                <div class="inv-marquee-track flex w-max gap-3 px-3">
+                    @for (int _i = 0; _i < 2; _i++)
+                    {
+                        <div class="flex gap-3 shrink-0">
+                            <a href="/ProductosDashboard" class="group flex min-w-[152px] flex-col gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                                <div class="flex items-center gap-2">
+                                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 transition-transform duration-200 group-hover:scale-110">
+                                        <i class="bi bi-tag text-xs"></i>
+                                    </span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Producto</span>
+                                </div>
+                                <div class="text-2xl font-bold tabular-nums leading-none text-slate-900">@_productos</div>
+                                <div class="h-[3px] w-full rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full w-full rounded-full bg-slate-300"></div>
+                                </div>
+                            </a>
+                            <a href="/unidades" class="group flex min-w-[152px] flex-col gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                                <div class="flex items-center gap-2">
+                                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 transition-transform duration-200 group-hover:scale-110">
+                                        <i class="bi bi-boxes text-xs"></i>
+                                    </span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Unidades</span>
+                                </div>
+                                <div class="text-2xl font-bold tabular-nums leading-none text-slate-900">@_unidades</div>
+                                <div class="h-[3px] w-full rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full w-full rounded-full bg-slate-300"></div>
+                                </div>
+                            </a>
+                            <a href="/bodegas" class="group flex min-w-[152px] flex-col gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                                <div class="flex items-center gap-2">
+                                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 transition-transform duration-200 group-hover:scale-110">
+                                        <i class="bi bi-building text-xs"></i>
+                                    </span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Bodegas</span>
+                                </div>
+                                <div class="text-2xl font-bold tabular-nums leading-none text-slate-900">@_bodegas</div>
+                                <div class="h-[3px] w-full rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full w-full rounded-full bg-slate-300"></div>
+                                </div>
+                            </a>
+                            <a href="/movimientos" class="group flex min-w-[152px] flex-col gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                                <div class="flex items-center gap-2">
+                                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 transition-transform duration-200 group-hover:scale-110">
+                                        <i class="bi bi-arrow-left-right text-xs"></i>
+                                    </span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Movimientos</span>
+                                </div>
+                                <div class="text-2xl font-bold tabular-nums leading-none text-slate-900">@_movimientos</div>
+                                <div class="h-[3px] w-full rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full w-full rounded-full bg-slate-300"></div>
+                                </div>
+                            </a>
+                            <a href="/auditorias" class="group flex min-w-[152px] flex-col gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                                <div class="flex items-center gap-2">
+                                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 transition-transform duration-200 group-hover:scale-110">
+                                        <i class="bi bi-clipboard-check text-xs"></i>
+                                    </span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Auditorías</span>
+                                </div>
+                                <div class="text-2xl font-bold tabular-nums leading-none text-slate-900">@_auditorias</div>
+                                <div class="h-[3px] w-full rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full w-full rounded-full bg-slate-300"></div>
+                                </div>
+                            </a>
+                            <a href="/ventas/nueva" class="group flex min-w-[152px] flex-col gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                                <div class="flex items-center gap-2">
+                                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 transition-transform duration-200 group-hover:scale-110">
+                                        <i class="bi bi-cart-check text-xs"></i>
+                                    </span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Ventas</span>
+                                </div>
+                                <div class="text-2xl font-bold tabular-nums leading-none text-slate-900">@_ventas</div>
+                                <div class="h-[3px] w-full rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full w-full rounded-full bg-slate-300"></div>
+                                </div>
+                            </a>
+                            <a href="/stock-alertas" class="group flex min-w-[152px] flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                                <div class="flex items-center gap-2">
+                                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700 transition-transform duration-200 group-hover:scale-110">
+                                        <i class="bi bi-exclamation-triangle text-xs"></i>
+                                    </span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-amber-600">Alertas</span>
+                                </div>
+                                <div class="text-2xl font-bold tabular-nums leading-none text-amber-700">@_alertasStock</div>
+                                <div class="h-[3px] w-full rounded-full bg-amber-100 overflow-hidden">
+                                    <div class="h-full w-full rounded-full bg-amber-400"></div>
+                                </div>
+                            </a>
+                            <a href="/cartera" class="group flex min-w-[152px] flex-col gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                                <div class="flex items-center gap-2">
+                                    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 transition-transform duration-200 group-hover:scale-110">
+                                        <i class="bi bi-cash-stack text-xs"></i>
+                                    </span>
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Cartera</span>
+                                </div>
+                                <div class="text-2xl font-bold tabular-nums leading-none text-slate-900">@_saldoCartera.ToString("C0")</div>
+                                <div class="h-[3px] w-full rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full w-full rounded-full bg-slate-300"></div>
+                                </div>
+                            </a>
                         </div>
-                        <div class="inv-roadmap-item">
-                            <span class="inv-roadmap-dot inv-roadmap-dot--done"></span>
-                            <div>
-                                <strong>Inventario — operación</strong>
-                                <div class="text-muted small">Bodegas, movimientos (entrada/salida), unidades serializadas</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Fila inferior: mapa del sistema (con anillo de progreso) y accesos rápidos -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+                <div class="lg:col-span-8 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2.5 text-xs font-semibold border-b border-slate-200 bg-slate-50">
+                        <span>Mapa del sistema</span>
+                        <span class="text-[11px] font-medium text-slate-500">5/7 módulos listos</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 p-3">
+
+                        <div class="group flex flex-col items-center rounded-lg border border-slate-200 px-2 py-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                            <div class="relative h-11 w-11 rounded-full transition-transform duration-200 group-hover:scale-110" style="background: conic-gradient(#10b981 100%, #e2e8f0 0)">
+                                <div class="absolute inset-[4px] grid place-items-center rounded-full bg-white">
+                                    <i class="bi bi-tag text-slate-500 text-xs"></i>
+                                </div>
                             </div>
+                            <strong class="mt-2 text-[11px] font-semibold text-slate-900 leading-tight">Catálogo</strong>
+                            <span class="mt-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700">100%</span>
                         </div>
-                        <div class="inv-roadmap-item">
-                            <span class="inv-roadmap-dot inv-roadmap-dot--wip"></span>
-                            <div>
-                                <strong>Inventario — auditorías</strong>
-                                <div class="text-muted small">Crear, listar y registrar conteo físico</div>
+
+                        <div class="group flex flex-col items-center rounded-lg border border-slate-200 px-2 py-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                            <div class="relative h-11 w-11 rounded-full transition-transform duration-200 group-hover:scale-110" style="background: conic-gradient(#10b981 100%, #e2e8f0 0)">
+                                <div class="absolute inset-[4px] grid place-items-center rounded-full bg-white">
+                                    <i class="bi bi-boxes text-slate-500 text-xs"></i>
+                                </div>
                             </div>
+                            <strong class="mt-2 text-[11px] font-semibold text-slate-900 leading-tight">Operación</strong>
+                            <span class="mt-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700">100%</span>
                         </div>
-                        <div class="inv-roadmap-item">
-                            <span class="inv-roadmap-dot inv-roadmap-dot--done"></span>
-                            <div>
-                                <strong>Ventas</strong>
-                                <div class="text-muted small">Descuenta unidades, movimientos de salida, pagos y cartera</div>
+
+                        <div class="group flex flex-col items-center rounded-lg border border-slate-200 px-2 py-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                            <div class="relative h-11 w-11 rounded-full transition-transform duration-200 group-hover:scale-110" style="background: conic-gradient(#f59e0b 60%, #e2e8f0 0)">
+                                <div class="absolute inset-[4px] grid place-items-center rounded-full bg-white">
+                                    <i class="bi bi-arrow-repeat text-amber-600 text-xs"></i>
+                                </div>
                             </div>
+                            <strong class="mt-2 text-[11px] font-semibold text-slate-900 leading-tight">Auditorías</strong>
+                            <span class="mt-1 rounded-full bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700">60%</span>
                         </div>
-                        <div class="inv-roadmap-item">
-                            <span class="inv-roadmap-dot inv-roadmap-dot--done"></span>
-                            <div>
-                                <strong>Alertas operativas</strong>
-                                <div class="text-muted small">Cartera pendiente y stock bajo por bodega</div>
+
+                        <div class="group flex flex-col items-center rounded-lg border border-slate-200 px-2 py-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                            <div class="relative h-11 w-11 rounded-full transition-transform duration-200 group-hover:scale-110" style="background: conic-gradient(#10b981 100%, #e2e8f0 0)">
+                                <div class="absolute inset-[4px] grid place-items-center rounded-full bg-white">
+                                    <i class="bi bi-cart-check text-slate-500 text-xs"></i>
+                                </div>
                             </div>
+                            <strong class="mt-2 text-[11px] font-semibold text-slate-900 leading-tight">Ventas</strong>
+                            <span class="mt-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700">100%</span>
                         </div>
-                        <div class="inv-roadmap-item">
-                            <span class="inv-roadmap-dot inv-roadmap-dot--done"></span>
-                            <div>
-                                <strong>Clientes</strong>
-                                <div class="text-muted small">Maestro y enlace a ventas</div>
+
+                        <div class="group flex flex-col items-center rounded-lg border border-slate-200 px-2 py-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                            <div class="relative h-11 w-11 rounded-full transition-transform duration-200 group-hover:scale-110" style="background: conic-gradient(#10b981 100%, #e2e8f0 0)">
+                                <div class="absolute inset-[4px] grid place-items-center rounded-full bg-white">
+                                    <i class="bi bi-exclamation-triangle text-slate-500 text-xs"></i>
+                                </div>
                             </div>
+                            <strong class="mt-2 text-[11px] font-semibold text-slate-900 leading-tight">Alertas</strong>
+                            <span class="mt-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700">100%</span>
                         </div>
-                        <div class="inv-roadmap-item">
-                            <span class="inv-roadmap-dot inv-roadmap-dot--todo"></span>
-                            <div>
-                                <strong>Compras</strong>
-                                <div class="text-muted small">Órdenes de compra y recepción contra proveedores</div>
+
+                        <div class="group flex flex-col items-center rounded-lg border border-slate-200 px-2 py-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                            <div class="relative h-11 w-11 rounded-full transition-transform duration-200 group-hover:scale-110" style="background: conic-gradient(#10b981 100%, #e2e8f0 0)">
+                                <div class="absolute inset-[4px] grid place-items-center rounded-full bg-white">
+                                    <i class="bi bi-person-lines-fill text-slate-500 text-xs"></i>
+                                </div>
                             </div>
+                            <strong class="mt-2 text-[11px] font-semibold text-slate-900 leading-tight">Clientes</strong>
+                            <span class="mt-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700">100%</span>
                         </div>
+
+                        <div class="group flex flex-col items-center rounded-lg border border-slate-200 px-2 py-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                            <div class="relative h-11 w-11 rounded-full transition-transform duration-200 group-hover:scale-110" style="background: conic-gradient(#cbd5e1 0%, #e2e8f0 0)">
+                                <div class="absolute inset-[4px] grid place-items-center rounded-full bg-white">
+                                    <i class="bi bi-truck text-slate-400 text-xs"></i>
+                                </div>
+                            </div>
+                            <strong class="mt-2 text-[11px] font-semibold text-slate-500 leading-tight">Compras</strong>
+                            <span class="mt-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold text-slate-500">0%</span>
+                        </div>
+
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-5">
-                <div class="inv-card">
-                    <div class="inv-card-header">Accesos rápidos</div>
-                    <div class="p-3 d-grid gap-2">
-                        <a href="/ProductosDashboard" class="btn btn-outline-secondary btn-sm text-start">
-                            <i class="bi bi-tag me-2"></i>Catálogo
-                        </a>
-                        <a href="/unidades" class="btn btn-outline-secondary btn-sm text-start">
-                            <i class="bi bi-upc-scan me-2"></i>Unidades
-                        </a>
-                        <a href="/movimientos" class="btn btn-outline-secondary btn-sm text-start">
-                            <i class="bi bi-arrow-left-right me-2"></i>Movimientos
-                        </a>
-                        <a href="/stock-alertas" class="btn btn-outline-secondary btn-sm text-start">
-                            <i class="bi bi-exclamation-triangle me-2"></i>Alertas de stock
-                        </a>
-                        <a href="/ventas/nueva" class="btn btn-outline-secondary btn-sm text-start">
-                            <i class="bi bi-cart-plus me-2"></i>Nueva venta
-                        </a>
-                        <a href="/cartera" class="btn btn-outline-secondary btn-sm text-start">
-                            <i class="bi bi-cash-stack me-2"></i>Cartera
-                        </a>
-                        <a href="/auditorias" class="btn btn-outline-secondary btn-sm text-start">
-                            <i class="bi bi-clipboard-check me-2"></i>Auditorías
-                        </a>
-                        <a href="/bodegas" class="btn btn-outline-secondary btn-sm text-start">
-                            <i class="bi bi-building me-2"></i>Bodegas
-                        </a>
+                <div class="lg:col-span-4">
+                    <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden h-full">
+                        <div class="px-4 py-2.5 text-xs font-semibold border-b border-slate-200 bg-slate-50">
+                            Accesos rápidos
+                        </div>
+                        <nav class="flex flex-col p-1.5">
+                            <a href="/ProductosDashboard" class="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-200 hover:bg-blue-50 hover:translate-x-1">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 text-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
+                                    <i class="bi bi-tag"></i>
+                                </span>
+                                <span class="flex-1 text-xs font-medium text-slate-700">Catálogo</span>
+                                <i class="bi bi-chevron-right text-[10px] text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5"></i>
+                            </a>
+                            <a href="/unidades" class="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-200 hover:bg-blue-50 hover:translate-x-1">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 text-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
+                                    <i class="bi bi-upc-scan"></i>
+                                </span>
+                                <span class="flex-1 text-xs font-medium text-slate-700">Unidades</span>
+                                <i class="bi bi-chevron-right text-[10px] text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5"></i>
+                            </a>
+                            <a href="/movimientos" class="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-200 hover:bg-blue-50 hover:translate-x-1">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 text-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                </span>
+                                <span class="flex-1 text-xs font-medium text-slate-700">Movimientos</span>
+                                <i class="bi bi-chevron-right text-[10px] text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5"></i>
+                            </a>
+                            <a href="/stock-alertas" class="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-200 hover:bg-amber-50 hover:translate-x-1">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700 text-sm transition-transform duration-200 group-hover:scale-110">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </span>
+                                <span class="flex-1 text-xs font-medium text-slate-700">Alertas de stock</span>
+                                <i class="bi bi-chevron-right text-[10px] text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5"></i>
+                            </a>
+                            <a href="/ventas/nueva" class="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-200 hover:bg-blue-50 hover:translate-x-1">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 text-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
+                                    <i class="bi bi-cart-plus"></i>
+                                </span>
+                                <span class="flex-1 text-xs font-medium text-slate-700">Nueva venta</span>
+                                <i class="bi bi-chevron-right text-[10px] text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5"></i>
+                            </a>
+                            <a href="/cartera" class="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-200 hover:bg-blue-50 hover:translate-x-1">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 text-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
+                                    <i class="bi bi-cash-stack"></i>
+                                </span>
+                                <span class="flex-1 text-xs font-medium text-slate-700">Cartera</span>
+                                <i class="bi bi-chevron-right text-[10px] text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5"></i>
+                            </a>
+                            <a href="/auditorias" class="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-200 hover:bg-blue-50 hover:translate-x-1">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 text-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
+                                    <i class="bi bi-clipboard-check"></i>
+                                </span>
+                                <span class="flex-1 text-xs font-medium text-slate-700">Auditorías</span>
+                                <i class="bi bi-chevron-right text-[10px] text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5"></i>
+                            </a>
+                            <a href="/bodegas" class="group flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-200 hover:bg-blue-50 hover:translate-x-1">
+                                <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 text-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white">
+                                    <i class="bi bi-building"></i>
+                                </span>
+                                <span class="flex-1 text-xs font-medium text-slate-700">Bodegas</span>
+                                <i class="bi bi-chevron-right text-[10px] text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5"></i>
+                            </a>
+                        </nav>
                     </div>
                 </div>
+
             </div>
+
         </div>
     }
 </div>
