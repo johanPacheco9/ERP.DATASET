@@ -15,6 +15,8 @@ public partial class AuditoriaService
         if (unitAudit == null)
             return false;
 
+        var userId = await userManager.GetUserId();
+        
         if (request.Status.HasValue)
             unitAudit.Status = request.Status.Value;
         if (request.Observaciones != null)
@@ -28,7 +30,7 @@ public partial class AuditoriaService
         if (request.RequiereAccionCorrectiva.HasValue)
             unitAudit.RequiereAccionCorrectiva = request.RequiereAccionCorrectiva.Value;
 
-        unitAudit.UpdatedBy = request._UpdaterAuth0Id;
+        unitAudit.UpdatedBy = userId.Value;
         unitAudit.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);

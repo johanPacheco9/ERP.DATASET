@@ -1,9 +1,10 @@
 using ERP.TRAN.CrossLayers.API.Pos.Compras.Responses;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras;
 
-public class OrdenCompra
+public class OrdenCompra : EntityWithtraceability
 {
     public int Id { get; set; }
 

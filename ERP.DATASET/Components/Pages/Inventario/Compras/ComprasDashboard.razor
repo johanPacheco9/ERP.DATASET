@@ -1,12 +1,9 @@
 @page "/inventario/compras"
 @using ERP.DATA.Services.InventarioService.OrdenesDeCompra
-@using ERP.TRAN.CrossLayers.API.Inventario.OrdenDeCompra.Responses
 @using ERP.TRAN.CrossLayers.API.Pos.Compras.Responses
 @using ERP.DATA.Services.Inventario.ProveedorService
-@using ERP.TRAN.CrossLayers.API.Inventario.Proveedor.Responses
 @inject OrdenesDeCompraManager OrdenesDeCompraManager
 @inject SupplierService ProveedorService
-@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <PageTitle>Órdenes de Compra - ERP</PageTitle>

@@ -7,6 +7,7 @@ public partial class WarehouseService
 {
     public async Task<int> AddBodegaAsync(CreateBodegaRequest bodega, CancellationToken cancellationToken)
 	{
+		var user = await userManager.GetUserAuthenticate();
 		try
 		{
             var entity = new Warehouse
@@ -18,7 +19,7 @@ public partial class WarehouseService
                 Max_Capacity = bodega.CapacidadMaxima,
                 Type = bodega.TipoBodega,
                 StoreId = bodega.storeId,
-                CreatedBy = 1,
+                CreatedBy = user.Value.Id,
                 CreatedAt = DateTime.UtcNow
             };
 

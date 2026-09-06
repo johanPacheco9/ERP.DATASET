@@ -24,11 +24,16 @@ public partial class OrdenesDeCompraManager
             if (proveedor == null)
                 return Result<OrdenCompraDetailDto>.Failure(Error.Failure("OrdenCompra.ProveedorNotFound", "El proveedor especificado no existe."));
 
+            var user = await userManager.GetUserAuthenticate();
+
+            
             var ordenCompra = new OrdenCompra
             {
                 ProveedorId = request.ProveedorId,
                 Fecha = DateTime.UtcNow,
                 Status = OrdenCompraStatus.PendingApproval,
+                CreatedBy = user.Value.Id,
+                CreatedAt = DateTime.UtcNow,
                 Detalles = request.Detalles.Select(d => new DetalleOrdenCompra
                 {
                     ProductoVarianteId = d.ProductoVarianteId,
@@ -44,7 +49,6 @@ public partial class OrdenesDeCompraManager
                     {
                         Texto = obs,
                         Fecha = DateTime.UtcNow,
-                        UsuarioId = 1,
                         EstadoAsociado = OrdenCompraStatus.PendingApproval
                     }).ToList() ?? new List<OrdenCompraObservaciones>()
             };

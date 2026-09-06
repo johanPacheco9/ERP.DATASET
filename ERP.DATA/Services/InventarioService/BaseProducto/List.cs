@@ -1,4 +1,3 @@
-using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Enums;
@@ -6,9 +5,9 @@ using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
 using Microsoft.EntityFrameworkCore;
 
-namespace ERP.DATA.Services.InventarioService.ProductoBaseService;
+namespace ERP.DATA.Services.InventarioService.BaseProducto;
 
-public partial class ProductoBaseService
+public partial class ProductoBaseManager
 {
     public async Task<PagedList<ProductoSummaryDto>> ListAsync(
         ListProductRequest request,

@@ -7,14 +7,14 @@ using ERP.TRAN.CrossLayers.API.Inventario.Marca.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Request;
 using Microsoft.AspNetCore.Components;
-using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
+using ProductoBaseManager = ERP.DATA.Services.InventarioService.BaseProducto.ProductoBaseManager;
 
 namespace ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos.Movimientos;
 
 public partial class CrearProductoBase : ComponentBase
 {
     [Inject] public CategoriaService CategoriaService { get; set; } = default!;
-    [Inject] public ProductoBaseService productoService { get; set; } = null!;
+    [Inject] public ProductoBaseManager ProductoManager { get; set; } = null!;
     [Inject] public ProductVariantService productoVarianteService { get; set; } = null!;
     [Inject] public MarcasManager MarcasManager { get; set; } = null!;
     [Inject] public NavigationManager Navigation { get; set; } = null!;
@@ -180,7 +180,7 @@ public partial class CrearProductoBase : ComponentBase
                 MarcaId = _form.MarcaId
             };
 
-            _productoIdCreado = await productoService.AddProductoAsync(request, CancellationToken.None);
+            _productoIdCreado = await ProductoManager.AddProductoAsync(request, CancellationToken.None);
 
             if (_productoIdCreado > 0)
             {

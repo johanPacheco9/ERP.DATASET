@@ -12,6 +12,8 @@ public partial class SupplierService
 {
     public async Task<Proveedor> AddProveedorAsync(Proveedor proveedor, CancellationToken cancellationToken)
     {
+        var user = await userManager.GetUserAuthenticate();
+        
         proveedor = new Proveedor
         {
             Name = proveedor.Name,
@@ -20,7 +22,7 @@ public partial class SupplierService
             Phone = proveedor.Phone,
             IsActive = proveedor.IsActive,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = 1
+            CreatedBy = user.Value.Id
         };
         context.Supplier.Add(proveedor);
         await context.SaveChangesAsync(cancellationToken);

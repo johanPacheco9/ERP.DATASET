@@ -69,12 +69,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ERP.DATASET\ERP.DATASET.csproj" />
     <ProjectReference Include="..\ERP.DATA\ERP.DATA.csproj" />
     <ProjectReference Include="..\ERP.TRAN\ERP.TRAN.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Controllers\Utilities\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNetCore.Authentication.JwtBearer">
+      <HintPath>..\..\..\.nuget\packages\microsoft.aspnetcore.authentication.jwtbearer\10.0.11\lib\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -1,11 +1,10 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
-using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using Microsoft.EntityFrameworkCore;
 
-namespace ERP.DATA.Services.InventarioService.ProductoBaseService;
+namespace ERP.DATA.Services.InventarioService.BaseProducto;
 
-public partial class ProductoBaseService
+public partial class ProductoBaseManager
 {
     /// <summary>
     /// Se usa para crear el catálogo, no las unidades del producto.

@@ -1,15 +1,15 @@
 ﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using Microsoft.EntityFrameworkCore;
 
-namespace ERP.DATA.Services.InventarioService.ProductoBaseService;
+namespace ERP.DATA.Services.InventarioService.BaseProducto;
 
-public partial class ProductoBaseService
+public partial class ProductoBaseManager
 {
      public Task<ProductoBase> UpdateProducto(int id, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
-    public async Task<ProductoBase> UpdateProducto(int id, ProductoBase updatedProductoBase, CancellationToken cancellationToken = default)
+    public async Task<ProductoBase> UpdateProducto(int id, TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoBase updatedProductoBase, CancellationToken cancellationToken = default)
     {
         var producto = await context.ProductoBase.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 

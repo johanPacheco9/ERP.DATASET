@@ -4,17 +4,17 @@ using ERP.TRAN.CrossLayers.Core.Utilities.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-public abstract class BaseDeleteEndpoint<TRequest, TClass, TService>(TService service)
+public abstract class BaseDeleteEndpoint<TRequest, TClass, TService>(TService manager)
     : EndpointBaseAsync.WithRequest<TRequest>.WithActionResult
     where TRequest : IValidatableRequest
 {
     protected const string OperationId = "Eliminar";
 
-    protected readonly TService Service = service;
+    protected readonly TService Manager = manager;
 
     protected ILogger<TClass> Logger { get; init; }
 
-    public BaseDeleteEndpoint(TService service, ILogger<TClass> logger) : this(service)
+    public BaseDeleteEndpoint(TService manager, ILogger<TClass> logger) : this(manager)
     {
         Logger = logger;
     }

@@ -47,6 +47,9 @@ public partial class MovimientosManager
             decimal unitCost = (variante.CostoUnitario.HasValue && variante.CostoUnitario.Value > 0) 
                 ? variante.CostoUnitario.Value 
                 : variante.ProductoBase.CostoUnitario;
+
+            var user = await userManager.GetUserAuthenticate();
+            
             
             // 4. Crear el registro de la cabecera del movimiento en el Kárdex
             var movimiento = new Movement
@@ -59,7 +62,7 @@ public partial class MovimientosManager
                 Motive = salida.Motivo,
                 Observations = salida.Observaciones,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = 1
+                CreatedBy = user.Value.Id
             };
 
             context.Movements.Add(movimiento);
@@ -127,7 +130,7 @@ public partial class MovimientosManager
                 movimiento.Observations,
                 itemsList,
                 movimiento.CreatedAt,
-                "Corregir con usuario.nombre"
+                user.Value.PrimerNombre
             );
         }
         catch

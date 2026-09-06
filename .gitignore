@@ -482,3 +482,15 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Archivos de contexto y agentes de IA
+AGENTS.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
+.openclaw/
+memory/
+.idea
+.config

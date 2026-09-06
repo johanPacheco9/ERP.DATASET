@@ -4,14 +4,14 @@ using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using Microsoft.AspNetCore.Components;
-using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
+using ProductoBaseManager = ERP.DATA.Services.InventarioService.BaseProducto.ProductoBaseManager;
 
 namespace ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos;
 
 public partial class CreateBaseProduct : IDisposable
 {
     [Inject] private CategoriaService CategoriaService { get; set; } = null!;
-    [Inject] private ProductoBaseService ProductoBaseService { get; set; } = null!;
+    [Inject] private ProductoBaseManager ProductoBaseManager { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     private readonly CancellationTokenSource _cts = new();
@@ -67,7 +67,7 @@ public partial class CreateBaseProduct : IDisposable
         try
         {
             cargando = true;
-            await ProductoBaseService.AddProductoAsync(request, _cts.Token);
+            await ProductoBaseManager.AddProductoAsync(request, _cts.Token);
             mensajeOk = $"Producto {request.Nombre} creado correctamente.";
             Navigation.NavigateTo("/ProductosDashboard");
         }

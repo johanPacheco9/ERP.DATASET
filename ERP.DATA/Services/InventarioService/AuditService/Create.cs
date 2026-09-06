@@ -32,6 +32,13 @@ public partial class AuditoriaService
         {
             throw new InvalidOperationException($"Ya hay una auditoría en progreso para la bodega requerida.");
         }
+
+        var userId = await userManager.GetUserId();
+
+        if (!userId.HasValue)
+        {
+            throw new InvalidOperationException($"Excepcion rara, deberia haber un usuario autenticado para llegar a este punto.");   
+        }
         
         var productsToAuditQuery = _context.UnidadesProductos
             .Include(u => u.ProductoVariante)
@@ -87,7 +94,7 @@ public partial class AuditoriaService
                 TotalSurplus = 0,
                 TotalLocationDifferences = 0,
                 TotalStatusDifferences = 0,
-                CreatedBy = request._CreatorAuth0Id,
+                CreatedBy = userId.Value,
                 CreatedAt = DateTime.UtcNow
             };
 

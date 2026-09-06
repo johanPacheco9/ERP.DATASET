@@ -1,5 +1,4 @@
 using ERP.DATA.Services.Inventario.ProveedorService;
-using ERP.DATA.Services.InventarioService.ProductoBaseService;
 using ERP.TRAN.CrossLayers.API.Inventario.OrdenDeCompra.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 
@@ -19,7 +18,7 @@ public partial class CrearOrdenCompra
     protected override async Task OnInitializedAsync()
     {
         Proveedores = await ProveedoresService.ListAsync(1_000, default);
-        var productos = await ProductosService.ListAsync(new ListProductRequest { PageSize = -1 }, null, null, null, default);
+        var productos = await ProductosManager.ListAsync(new ListProductRequest { PageSize = -1 }, null, null, null, default);
         Productos = productos.SelectMany(p => p.ProductoVariantes.Select(v => new ProductoOpcion(v.Id ?? 0, p.Nombre, v.CodigoVariante, v.CostoUnitario ?? p.CostoUnitario))).Where(p => p.Id > 0).ToList();
         Cargando = false;
     }

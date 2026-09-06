@@ -37,13 +37,15 @@ public partial class ControlCalidadManager
             return Result<QualityReviewDetailDto>.Failure(Error.Failure("QC.AlreadyExists",
                 "Ya existe un control de calidad para esta orden de compra."));
 
+        var userId = await userManager.GetUserId();
+        
         var qr = new QualityReview
         {
             OrdenCompraId = request.OrdenCompraId,
             Status = QualityReviewStatus.Pendiente,
             ObservacionesGenerales = request.ObservacionesGenerales,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = 1,
+            CreatedBy = userId.Value,
             Detalles = request.Items.Select(i => new QualityReviewDetail
             {
                 DetalleOrdenCompraId = i.DetalleOrdenCompraId,

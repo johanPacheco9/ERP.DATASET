@@ -4,13 +4,13 @@ using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IProductVariant;
 using Microsoft.AspNetCore.Mvc;
-using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
+using ProductoBaseManager = ERP.DATA.Services.InventarioService.BaseProducto.ProductoBaseManager;
 
 namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
 
 public sealed class CreateProductoEndpoint(
     ILogger<CreateProductoEndpoint> logger,
-    ProductoBaseService productoService, IProductVariantService productoVarianteService
+    ProductoBaseManager productoManager, IProductVariantService productoVarianteService
 )
     : BaseCreateEndpoint<CreateProductoRequest, CreateProductoEndpoint>(logger)
 {
@@ -36,7 +36,7 @@ public sealed class CreateProductoEndpoint(
             await productoVarianteService.AddProductoVariantes(request.Variantes, cancellationToken);
         }
 
-        var productoId = await productoService.AddProductoAsync(
+        var productoId = await productoManager.AddProductoAsync(
             request,
             cancellationToken
         );
