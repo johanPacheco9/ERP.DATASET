@@ -13,6 +13,7 @@ using ERP.DATA.Services.InventarioService.UnidadProductoService;
 using ERP.DATA.Services.InventarioService.OrdenesDeCompra;
 using ERP.DATA.Services.InventarioService.RecepcionService;
 using ERP.DATA.Services.InventarioService.ControlCalidad;
+using ERP.DATA.Services.UserService;
 using ERP.DATA.Services.VentasService.Stores;
 using Microsoft.Extensions.DependencyInjection;
 using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
@@ -42,6 +43,7 @@ public static class DependencyInjection
         services.AddTransient<OrdenesDeCompraManager>();
         services.AddTransient<RecepcionCompraManager>();
         services.AddTransient<ControlCalidadManager>();
+        services.AddTransient<UserManager>();
         return services;
     }
 }
