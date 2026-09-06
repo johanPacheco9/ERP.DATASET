@@ -29,6 +29,11 @@ public partial class MovimientosManager
             );
         }
 
+        var userId = await userManager.GetUserId();
+
+        var usuario = await userManager.GetById(userId.Value);
+        
+        
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
         try
@@ -130,7 +135,7 @@ public partial class MovimientosManager
                 Observaciones: request.Observations ?? "",
                 Items: itemsDto,
                 CreatedAt: DateTime.UtcNow,
-                CreatedBy: "Sistema"
+                CreatedBy: usuario.Value.PrimerNombre + usuario.Value.PrimerNombre
             );
 
             return Result<MovimientoDetailDto>.Success(resultadoDto);

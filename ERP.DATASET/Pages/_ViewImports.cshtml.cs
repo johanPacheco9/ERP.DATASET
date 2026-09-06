@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ERP.DATASET.Components;
 
-public class Login : PageModel
+public class _ViewImports : PageModel
 {
     public void OnGet()
     {

@@ -35,6 +35,7 @@ public partial class AuditoriaService
 
         var code = request.Code.Trim();
 
+        var userId = await userManager.GetUserId();
         // Verificamos usando el DbSet correcto de tu entidad
         var existingSurplus = await _context.Set<UnidadProductoAuditada>()
             .AnyAsync(u =>
@@ -71,7 +72,7 @@ public partial class AuditoriaService
             Serial = code,
             Status = UnitProductAuditStatus.ExcessProduct,
             Observaciones = request.Observations,
-            CreatedBy = 1,
+            CreatedBy = userId.Value,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

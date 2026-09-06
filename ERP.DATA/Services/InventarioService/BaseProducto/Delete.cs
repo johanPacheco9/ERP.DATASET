@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace ERP.DATA.Services.InventarioService.ProductoBaseService;
+namespace ERP.DATA.Services.InventarioService.BaseProducto;
 
-public partial class ProductoBaseService
+public partial class ProductoBaseManager
 {
     public async Task<bool> DeleteProductoById(int id, CancellationToken cancellationToken = default)
     {

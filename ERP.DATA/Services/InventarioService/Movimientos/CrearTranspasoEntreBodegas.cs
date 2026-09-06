@@ -143,6 +143,8 @@ public partial class MovimientosManager
             }
         }
 
+        var userId = await userManager.GetUserId();
+        
         List<WarehouseStock> stockDestinoList = [];
         if (esTransferencia || esPerdida)
         {
@@ -166,7 +168,7 @@ public partial class MovimientosManager
                 UnitCost = 0,
                 Observations = request.Observations,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = 1
+                CreatedBy = userId.Value
             };
 
             context.Movements.Add(movement);

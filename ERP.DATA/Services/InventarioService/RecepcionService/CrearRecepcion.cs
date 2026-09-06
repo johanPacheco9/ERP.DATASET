@@ -49,6 +49,9 @@ public partial class RecepcionCompraManager
         if (bodega == null)
             return Result<RecepcionDetailDto>.Failure(Error.NotFound("Recepcion.BodegaNotFound",
                 $"La bodega #{request.BodegaId} no existe."));
+        
+        var user = await userManager.GetUserAuthenticate();
+
 
         using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         try
@@ -62,7 +65,7 @@ public partial class RecepcionCompraManager
                 Status = RecepcionCompraStatus.EnControlCalidad,
                 GuiaRemisionProveedor = request.GuiaRemisionProveedor,
                 Observaciones = request.Observaciones,
-                CreatedBy = 1,
+                CreatedBy = user.Value.Id,
                 CreatedAt = DateTime.UtcNow
             };
 

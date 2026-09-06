@@ -20,7 +20,7 @@ public partial class ProductVariantService
             throw new InvalidOperationException("Todas las variantes deben ser del mismo producto base");
 
         // 2. Verificar existencia del ProductoBase
-        var productoBaseExiste = await _context.ProductoBase
+        var productoBaseExiste = await context.ProductoBase
             .AnyAsync(p => p.Id == productoBaseId, cancellationToken);
 
         if (!productoBaseExiste)
@@ -42,7 +42,7 @@ public partial class ProductVariantService
                 $"Códigos duplicados en el request: {string.Join(", ", duplicadosEnRequest)}");
 
         // 4. Verificar que el SKU no exista ya en la base de datos
-        var existentes = await _context.ProductoVariantes
+        var existentes = await context.ProductoVariantes
             .Where(v => codigosRequest.Contains(v.SKU))
             .Select(v => v.SKU)
             .ToListAsync(cancellationToken);
@@ -50,8 +50,11 @@ public partial class ProductVariantService
         if (existentes.Any())
             throw new InvalidOperationException(
                 $"Ya existen variantes con los códigos/SKUs: {string.Join(", ", existentes)}");
+        
+        var user = await userManager.GetUserAuthenticate();
 
-        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
@@ -64,13 +67,13 @@ public partial class ProductVariantService
                 PrecioVenta = request.PrecioVenta,
                 CostoUnitario = request.CostoUnitario,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = 1,
+                CreatedBy = user.Value.Id,
                 IsActive = true
             }).ToList();
 
             // 5. Inserción masiva de variantes
-            _context.ProductoVariantes.AddRange(variantesEntidades);
-            await _context.SaveChangesAsync(cancellationToken);
+            context.ProductoVariantes.AddRange(variantesEntidades);
+            await context.SaveChangesAsync(cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
 

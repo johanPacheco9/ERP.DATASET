@@ -1,0 +1,104 @@
+@page "/"
+@model ERP.DATASET.Pages.LoginModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar sesión · Dataset Software</title>
+    @* AJUSTA: reemplaza esto por tu build real de Tailwind si ya lo tienes instalado como paquete *@
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+
+<div class="min-h-screen grid lg:grid-cols-5 bg-white">
+
+    @* ---------- Panel de marca (oculto en móvil) ---------- *@
+    <div class="hidden lg:flex lg:col-span-2 relative flex-col justify-between overflow-hidden px-12 py-12 text-white"
+         style="background-color:#0B1220;">
+        <div class="absolute inset-0 opacity-40"
+             style="background-image: radial-gradient(circle, #1F2C42 1px, transparent 1px); background-size: 22px 22px;">
+        </div>
+
+        <div class="relative">
+            <p class="text-sm tracking-wide" style="font-family:'Space Grotesk',sans-serif; color:#C9962B;">Dataset</p>
+            <p class="text-2xl font-medium -mt-1" style="font-family:'Space Grotesk',sans-serif;">Software</p>
+            <div class="mt-4 h-px w-10" style="background-color:#C9962B;"></div>
+        </div>
+
+        <div class="relative max-w-xs">
+            <p class="text-xl leading-snug" style="font-family:'Space Grotesk',sans-serif;">
+                Un solo sistema para toda la operación.
+            </p>
+            <p class="mt-3 text-sm" style="color:#8CA0BC;">
+                Cartera, tarifas, recibos y reportes en un mismo lugar.
+            </p>
+        </div>
+
+        <div class="relative text-xs" style="color:#5B6B84;">
+            ERP interno · Acceso restringido
+        </div>
+    </div>
+
+    @* ---------- Panel del formulario ---------- *@
+    <div class="col-span-5 lg:col-span-3 flex items-center justify-center px-6 py-12">
+        <div class="w-full max-w-sm">
+
+            @* Marca compacta, solo visible en móvil *@
+            <div class="mb-10 lg:hidden">
+                <p class="text-sm font-medium" style="color:#C9962B;">Dataset Software</p>
+            </div>
+
+            <h1 class="text-2xl font-medium text-slate-900" style="font-family:'Space Grotesk',sans-serif;">
+                Iniciar sesión
+            </h1>
+            <p class="mt-1 text-sm text-slate-500">
+                Ingresa con tu usuario y contraseña del ERP.
+            </p>
+
+            <form method="post" class="mt-8 space-y-6 w-full">
+                <div>
+                    <label asp-for="Usuario" class="block text-sm text-slate-700 mb-1.5">Usuario</label>
+                    <input asp-for="Usuario" type="text"
+                           autocomplete="username" autofocus
+                           class="w-full border-0 border-b-2 border-slate-200 bg-transparent px-0.5 py-2 text-sm text-slate-900
+                                  focus:outline-none focus:border-[#C9962B] focus-visible:ring-2 focus-visible:ring-[#C9962B]/30
+                                  transition-colors" />
+                </div>
+
+                <div>
+                    <label asp-for="Password" class="block text-sm text-slate-700 mb-1.5">Contraseña</label>
+                    <input asp-for="Password" type="password"
+                           autocomplete="current-password"
+                           class="w-full border-0 border-b-2 border-slate-200 bg-transparent px-0.5 py-2 text-sm text-slate-900
+                                  focus:outline-none focus:border-[#C9962B] focus-visible:ring-2 focus-visible:ring-[#C9962B]/30
+                                  transition-colors" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+                {
+                    <div class="border-l-2 border-red-600 pl-3 py-0.5">
+                        <p class="text-sm text-red-700">@Model.ErrorMessage</p>
+                    </div>
+                }
+
+                <button type="submit"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-white
+                               transition-colors"
+                        style="background-color:#0B1220;">
+                    Ingresar
+                </button>
+            </form>
+
+            <p class="mt-10 text-xs text-slate-400">
+                © @DateTime.Now.Year Dataset Software
+            </p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

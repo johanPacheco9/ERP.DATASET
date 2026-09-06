@@ -1,9 +1,9 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Responses;
 using Microsoft.EntityFrameworkCore;
 
-namespace ERP.DATA.Services.InventarioService.ProductoBaseService;
+namespace ERP.DATA.Services.InventarioService.BaseProducto;
 
-public partial class ProductoBaseService
+public partial class ProductoBaseManager
 {
     public async Task<BaseProductDto?> GetProductoById(int id, CancellationToken cancellationToken)
     {

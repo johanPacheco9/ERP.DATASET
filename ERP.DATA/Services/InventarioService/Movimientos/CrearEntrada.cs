@@ -51,7 +51,9 @@ public partial class MovimientosManager
             ?? throw new KeyNotFoundException($"La Variante #{request.ProductoVarianteId} no existe.");
 
         decimal costoAplicado = (variante.CostoUnitario > 0 ? variante.CostoUnitario : variante.ProductoBase.CostoUnitario) ?? 0m;
-
+        
+        var user = await userManager.GetUserAuthenticate();
+        
         // 2. Crear la Cabecera del Movimiento (Kárdex global)
         var movimiento = new Movement
         {
@@ -63,7 +65,7 @@ public partial class MovimientosManager
             FechaVencimiento = request.FechaVencimiento,
             Motive = request.Motivo,
             Observations = request.Motivo,
-            CreatedBy = 1,
+            CreatedBy = user.Value.Id,
             CreatedAt = DateTime.UtcNow,
             CompraId = request.ReferenciaTipo == "orden_compra" ? request.ReferenciaId : null
         };
@@ -85,7 +87,7 @@ public partial class MovimientosManager
                 ProductoVarianteId = variante.Id,
                 CurrentStock = request.Cantidad,
                 FechaActualizacion = DateTime.UtcNow,
-                CreatedBy = 1,
+                CreatedBy = user,
                 CreatedAt = DateTime.UtcNow
             };
             context.WarehouseStock.Add(stock);
@@ -95,6 +97,9 @@ public partial class MovimientosManager
             stock.CurrentStock += request.Cantidad;
             stock.FechaActualizacion = DateTime.UtcNow;
         }
+        
+        var user = await userManager.GetUserAuthenticate();
+
 
         // 4. Cada unidad ingresada queda trazable con un serial interno. Si el
         // proveedor entrega seriales, se conservan; en caso contrario se generan.
@@ -109,7 +114,7 @@ public partial class MovimientosManager
                 Lote = request.Lote,
                 FechaVencimiento = request.FechaVencimiento,
                 Status = UnidadProductoStatus.Available,
-                CreatedBy = 1,
+                CreatedBy = user.Value.Id,
                 CreatedAt = DateTime.UtcNow
             }).ToList();
 

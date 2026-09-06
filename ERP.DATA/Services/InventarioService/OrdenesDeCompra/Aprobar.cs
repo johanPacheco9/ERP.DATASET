@@ -30,12 +30,14 @@ public partial class OrdenesDeCompraManager
 
         oc.Status = OrdenCompraStatus.Approved;
 
+        var user = await userManager.GetUserAuthenticate();
+
         oc.Observaciones.Add(new OrdenCompraObservaciones
         {
             Texto = observacion ?? $"Orden aprobada por {aprobadoPor}.",
             Fecha = DateTime.UtcNow,
             EstadoAsociado = OrdenCompraStatus.Approved,
-            UsuarioId = aprobadoPor
+            UsuarioId = user.Value.Id
         });
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -66,12 +68,14 @@ public partial class OrdenesDeCompraManager
 
         oc.Status = OrdenCompraStatus.Sent;
 
+        var user = await userManager.GetUserAuthenticate();
+        
         oc.Observaciones.Add(new OrdenCompraObservaciones
         {
             Texto = observacion ?? $"Orden enviada al proveedor por {enviadoPor}.",
             Fecha = DateTime.UtcNow,
             EstadoAsociado = OrdenCompraStatus.Sent,
-            UsuarioId = enviadoPor
+            UsuarioId = user.Value.Id
         });
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -112,12 +116,15 @@ public partial class OrdenesDeCompraManager
 
         oc.Status = OrdenCompraStatus.Cancelled;
 
+        
+        var user = await userManager.GetUserAuthenticate();
+        
         oc.Observaciones.Add(new OrdenCompraObservaciones
         {
             Texto = $"Cancelada por {canceladoPor}. Motivo: {motivo}",
             Fecha = DateTime.UtcNow,
             EstadoAsociado = OrdenCompraStatus.Cancelled,
-            UsuarioId = canceladoPor
+            UsuarioId = user.Value.Id
         });
 
         await _context.SaveChangesAsync(cancellationToken);

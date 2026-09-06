@@ -1,11 +1,11 @@
 @page "/inventario/compras/crear"
 @using ERP.DATA.Services.InventarioService.OrdenesDeCompra
 @using ERP.DATA.Services.Inventario.ProveedorService
-@using ERP.DATA.Services.InventarioService.ProductoBaseService
 @using ERP.TRAN.CrossLayers.API.Inventario.OrdenDeCompra.Requests
+@using ProductoBaseService = ERP.DATA.Services.InventarioService.BaseProducto.ProductoBaseManager
 @inject OrdenesDeCompraManager Ordenes
 @inject SupplierService ProveedoresService
-@inject ProductoBaseService ProductosService
+@inject ProductoBaseService ProductosManager
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 

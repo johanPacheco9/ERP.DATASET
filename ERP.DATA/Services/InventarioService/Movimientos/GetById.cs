@@ -49,6 +49,8 @@ public partial class MovimientosManager
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
+        var user = await userManager.GetUserAuthenticate();
+        
         return new MovimientoDetailDto(
             movimiento.Id,
             movimiento.OrigenWarehouseId,
@@ -65,7 +67,7 @@ public partial class MovimientosManager
             movimiento.Observations,
             items,
             movimiento.CreatedAt,
-            "Corregir, no existe sesion aun"
+            user.Value.PrimerNombre
         );
     }
 }

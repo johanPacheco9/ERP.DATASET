@@ -16,7 +16,7 @@ using ERP.DATA.Services.InventarioService.ControlCalidad;
 using ERP.DATA.Services.UserService;
 using ERP.DATA.Services.VentasService.Stores;
 using Microsoft.Extensions.DependencyInjection;
-using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
+using ProductoBaseManager = ERP.DATA.Services.InventarioService.BaseProducto.ProductoBaseManager;
 
 namespace ERP.DATA.DependencyInjections;
 
@@ -27,7 +27,7 @@ public static class DependencyInjection
         // Todos como Transient: se crean, ejecutan la consulta usando la factoría y se destruyen.
         // Cero consumo innecesario de memoria en el servidor.
         services.AddTransient<AuditoriaService>();
-        services.AddTransient<ProductoBaseService>();
+        services.AddTransient<ProductoBaseManager>();
         services.AddTransient<WarehouseService>();
         services.AddTransient<CategoriaService>();
         services.AddTransient<SupplierService>();

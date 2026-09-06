@@ -4,13 +4,13 @@ using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Responses;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using Microsoft.AspNetCore.Mvc;
-using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
+using ProductoBaseManager = ERP.DATA.Services.InventarioService.BaseProducto.ProductoBaseManager;
 
 
 namespace ERP.API.Controllers.Api.v1.Inventario.ProductoController;
 
 public sealed class GetProductoByIdEndpoint(
-    ProductoBaseService productoService,
+    ProductoBaseManager productoManager,
     ILogger<GetProductoByIdEndpoint> logger
 ) : BaseGetEndpoint<GetProductoByIdRequest, GetProductoByIdEndpoint, BaseProductDto>(logger)
 {
@@ -28,7 +28,7 @@ public sealed class GetProductoByIdEndpoint(
       GetProductoByIdRequest request,
       CancellationToken cancellationToken)
     {
-        var producto = await productoService.GetProductoById(request.Id, cancellationToken);
+        var producto = await productoManager.GetProductoById(request.Id, cancellationToken);
 
         if (producto is null)
             return NotFound();

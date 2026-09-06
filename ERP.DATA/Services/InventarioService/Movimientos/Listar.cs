@@ -44,6 +44,8 @@ public partial class MovimientosManager
                 .Take(pageSize);
         }
 
+        var user = await userManager.GetUserAuthenticate();
+
         var movements = await query.ToListAsync(cancellationToken);
 
         var movementIds = movements.Select(m => m.Id).ToList();
@@ -97,7 +99,7 @@ public partial class MovimientosManager
             m.Observations,
             detailsGrouped.TryGetValue(m.Id, out var itemsList) ? itemsList : new List<MovimientoItemDto>(),
             m.CreatedAt,
-            "Corregir, no existe sesion aun"
+            user.Value.PrimerNombre
         )).ToList();
     }
 }

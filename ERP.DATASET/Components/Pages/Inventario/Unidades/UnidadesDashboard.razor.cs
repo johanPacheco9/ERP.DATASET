@@ -8,14 +8,14 @@ using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
+using ProductoBaseManager = ERP.DATA.Services.InventarioService.BaseProducto.ProductoBaseManager;
 
 namespace ERP.DATASET.Components.Pages.Inventario.Unidades;
 
 public partial class UnidadesDashboard
 {
     [Inject] private UnidadProductoManager UnidadProductoManager { get; set; } = null!;
-    [Inject] private ProductoBaseService ProductoService { get; set; } = null!;
+    [Inject] private ProductoBaseManager ProductoManager { get; set; } = null!;
 
     private bool _loading = true;
     private string? _error;
@@ -31,7 +31,7 @@ public partial class UnidadesDashboard
     {
         try
         {
-            var catalogo = await ProductoService.ListAsync(
+            var catalogo = await ProductoManager.ListAsync(
                 request: new ListProductRequest(pageNumber: 1, pageSize: 1),
                 searchTerm: null,
                 categoryName: null,

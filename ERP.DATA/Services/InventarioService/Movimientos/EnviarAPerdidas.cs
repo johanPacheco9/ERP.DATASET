@@ -38,6 +38,8 @@ public partial class MovimientosManager
             int? bodegaOrigenId = null;
             string? nombreBodegaOrigen = null;
 
+            var userId = await userManager.GetUserId();
+
             foreach (var unitId in request.ProductIds)
             {
                 var unidadReal = await context.UnidadesProductos

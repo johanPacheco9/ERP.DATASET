@@ -16,6 +16,8 @@ public partial class CategoriaService
             return null;
         }
 
+        var userId = await userManager.GetUserId();
+
         try
         {
             var codigoFinal = string.IsNullOrWhiteSpace(request.codigo)
@@ -29,7 +31,7 @@ public partial class CategoriaService
                 Description = request.Descripcion, // Usamos 'Descripcion' del DTO
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
-                CreatedBy = 1,
+                CreatedBy = userId.Value,
             };
 
             context.Category.Add(categoria);

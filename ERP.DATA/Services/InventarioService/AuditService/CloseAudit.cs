@@ -65,6 +65,8 @@ public partial class AuditoriaService
 
         var bodegaAuditoriaId = audit.WarehouseId ?? 0;
 
+        var userId = await userManager.GetUserId();
+        
         await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
         try
@@ -100,7 +102,7 @@ public partial class AuditoriaService
                     UnitCost = 0,
                     Observations = request.Conclusions,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = request._CloserAuth0Id
+                    CreatedBy = userId.Value
                 };
                 _context.Movements.Add(movimientoPerdida);
 

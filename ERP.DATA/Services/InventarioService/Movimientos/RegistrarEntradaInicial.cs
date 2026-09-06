@@ -70,6 +70,8 @@ public partial class MovimientosManager
             }
         }
 
+        var user = await userManager.GetUserAuthenticate();
+
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
         try
@@ -83,7 +85,7 @@ public partial class MovimientosManager
                 UnitCost = variante.CostoUnitario ?? 0,
                 Observations = request.Observations,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = request._CreatorAuth0Id
+                CreatedBy =user.Value.Id
             };
             context.Movements.Add(movement);
             await context.SaveChangesAsync(cancellationToken);
@@ -109,7 +111,7 @@ public partial class MovimientosManager
                     SerialNumber = serial,
                     Status = UnidadProductoStatus.Available,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = request._CreatorAuth0Id
+                    CreatedBy = user.Value.Id
                 };
                 context.UnidadesProductos.Add(nuevaUnidad);
                 await context.SaveChangesAsync(cancellationToken);

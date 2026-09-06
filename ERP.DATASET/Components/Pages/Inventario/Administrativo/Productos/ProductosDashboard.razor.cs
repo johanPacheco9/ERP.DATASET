@@ -4,7 +4,7 @@ using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Responses;
 using Microsoft.AspNetCore.Components;
-using ProductoBaseService = ERP.DATA.Services.InventarioService.ProductoBaseService.ProductoBaseService;
+using ProductoBaseManager = ERP.DATA.Services.InventarioService.BaseProducto.ProductoBaseManager;
 
 namespace ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos;
 
@@ -28,7 +28,7 @@ public partial class ProductosDashboard
 
     private List<CategoriaDetailDto> _categorias = [] ;
 
-    [Inject] public ProductoBaseService ProductoService { get; set; } = null!;
+    [Inject] public ProductoBaseManager ProductoManager { get; set; } = null!;
 
     [Inject] public CategoriaService CategoriaService { get; set; } = null!;
 
@@ -66,7 +66,7 @@ public partial class ProductosDashboard
             orderBy: null
         );
 
-        var result = await ProductoService.ListAsync(
+        var result = await ProductoManager.ListAsync(
             request,
             searchTerm: _searchText,
             categoryName: _selectedCategory,
