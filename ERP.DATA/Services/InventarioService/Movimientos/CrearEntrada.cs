@@ -87,7 +87,7 @@ public partial class MovimientosManager
                 ProductoVarianteId = variante.Id,
                 CurrentStock = request.Cantidad,
                 FechaActualizacion = DateTime.UtcNow,
-                CreatedBy = user,
+                CreatedBy = user.Value.Id,
                 CreatedAt = DateTime.UtcNow
             };
             context.WarehouseStock.Add(stock);
@@ -97,9 +97,6 @@ public partial class MovimientosManager
             stock.CurrentStock += request.Cantidad;
             stock.FechaActualizacion = DateTime.UtcNow;
         }
-        
-        var user = await userManager.GetUserAuthenticate();
-
 
         // 4. Cada unidad ingresada queda trazable con un serial interno. Si el
         // proveedor entrega seriales, se conservan; en caso contrario se generan.
