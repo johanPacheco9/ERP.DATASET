@@ -9,6 +9,11 @@ public class OrdenCompraActionsEndpoint : ControllerBase
 {
     private readonly OrdenesDeCompraManager _manager;
 
+    // TODO: reemplazar por el Id del usuario autenticado (JWT/Auth0) cuando se conecte
+    // la autenticación real. Por ahora se usa un Id de placeholder para que el tipo
+    // coincida con lo que espera OrdenesDeCompraManager (int, no el nombre en texto).
+    private const int PlaceholderUserId = 1;
+
     public OrdenCompraActionsEndpoint(OrdenesDeCompraManager manager)
     {
         _manager = manager;
@@ -21,8 +26,7 @@ public class OrdenCompraActionsEndpoint : ControllerBase
         [FromBody] AproveOrdenCompraRequest request,
         CancellationToken cancellationToken)
     {
-        // En un escenario real usaríamos el nombre/ID del usuario autenticado
-        var result = await _manager.Aprobar(id, "admin", request.Observaciones, cancellationToken);
+        var result = await _manager.Aprobar(id, PlaceholderUserId, request.Observaciones, cancellationToken);
         if (!result.IsSuccess)
             return BadRequest(result.Error);
 
@@ -36,7 +40,7 @@ public class OrdenCompraActionsEndpoint : ControllerBase
         [FromBody] EnviarOrdenCompraRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await _manager.Enviar(id, "admin", request.Observaciones, cancellationToken);
+        var result = await _manager.Enviar(id, PlaceholderUserId, request.Observaciones, cancellationToken);
         if (!result.IsSuccess)
             return BadRequest(result.Error);
 
@@ -50,7 +54,7 @@ public class OrdenCompraActionsEndpoint : ControllerBase
         [FromBody] CancelarOrdenCompraRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await _manager.Cancelar(id, "admin", request.Motivo, cancellationToken);
+        var result = await _manager.Cancelar(id, PlaceholderUserId, request.Motivo, cancellationToken);
         if (!result.IsSuccess)
             return BadRequest(result.Error);
 

@@ -53,7 +53,6 @@ public partial class MainDataContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-
         modelBuilder.Entity<Movement>(entity =>
         {
             // Configuración para la bodega de origen
@@ -62,12 +61,31 @@ public partial class MainDataContext
                 .HasForeignKey(m => m.OrigenWarehouseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configuración para la bodega de destino (permite nulos por si es entrada/salida simple)
+            // Configuración para la bodega de destino
+            // (permite nulos por si es entrada/salida simple)
             entity.HasOne(m => m.DestinationWarehouse)
                 .WithMany()
                 .HasForeignKey(m => m.DestinationWarehouseId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // NUEVO: control de concurrencia optimista para evitar sobreventa
+        // cuando dos ventas descuentan el mismo WarehouseStock casi al mismo tiempo.
+        //
+        // xmin es una columna interna que PostgreSQL mantiene automáticamente
+        // y cambia en cada UPDATE de la fila.
+        //
+        // No se crea ninguna columna nueva ni hace falta migración:
+        // se le pide a EF Core que la lea y la use para detectar si otro
+        // proceso modificó el registro entre que lo leímos y lo intentamos guardar.
+        modelBuilder.Entity<WarehouseStock>(e =>
+        {
+            e.Property<uint>("Version")
+                .HasColumnName("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
         });
     }
 }

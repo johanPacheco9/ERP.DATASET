@@ -37,7 +37,7 @@ public partial class SaleService
                 StoreId = request.StoreId,
                 Status = SaleStatus.Completed,
                 Notes = request.Notes,
-                CreatedBy = 1,
+                CreatedBy = request._CreatorAuth0Id,
                 CreatedAt = DateTime.UtcNow,
                 FactusStatus = "Pendiente"
             };
@@ -68,14 +68,14 @@ public partial class SaleService
                 var taxRate = line.TaxRate ?? (variante.ProductoBase.ExentoIVA ? 0m : variante.ProductoBase.PorcentajeIVA);
                 
                 var lineSubtotal = unitPrice * qty;
-                // var lineTax = Math.Round(lineSubtotal ?? 0 * taxRate, 2);
-                // FIX bug IVA: se necesita el paréntesis porque ?? tiene menor precedencia que *
-                //  (antes "lineSubtotal ?? 0 * taxRate" ignoraba taxRate y duplicaba el total de la línea)
+                // FIX: el operador ?? tiene menor precedencia que *, así que "lineSubtotal ?? 0 * taxRate"
+                // se evaluaba como "lineSubtotal ?? (0 * taxRate)" y el taxRate nunca se aplicaba
+                // cuando lineSubtotal tenía valor (el caso normal). Esto duplicaba el total de cada línea.
                 var lineTax = Math.Round((lineSubtotal ?? 0) * taxRate, 2);
                 var lineTotal = lineSubtotal + lineTax;
 
                 // 2. Descontar Inventario vía StockHelper (usando el ProductoBaseId de la relación real de la variante)
-                var movementId = await StockHelper.DeductInventoryAsync(
+                var (movementId, unidadProductoId) = await StockHelper.DeductInventoryAsync(
                     context,
                     request.WarehouseId,
                     variante.ProductoBaseId,
@@ -94,13 +94,14 @@ public partial class SaleService
                     ProductoVarianteId = line.ProductoVarianteId,
                     // FIX: antes se asignaba movementId por error (era el Id del kárdex, no de la unidad física).
                     // Ahora se usa el UnidadProductoId real que devuelve StockHelper (null si no es venta por serial).
+                    UnidadProductoId = unidadProductoId,
                     Quantity = qty,
                     UnitPrice = unitPrice ?? 0,
                     TaxRate = taxRate,
                     TaxAmount = lineTax,
                     LineTotal = lineTotal ?? 0,
                     MovementId = movementId,
-                    CreatedBy = 1,
+                    CreatedBy = request._CreatorAuth0Id,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -121,7 +122,7 @@ public partial class SaleService
                 Amount = request.PaymentAmount,
                 Method = request.PaymentMethod,
                 PaidAt = DateTime.UtcNow,
-                CreatedBy = 1,
+                CreatedBy = request._CreatorAuth0Id,
                 CreatedAt = DateTime.UtcNow
             };
             context.SalePayments.Add(payment);
