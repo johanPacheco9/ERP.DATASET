@@ -1,4 +1,4 @@
-锘縰sing ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.Stores;
+using ERP.TRAN.CrossLayers.API.Stores.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
@@ -23,12 +23,12 @@ public class Store : EntityWithtraceability
     public ICollection<PosTerminal> Cajas { get; set; } = new List<PosTerminal>();
     
     //// <summary>
-    /// Colecci贸n de asociaciones con tiendas/sucursales (Relaci贸n Muchos a Muchos).
+    /// Colecci髇 de asociaciones con tiendas/sucursales (Relaci髇 Muchos a Muchos).
     /// </summary>
     /// <remarks>
     /// Permite que un empleado, cajero o administrador tenga permisos para operar o 
-    /// supervisar m煤ltiples sucursales bajo circunstancias de rotaci贸n de personal, 
-    /// apoyo temporal o gesti贸n multi-tienda.
+    /// supervisar m鷏tiples sucursales bajo circunstancias de rotaci髇 de personal, 
+    /// apoyo temporal o gesti髇 multi-tienda.
     /// </remarks>
     public ICollection<UsuarioStore> UserStores { get; set; } = new List<UsuarioStore>();
 }
