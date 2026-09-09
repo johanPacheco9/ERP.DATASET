@@ -1,4 +1,5 @@
 @page "/tiendas"
+@attribute [Authorize(Roles = AppPermissions.Policies.StoreManagement)]
 @using ERP.DATA.Services.VentasService.Stores
 @using ERP.TRAN.CrossLayers.API.Pos.Stores.Requests
 @using ERP.TRAN.CrossLayers.API.Pos.Stores.Responses

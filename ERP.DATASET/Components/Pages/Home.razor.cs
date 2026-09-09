@@ -9,6 +9,7 @@ using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
 using Microsoft.AspNetCore.Components;
 using ProductoBaseManager = ERP.DATA.Services.InventarioService.BaseProducto.ProductoBaseManager;

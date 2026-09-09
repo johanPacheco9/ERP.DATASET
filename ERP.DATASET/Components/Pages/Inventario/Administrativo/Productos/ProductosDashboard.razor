@@ -1,20 +1,25 @@
 @page "/ProductosDashboard"
+@attribute [Authorize(Roles = AppPermissions.Policies.ProductAndStockConsultation)]
 @using ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos
 @using ERP.DATASET.Components.Pages.Inventario.Administrativo.Productos.Movimientos
 @rendermode InteractiveServer
-<PageTitle>Productos - ERP</PageTitle>
+<PageTitle>Productos & Existencias - ERP</PageTitle>
 
 <div class="minimal-container">
     <!-- Header Minimalista -->
     <div class="minimal-header">
         <div class="header-content">
-            <h1 class="minimal-title">Productos</h1>
-            <p class="minimal-subtitle">Gestión de inventario</p>
+            <h1 class="minimal-title">Productos & Existencias</h1>
+            <p class="minimal-subtitle">Consulta de catálogo y niveles de stock</p>
         </div>
-        <button @onclick="NuevoProducto" class="minimal-btn primary" type="button">
-            <i class="bi bi-plus-lg"></i>
-            Nuevo producto
-        </button>
+        <AuthorizeView Roles="@AppPermissions.Policies.InventoryManagement">
+            <Authorized>
+                <button @onclick="NuevoProducto" class="minimal-btn primary" type="button">
+                    <i class="bi bi-plus-lg"></i>
+                    Nuevo producto
+                </button>
+            </Authorized>
+        </AuthorizeView>
     </div>
     <div class="row g-2 align-items-center mb-3">
 
