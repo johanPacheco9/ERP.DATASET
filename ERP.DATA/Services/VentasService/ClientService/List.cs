@@ -6,11 +6,17 @@ namespace ERP.DATA.Services.VentasService.ClientService;
 public partial class ClientService
 {
     public Task<List<ClientSummaryDto>> ListAsync(CancellationToken cancellationToken = default)
-        => ListAsync(null, cancellationToken);
+        => ListAsync(null, false, cancellationToken);
 
-    public async Task<List<ClientSummaryDto>> ListAsync(string? search, CancellationToken cancellationToken = default)
+    public Task<List<ClientSummaryDto>> ListAsync(string? search, CancellationToken cancellationToken = default)
+        => ListAsync(search, false, cancellationToken);
+
+    public async Task<List<ClientSummaryDto>> ListAsync(string? search, bool includeInactive, CancellationToken cancellationToken = default)
     {
         var query = context.Clients.AsNoTracking().AsQueryable();
+
+        if (!includeInactive)
+            query = query.Where(c => c.IsActive);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -33,7 +39,8 @@ public partial class ClientService
                 c.City,
                 c.Email,
                 c.Address,
-                c.Dv))
+                c.Dv,
+                c.IsActive))
             .ToListAsync(cancellationToken);
     }
 }

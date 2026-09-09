@@ -22,4 +22,7 @@ public class Client
     public string? Fax { get; set; }
     public string? LegalOrganizationType { get; set; }
     public string? TaxRegime { get; set; }
+
+//usuario activo por ventas asociadas o no
+    public bool IsActive { get; set; } = true;
 }

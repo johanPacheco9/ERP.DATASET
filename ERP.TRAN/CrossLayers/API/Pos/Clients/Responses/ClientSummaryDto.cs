@@ -11,5 +11,7 @@ public sealed record ClientSummaryDto(
     string? City,
     string? Email = null,
     string? Address = null,
-    string? Dv = null
+    string? Dv = null,
+    //usuario activo por ventas asociadas o no
+    bool IsActive = true
 );
