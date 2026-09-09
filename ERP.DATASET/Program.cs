@@ -122,6 +122,16 @@ app.UseAntiforgery();
 
 app.MapRazorPages();
 
+app.MapMethods("/logout", new[] { "GET", "POST" }, (HttpContext httpContext) =>
+{
+    httpContext.Response.Cookies.Delete("auth_token", new CookieOptions
+    {
+        Secure = true,
+        SameSite = SameSiteMode.Strict
+    });
+    return Results.Redirect("/");
+});
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

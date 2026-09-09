@@ -1,6 +1,7 @@
 ﻿using ERP.DATA.Services.InventarioService.UnidadProductoService;
 using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;

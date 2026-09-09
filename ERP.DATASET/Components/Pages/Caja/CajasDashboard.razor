@@ -1,0 +1,372 @@
+@page "/cajas"
+@attribute [Authorize(Roles = AppPermissions.Policies.CashRegisterAdministration)]
+@rendermode InteractiveServer
+
+<div class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+    <!-- Header General -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-semibold text-xs border border-blue-200">
+                    Administración POS
+                </span>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Gestión de Cajas y Asignación de Turnos</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Controle las terminales de venta físicas, sucursales y la asignación de cajeros autorizados.</p>
+        </div>
+        <div class="flex items-center gap-2.5">
+            <a href="/caja/abrir" class="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center gap-1.5 border border-slate-200">
+                <i class="bi bi-door-open"></i> Apertura Cajero
+            </a>
+            <a href="/cajas/nueva" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-md shadow-emerald-500/20 transition-all flex items-center gap-2">
+                <i class="bi bi-plus-lg"></i> Nueva Caja POS
+            </a>
+        </div>
+    </div>
+
+    <!-- Navegación de Pestañas (Tabs) -->
+    <div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-200 flex items-center gap-2">
+        <button type="button" 
+                @onclick="@(() => SetTab("terminales"))"
+                class="px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 @(_activeTab == "terminales" ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-50")">
+            <i class="bi bi-display"></i>
+            <span>Terminales Físicas POS (@_terminals.Count)</span>
+        </button>
+
+        <button type="button" 
+                @onclick="@(() => SetTab("asignaciones"))"
+                class="px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 @(_activeTab == "asignaciones" ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-50")">
+            <i class="bi bi-people-fill"></i>
+            <span>Asignación de Cajeros por Sucursal (@_cashiers.Count)</span>
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill text-sm"></i>
+            <span>@_errorMessage</span>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(_successMessage))
+    {
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+            <i class="bi bi-check-circle-fill text-sm"></i>
+            <span>@_successMessage</span>
+        </div>
+    }
+
+    <!-- TAB 1: TERMINALES FÍSICAS -->
+    @if (_activeTab == "terminales")
+    {
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="relative w-full sm:w-80">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <i class="bi bi-search text-xs"></i>
+                    </div>
+                    <input type="text" 
+                           @bind="_searchTerminal" 
+                           @bind:event="oninput" 
+                           placeholder="Buscar por caja, código o sucursal..." 
+                           class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div class="text-xs text-slate-500 font-medium">
+                    Mostrando @_filteredTerminals.Count() terminales
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-bold tracking-wider">
+                            <th class="py-3 px-6">Terminal POS / Código</th>
+                            <th class="py-3 px-4">Sucursal / Bodega</th>
+                            <th class="py-3 px-4">Prefijo & DIAN</th>
+                            <th class="py-3 px-4 text-center">Estado Operativo</th>
+                            <th class="py-3 px-4 text-center">Turno Actual</th>
+                            <th class="py-3 px-6 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                        @if (_isLoading)
+                        {
+                            <tr>
+                                <td colspan="6" class="py-10 text-center text-slate-400">
+                                    <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent mb-2"></div>
+                                    <p class="text-xs">Cargando terminales...</p>
+                                </td>
+                            </tr>
+                        }
+                        else if (!_filteredTerminals.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="py-12 text-center text-slate-400">
+                                    <i class="bi bi-display text-3xl mb-2 block text-slate-300"></i>
+                                    <p>No se encontraron terminales registradas.</p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var term in _filteredTerminals)
+                            {
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="py-3.5 px-6">
+                                        <div class="font-bold text-slate-800 flex items-center gap-2">
+                                            <i class="bi bi-pc-display text-slate-400"></i>
+                                            @term.Name
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-mono">Código: @term.Code</span>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        <div class="font-semibold text-slate-800">@term.StoreName</div>
+                                        <span class="text-[10px] text-slate-400">Bodega: @term.WarehouseName</span>
+                                    </td>
+                                    <td class="py-3.5 px-4 font-mono text-[11px]">
+                                        <span class="text-slate-700 font-bold">@term.Prefix</span> - #@term.CurrentConsecutive
+                                        @if (!string.IsNullOrEmpty(term.DianResolutionNumber))
+                                        {
+                                            <span class="block text-[9px] text-slate-400 truncate max-w-[140px]">Res: @term.DianResolutionNumber</span>
+                                        }
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        @if (term.IsActive)
+                                        {
+                                            <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">
+                                                Activa
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">
+                                                Inactiva
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        @if (term.HasActiveShift)
+                                        {
+                                            <div class="inline-flex flex-col items-center">
+                                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Abierta
+                                                </span>
+                                                <span class="text-[10px] text-slate-500 mt-0.5 truncate max-w-[120px]">
+                                                    @(term.ActiveCashierName ?? "Cajero")
+                                                </span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-medium border border-slate-200">
+                                                Cerrada
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="py-3.5 px-6 text-right">
+                                        <a href="/caja/abrir" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors inline-flex items-center gap-1 border border-slate-200">
+                                            <i class="bi bi-arrow-right-circle text-[11px]"></i> Abrir
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- TAB 2: ASIGNACIÓN DE CAJEROS POR SUCURSAL -->
+    @if (_activeTab == "asignaciones")
+    {
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-800">Cajeros y Sucursales Asignadas</h2>
+                    <p class="text-[11px] text-slate-500">Un cajero solo podrá abrir turnos en las sucursales donde tenga autorización explícita.</p>
+                </div>
+                <div class="relative w-full sm:w-72">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="bi bi-search text-xs"></i>
+                    </div>
+                    <input type="text" 
+                           @bind="_searchCashier" 
+                           @bind:event="oninput" 
+                           placeholder="Buscar por cajero o correo..." 
+                           class="w-full pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-bold tracking-wider">
+                            <th class="py-3 px-6">Cajero / Usuario</th>
+                            <th class="py-3 px-4">Email</th>
+                            <th class="py-3 px-4">Sucursales Autorizadas</th>
+                            <th class="py-3 px-4 text-center">Estado</th>
+                            <th class="py-3 px-6 text-right">Asignación</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                        @if (_isLoading)
+                        {
+                            <tr>
+                                <td colspan="5" class="py-10 text-center text-slate-400">
+                                    <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent mb-2"></div>
+                                    <p class="text-xs">Cargando cajeros...</p>
+                                </td>
+                            </tr>
+                        }
+                        else if (!_filteredCashiers.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="py-12 text-center text-slate-400">
+                                    <i class="bi bi-people text-3xl mb-2 block text-slate-300"></i>
+                                    <p>No se encontraron usuarios con rol Cajero registrados.</p>
+                                    <a href="/usuarios" class="text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block">
+                                        Ir a Gestión de Usuarios
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var cashier in _filteredCashiers)
+                            {
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="py-3.5 px-6">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs uppercase border border-blue-200">
+                                                @(cashier.NombreCompleto.Length > 0 ? cashier.NombreCompleto[0].ToString() : "C")
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-slate-800">@cashier.NombreCompleto</div>
+                                                <span class="text-[10px] text-slate-400 font-mono">@@@cashier.UserName</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4 font-mono text-[11px] text-slate-600">
+                                        @cashier.Email
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        @if (!cashier.AssignedStores.Any())
+                                        {
+                                            <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-medium border border-amber-200">
+                                                Sin sucursales fijas (Acceso a todas)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <div class="flex flex-wrap gap-1">
+                                                @foreach (var st in cashier.AssignedStores)
+                                                {
+                                                    <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-semibold border border-slate-200 flex items-center gap-1">
+                                                        <i class="bi bi-shop text-[9px]"></i>
+                                                        @st.StoreName
+                                                        @if (st.IsDefault)
+                                                        {
+                                                            <span class="text-[8px] bg-blue-600 text-white rounded px-1 py-0.2">Defecto</span>
+                                                        }
+                                                    </span>
+                                                }
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        @if (cashier.IsActive)
+                                        {
+                                            <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">
+                                                Activo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">
+                                                Inactivo
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="py-3.5 px-6 text-right">
+                                        <button type="button" 
+                                                @onclick="() => OpenAssignModal(cashier)"
+                                                class="px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors border border-blue-200 inline-flex items-center gap-1.5">
+                                            <i class="bi bi-pencil-square text-[11px]"></i> Asignar Sucursal
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal para Asignar Sucursales a un Cajero -->
+@if (_showAssignModal && _selectedCashier != null)
+{
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-800">Asignar Sucursales</h3>
+                    <p class="text-xs text-slate-500">Cajero: <strong class="text-slate-800">@_selectedCashier.NombreCompleto</strong></p>
+                </div>
+                <button @onclick="CloseAssignModal" class="text-slate-400 hover:text-slate-600">
+                    <i class="bi bi-x-lg text-sm"></i>
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_modalError))
+            {
+                <div class="bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-xl text-xs flex items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>@_modalError</span>
+                </div>
+            }
+
+            <p class="text-xs text-slate-600">
+                Seleccione las tiendas/sucursales donde este cajero tiene permiso para abrir y operar cajas:
+            </p>
+
+            <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                @foreach (var store in _allStores)
+                {
+                    var isAssigned = _selectedStoreIds.Contains(store.Id);
+                    <div class="flex items-center justify-between p-3 rounded-xl border @(isAssigned ? "bg-blue-50/50 border-blue-200" : "bg-slate-50 border-slate-200") transition-colors">
+                        <label class="flex items-center gap-2.5 cursor-pointer select-none text-xs font-semibold text-slate-800">
+                            <input type="checkbox" 
+                                   checked="@isAssigned" 
+                                   @onchange="(e => ToggleStoreSelection(store.Id, e.Value))"
+                                   class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" />
+                            <span>@store.Name</span>
+                        </label>
+                        <span class="text-[10px] text-slate-400">ID: #@store.Id</span>
+                    </div>
+                }
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button @onclick="CloseAssignModal" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors">
+                    Cancelar
+                </button>
+                <button @onclick="SaveCashierAssignments" disabled="@_isSavingAssignment" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5 disabled:opacity-50">
+                    @if (_isSavingAssignment)
+                    {
+                        <div class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                        <span>Guardando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-check-lg"></i>
+                        <span>Guardar Asignaciones</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}

@@ -40,135 +40,192 @@
                     </div>
                 }
                 <div class="space-y-1">
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="" Match="NavLinkMatch.All">
+                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="/home" Match="NavLinkMatch.All">
                         <i class="bi bi-grid text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
                         @if (!IsCollapsed) { <span>Inicio</span> }
                     </NavLink>
                 </div>
             </div>
 
-            <!-- SECCIÓN: VENTAS & FACTURACIÓN -->
-            <div>
-                @if (!IsCollapsed)
-                {
-                    <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                        <span>Ventas & POS</span>
-                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Factus</span>
+            <!-- SECCIÓN: VENTAS & FACTURACIÓN (Visible para Cajeros, Supervisores y Admins) -->
+            <AuthorizeView Roles="@AppPermissions.Policies.PosAndSales">
+                <div>
+                    @if (!IsCollapsed)
+                    {
+                        <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                            <span>Ventas & POS</span>
+                            <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Factus</span>
+                        </div>
+                    }
+                    <div class="space-y-1">
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ventas/nueva">
+                            <i class="bi bi-upc-scan text-sm text-emerald-600 group-hover:text-emerald-700 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span class="font-semibold text-slate-900">Terminal POS (Vender)</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="caja/abrir">
+                            <i class="bi bi-door-open text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Abrir / Cerrar Caja</span> }
+                        </NavLink>
+
+                        <AuthorizeView Roles="@AppPermissions.Policies.CashRegisterAdministration" Context="adminCajaCtx">
+                            <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="cajas">
+                                <i class="bi bi-display text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                                @if (!IsCollapsed) { <span>Gestión & Asignar Cajas</span> }
+                            </NavLink>
+                        </AuthorizeView>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ventas">
+                            <i class="bi bi-receipt text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Historial Ventas</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="cartera">
+                            <i class="bi bi-cash-stack text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Cartera y Cobros</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="clientes">
+                            <i class="bi bi-people text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Clientes / DIAN</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ProductosDashboard">
+                            <i class="bi bi-tags text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Existencias / Catálogo</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="unidades">
+                            <i class="bi bi-qr-code-scan text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Unidades Físicas (Serial)</span> }
+                        </NavLink>
                     </div>
-                }
-                <div class="space-y-1">
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ventas/nueva">
-                        <i class="bi bi-upc-scan text-sm text-emerald-600 group-hover:text-emerald-700 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span class="font-semibold text-slate-900">Terminal POS (Caja)</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ventas">
-                        <i class="bi bi-receipt text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Historial Ventas</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="cartera">
-                        <i class="bi bi-cash-stack text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Cartera y Cobros</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="clientes">
-                        <i class="bi bi-people text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Clientes / DIAN</span> }
-                    </NavLink>
-                    
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="caja/abrir">
-                        <i class="bi bi-people text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Caja / DIAN</span> }
-                    </NavLink>
                 </div>
-            </div>
+            </AuthorizeView>
 
-            <!-- SECCIÓN: INVENTARIO -->
-            <div>
-                @if (!IsCollapsed)
-                {
-                    <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Inventario
+            <!-- SECCIÓN: INVENTARIO (Visible para Admin y Supervisor) -->
+            <AuthorizeView Roles="@AppPermissions.Policies.InventoryManagement">
+                <div>
+                    @if (!IsCollapsed)
+                    {
+                        <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            Inventario & Logística
+                        </div>
+                    }
+                    <div class="space-y-1">
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="inventario">
+                            <i class="bi bi-box-seam text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Módulo General</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ProductosDashboard">
+                            <i class="bi bi-tags text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Productos</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="categorias">
+                            <i class="bi bi-folder2 text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Categorías</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="bodegas">
+                            <i class="bi bi-building text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Bodegas</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="/inventario/movimientos">
+                            <i class="bi bi-arrow-left-right text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Movimientos Kárdex</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="stock-alertas">
+                            <i class="bi bi-exclamation-triangle text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Alertas de Stock</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="unidades">
+                            <i class="bi bi-qr-code-scan text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Unidades Físicas</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="auditorias">
+                            <i class="bi bi-clipboard-check text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Auditorías</span> }
+                        </NavLink>
+
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="proveedores">
+                            <i class="bi bi-truck text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Proveedores</span> }
+                        </NavLink>
+                        
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="/inventario/compras">
+                            <i class="bi bi-cart3 text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Órdenes de Compra</span> }
+                        </NavLink>
+
+                        <AuthorizeView Roles="@AppPermissions.Policies.StoreManagement" Context="storeCtx">
+                            <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="tiendas">
+                                <i class="bi bi-shop text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                                @if (!IsCollapsed) { <span>Sucursales / Tiendas</span> }
+                            </NavLink>
+                        </AuthorizeView>
                     </div>
-                }
-                <div class="space-y-1">
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="inventario">
-                        <i class="bi bi-box-seam text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Módulo General</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="ProductosDashboard">
-                        <i class="bi bi-tags text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Productos</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="categorias">
-                        <i class="bi bi-folder2 text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Categorías</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="bodegas">
-                        <i class="bi bi-building text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Bodegas</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="/inventario/movimientos">
-                        <i class="bi bi-arrow-left-right text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Movimientos Kárdex</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="stock-alertas">
-                        <i class="bi bi-exclamation-triangle text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Alertas de Stock</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="unidades">
-                        <i class="bi bi-qr-code-scan text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Unidades Físicas</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="auditorias">
-                        <i class="bi bi-clipboard-check text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Auditorías</span> }
-                    </NavLink>
-
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="proveedores">
-                        <i class="bi bi-truck text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Proveedores</span> }
-                    </NavLink>
-                    
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="/inventario/compras">
-                        <i class="bi bi-cart3 text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Órdenes de Compra</span> }
-                    </NavLink>
-                    
-                    <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="tiendas">
-                        <i class="bi bi-truck text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
-                        @if (!IsCollapsed) { <span>Tiendas</span> }
-                    </NavLink>
                 </div>
-            </div>
+            </AuthorizeView>
+
+            <!-- SECCIÓN: ADMINISTRACIÓN Y USUARIOS (Exclusivo Admin) -->
+            <AuthorizeView Roles="@AppPermissions.Policies.UserManagement">
+                <div>
+                    @if (!IsCollapsed)
+                    {
+                        <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            Seguridad
+                        </div>
+                    }
+                    <div class="space-y-1">
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="usuarios">
+                            <i class="bi bi-people-fill text-sm text-slate-400 group-hover:text-slate-600 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span>Gestión de Usuarios</span> }
+                        </NavLink>
+                    </div>
+                </div>
+            </AuthorizeView>
         </nav>
     </div>
 
-    <!-- Footer Sidebar -->
+    <!-- Footer Sidebar: Usuario Autenticado -->
     @if (!IsCollapsed)
     {
         <div class="p-3 border-t border-slate-200 text-xs">
-            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs">
-                        C
+            <AuthorizeView>
+                <Authorized>
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs uppercase border border-blue-200">
+                                @(context.User.Identity?.Name?.Length > 0 ? context.User.Identity.Name[0].ToString() : "U")
+                            </div>
+                            <div class="truncate max-w-[130px]">
+                                <span class="font-bold text-slate-800 text-[11px] block leading-tight truncate">
+                                    @(context.User.Identity?.Name ?? "Usuario")
+                                </span>
+                                <span class="text-[9px] px-1.5 py-0.2 rounded font-semibold inline-block @GetRoleBadgeClass(context.User)">
+                                    @GetRoleDisplayName(context.User)
+                                </span>
+                            </div>
+                        </div>
+                        <a href="/logout" title="Cerrar sesión" class="text-slate-400 hover:text-rose-600 transition-colors p-1">
+                            <i class="bi bi-box-arrow-right text-sm"></i>
+                        </a>
                     </div>
-                    <div>
-                        <span class="font-bold text-slate-800 text-[11px] block leading-tight">Caja Principal</span>
-                        <span class="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Conectado
-                        </span>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                        <a href="/login" class="text-xs font-semibold text-blue-600 hover:underline">
+                            <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                        </a>
                     </div>
-                </div>
-            </div>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
     }
 </aside>
@@ -177,4 +234,21 @@
     private bool IsCollapsed;
     private static IComponentRenderMode pageRenderMode = InteractiveServer;
     void Toggle() => IsCollapsed = !IsCollapsed;
+
+    private string GetRoleDisplayName(System.Security.Claims.ClaimsPrincipal user)
+    {
+        if (user.IsInRole(AppPermissions.Roles.Admin)) return "Administrador";
+        if (user.IsInRole(AppPermissions.Roles.Supervisor)) return "Supervisor";
+        if (user.IsInRole(AppPermissions.Roles.Cashier)) return "Cajero";
+        return "Operador";
+    }
+
+    private string GetRoleBadgeClass(System.Security.Claims.ClaimsPrincipal user)
+    {
+        if (user.IsInRole(AppPermissions.Roles.Admin)) return "bg-purple-100 text-purple-800 border border-purple-200";
+        if (user.IsInRole(AppPermissions.Roles.Supervisor)) return "bg-amber-100 text-amber-800 border border-amber-200";
+        if (user.IsInRole(AppPermissions.Roles.Cashier)) return "bg-emerald-100 text-emerald-800 border border-emerald-200";
+        return "bg-slate-100 text-slate-700 border border-slate-200";
+    }
 }
+

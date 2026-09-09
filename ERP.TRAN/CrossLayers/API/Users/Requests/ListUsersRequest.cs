@@ -1,21 +1,22 @@
 using System.ComponentModel;
 using Ardalis.GuardClauses;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Responses;
+using ERP.TRAN.CrossLayers.API.Users.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Requests;
 
-namespace ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Request;
+namespace ERP.TRAN.CrossLayers.API.Users.Requests;
 
-public sealed class ListUnitProductRequest : BaseListRequest
+public class ListUsersRequest : BaseListRequest
 {
     /// <summary>
-    ///     Crea una solicitud ordenando los abonos por fecha de creación, del más reciente al más antiguo (descendente).
+    ///     Crea una solicitud ordenando los usuarios del sistema, del más reciente al más antiguo (descendente).
     /// </summary>
     /// <remarks>
     ///     Son requeridos los constructores sin parámetros para la deserialización de JSON.
     /// </remarks>
-    public ListUnitProductRequest()
+    public ListUsersRequest()
     {
-        OrderBy = $"{nameof(UnidadProductoDetailDto.Id)} desc";
+        OrderBy = $"{nameof(UserDetailDto.Id)} desc";
     }
 
     /// <summary>
@@ -26,7 +27,7 @@ public sealed class ListUnitProductRequest : BaseListRequest
     /// <param name="minDate">Fecha mínima de creación del cupón</param>
     /// <param name="maxDate">Fecha máxima de creación del cupón</param>
     /// <param name="orderBy">Criterio de ordenamiento</param>
-    public ListUnitProductRequest(int pageNumber, int pageSize,
+    public ListUsersRequest(int pageNumber, int pageSize,
         DateTime? minDate = null, DateTime? maxDate = null, string? orderBy = null)
     {
         OrderBy = orderBy ?? OrderBy;
@@ -73,10 +74,10 @@ public sealed class ListUnitProductRequest : BaseListRequest
         {
             var validFields = new[]
             {
-                nameof(UnidadProductoDetailDto.Id),
-                nameof(UnidadProductoDetailDto.productName),
-                nameof(UnidadProductoDetailDto.ProductoCodigo),
-                nameof(UnidadProductoDetailDto.PrecioVenta)
+                nameof(UserDetailDto.Id),
+                nameof(UserDetailDto.PrimerNombre),
+                nameof(UserDetailDto.Email),
+                nameof(UserDetailDto.Role)
             };
 
             // Verifica si el campo de ordenamiento contiene alguno de los campos válidos

@@ -1,0 +1,120 @@
+@page "/usuarios"
+
+@using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Roles = "Admin")]
+
+<div class="p-6 max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-bold text-gray-800">Usuarios del sistema</h3>
+    </div>
+
+    <!-- Barra de búsqueda y botón de nuevo en un contenedor flex -->
+    <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-6">
+        <div class="w-full sm:w-1/3">
+            <input type="text" 
+                   @oninput="HandleSearch" 
+                   placeholder="Buscar por nombre o correo..." 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+    
+        <div>
+            <a href="/usuarios/nuevo" class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                </svg>
+                Nuevo Usuario
+            </a>
+        </div>
+    </div>
+    
+    @if (_isLoading)
+    {
+        <div class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span class="ml-2 text-gray-600">Cargando usuarios...</span>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span class="block sm:inline">@_errorMessage</span>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
+                <thead class="bg-gray-50 text-gray-700 uppercase font-semibold">
+                    <tr>
+                        <th class="px-6 py-3">ID</th>
+                        <th class="px-6 py-3">Nombre Completo</th>
+                        <th class="px-6 py-3">Correo</th>
+                        <th class="px-6 py-3">Rol</th>
+                        <th class="px-6 py-3">Estado</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 text-gray-600">
+                    @if (_users.Any())
+                    {
+                        @foreach (var user in _users)
+                        {
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-900">@user.Id</td>
+                                <td class="px-6 py-4">@user.PrimerNombre @user.PrimerApellido</td>
+                                <td class="px-6 py-4">@user.Email</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2.5 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">
+                                        @user.Role.GetDisplayName()
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if (user.IsActive)
+                                    {
+                                        <span class="px-2.5 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-2.5 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">Inactivo</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4">
+                                    <a href="@($"usuarios/{user.Id}")" 
+                                       class="inline-flex items-center justify-center p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                                       title="Ver detalle">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-6 text-center text-gray-500">No se encontraron usuarios registrados.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="flex justify-between items-center mt-4">
+            <button @click="PreviousPage" 
+                    disabled="@(_currentPage <= 1)"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-300 transition-colors">
+                Anterior
+            </button>
+            <span class="text-sm text-gray-600">Página @_currentPage de @_totalPages</span>
+            <button @click="NextPage" 
+                    disabled="@(_currentPage >= _totalPages)"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-300 transition-colors">
+                Siguiente
+            </button>
+        </div>
+    }
+</div>

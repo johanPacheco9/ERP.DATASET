@@ -27,11 +27,11 @@ public partial class CrearVenta
     [Inject] private NavigationManager Navigation { get; set; } = null!;
     [Inject] private IJSRuntime JS { get; set; } = null!;
 
-    private List<ClientSummaryDto> _clientes = new();
-    private List<WarehouseSummaryDto> _bodegas = new();
-    private List<CategoriaDetailDto> _categorias = new();
-    private List<BarcodeLookupResultDto> _catalogProducts = new();
-    private readonly List<PosCartLine> _cart = new();
+    private List<ClientSummaryDto> _clientes = [];
+    private List<WarehouseSummaryDto> _bodegas = [];
+    private List<CategoriaDetailDto> _categorias = [];
+    private List<BarcodeLookupResultDto> _catalogProducts = [];
+    private readonly List<PosCartLine> _cart = [];
 
     private int _clientId;
     private int _warehouseId;
@@ -151,10 +151,27 @@ public partial class CrearVenta
 
     private async Task RefreshCatalog()
     {
-        if (_warehouseId > 0)
+        try
         {
-            _catalogProducts = await SaleService.SearchProductsForPosAsync(null, null, _warehouseId, 50, CancellationToken.None);
+            if (_warehouseId > 0)
+            {
+                var catalogo  = await SaleService.SearchProductsForPosAsync(null, null, _warehouseId, 50, CancellationToken.None);
+                if (catalogo.IsSuccess)
+                {
+                    _catalogProducts = catalogo.Value;
+                }
+                else
+                {
+                    _catalogProducts = [];
+                }
+            }
         }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        
     }
 
     private async Task OnWarehouseChanged()
@@ -196,74 +213,77 @@ public partial class CrearVenta
     }
 
     private async Task ProcessBarcodeScan()
+{
+    if (string.IsNullOrWhiteSpace(_barcodeInput))
+        return;
+    var query = _barcodeInput.Trim();
+    _error = null;
+    _scanSuccessMessage = null;
+    if (_warehouseId <= 0)
     {
-        if (string.IsNullOrWhiteSpace(_barcodeInput))
-            return;
-
-        var query = _barcodeInput.Trim();
-        _error = null;
-        _scanSuccessMessage = null;
-
-        if (_warehouseId <= 0)
-        {
-            _error = "Seleccione una bodega antes de escanear.";
-            await PlayAudioError();
-            return;
-        }
-
-        var match = await SaleService.LookupProductByBarcodeAsync(query, _warehouseId, CancellationToken.None);
-
-        if (match == null)
-        {
-            _error = $"No se encontró ningún producto con el código '{query}'.";
-            await PlayAudioError();
-            _barcodeInput = "";
-            await FocusBarcodeInput();
-            return;
-        }
-
-        // Si se encontró el producto, verificar stock usando ProductoVarianteId
-        var existingLine = _cart.FirstOrDefault(c => c.ProductoVarianteId == match.ProductoVarianteId);
-        var currentQtyInCart = existingLine?.Quantity ?? 0;
-
-        if (currentQtyInCart + 1 > match.AvailableStock)
-        {
-            _error = $"Stock insuficiente para '{match.Name}'. Disponible: {match.AvailableStock}, en carrito: {currentQtyInCart}.";
-            await PlayAudioError();
-            _barcodeInput = "";
-            await FocusBarcodeInput();
-            return;
-        }
-
-        if (existingLine != null)
-        {
-            existingLine.Quantity += 1;
-        }
-        else
-        {
-            _cart.Add(new PosCartLine
-            {
-                ProductoVarianteId = match.ProductoVarianteId ?? 0,
-                ProductName = match.Name,
-                ProductCode = match.Code,
-                SerialOrSku = match.Serial ?? match.SKU,
-                Quantity = 1,
-                UnitPrice = match.PrecioVenta,
-                TaxRate = match.PorcentajeIVA
-            });
-        }
-
-        _scanSuccessMessage = $"✓ {match.Name} agregado al carrito.";
-        _barcodeInput = "";
-        
-        if (_paymentMethod == PaymentMethod.Cash && (_paymentAmount == 0 || _paymentAmount < CartTotal))
-        {
-            _paymentAmount = CartTotal;
-        }
-
-        await PlayAudioSuccess();
-        await FocusBarcodeInput();
+        _error = "Seleccione una bodega antes de escanear.";
+        await PlayAudioError();
+        return;
     }
+
+    var resultado = await SaleService.LookupProductByBarcodeAsync(query, _warehouseId, CancellationToken.None);
+
+    if (resultado.IsFailure)
+    {
+        _error = resultado.Error.Message;
+        await PlayAudioError();
+        _barcodeInput = "";
+        await FocusBarcodeInput();
+        return;
+    }
+
+    var match = resultado.Value;
+    if (match == null)
+    {
+        _error = $"No se encontró ningún producto con el código '{query}'.";
+        await PlayAudioError();
+        _barcodeInput = "";
+        await FocusBarcodeInput();
+        return;
+    }
+    // Si se encontró el producto, verificar stock usando ProductoVarianteId
+    var existingLine = _cart.FirstOrDefault(c => c.ProductoVarianteId == match.ProductoVarianteId);
+    var currentQtyInCart = existingLine?.Quantity ?? 0;
+    if (currentQtyInCart + 1 > match.AvailableStock)
+    {
+        _error = $"Stock insuficiente para '{match.Name}'. Disponible: {match.AvailableStock}, en carrito: {currentQtyInCart}.";
+        await PlayAudioError();
+        _barcodeInput = "";
+        await FocusBarcodeInput();
+        return;
+    }
+    if (existingLine != null)
+    {
+        existingLine.Quantity += 1;
+    }
+    else
+    {
+        _cart.Add(new PosCartLine
+        {
+            ProductoVarianteId = match.ProductoVarianteId ?? 0,
+            ProductName = match.Name,
+            ProductCode = match.Code,
+            SerialOrSku = match.Serial ?? match.SKU,
+            Quantity = 1,
+            UnitPrice = match.PrecioVenta,
+            TaxRate = match.PorcentajeIVA
+        });
+    }
+    _scanSuccessMessage = $"✓ {match.Name} agregado al carrito.";
+    _barcodeInput = "";
+
+    if (_paymentMethod == PaymentMethod.Cash && (_paymentAmount == 0 || _paymentAmount < CartTotal))
+    {
+        _paymentAmount = CartTotal;
+    }
+    await PlayAudioSuccess();
+    await FocusBarcodeInput();
+}
 
     private void AddProductFromCatalog(BarcodeLookupResultDto prod)
     {

@@ -1,54 +1,116 @@
-﻿using Microsoft.AspNetCore.Components;
+using ERP.DATA.Services.UserService;
+using ERP.TRAN.CrossLayers.API.Users.Enums;
+using ERP.TRAN.CrossLayers.API.Users.Requests;
+using Microsoft.AspNetCore.Components;
 
 namespace ERP.DATASET.Components.Pages.Usuarios;
 
 public partial class AddUser
 {
-    [Parameter] public bool Open { get; set; }
-    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+    [Inject] private UserManager UserService { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
 
-    protected UserModel User { get; set; } = new();
+    private UserFormModel _model = new();
+    private string _confirmPassword = string.Empty;
+    private bool _isLoading;
+    private string? _errorMessage;
 
-    protected List<PermisoModel> Permisos { get; set; } = new()
+    private string _roleString
     {
-        new("Gestión de Productos", "Crear, editar y eliminar productos"),
-        new("Registrar Movimientos", "Entradas, salidas y transferencias"),
-        new("Ver Reportes", "Acceso a reportes y estadísticas"),
-        new("Gestión de Usuarios", "Administrar cuentas de usuario")
-    };
-
-    protected async Task Cerrar()
-    {
-        await OpenChanged.InvokeAsync(false);
-    }
-
-    protected async Task CrearUsuario()
-    {
-        // TODO: validaciones + llamada a API
-        await OpenChanged.InvokeAsync(false);
-    }
-    public class UserModel
-    {
-        public string Nombre { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string ConfirmPassword { get; set; } = string.Empty;
-        public string Rol { get; set; } = string.Empty;
-        public string Bodega { get; set; } = string.Empty;
-        public bool Activo { get; set; } = true;
-    }
-
-    public class PermisoModel
-    {
-        public PermisoModel(string nombre, string descripcion)
+        get => _model.Role.ToString();
+        set
         {
-            Nombre = nombre;
-            Descripcion = descripcion;
+            if (Enum.TryParse<UserRole>(value, out var role))
+            {
+                _model.Role = role;
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_model.PrimerNombre))
+        {
+            _errorMessage = "El primer nombre es obligatorio.";
+            return;
         }
 
-        public string Nombre { get; }
-        public string Descripcion { get; }
-        public bool Activo { get; set; }
+        if (string.IsNullOrWhiteSpace(_model.PrimerApellido))
+        {
+            _errorMessage = "El primer apellido es obligatorio.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_model.Email))
+        {
+            _errorMessage = "El correo electrónico es obligatorio.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_model.Password))
+        {
+            _errorMessage = "La contraseña es obligatoria.";
+            return;
+        }
+
+        if (_model.Password.Length < 6)
+        {
+            _errorMessage = "La contraseña debe tener al menos 6 caracteres.";
+            return;
+        }
+
+        if (_model.Password != _confirmPassword)
+        {
+            _errorMessage = "Las contraseñas no coinciden. Verifíquelas nuevamente.";
+            return;
+        }
+
+        _isLoading = true;
+
+        try
+        {
+            var request = new CrearUsuarioRequest
+            {
+                PrimerNombre = _model.PrimerNombre.Trim(),
+                SegundoNombre = string.IsNullOrWhiteSpace(_model.SegundoNombre) ? null : _model.SegundoNombre.Trim(),
+                PrimerApellido = _model.PrimerApellido.Trim(),
+                SegundoApellido = string.IsNullOrWhiteSpace(_model.SegundoApellido) ? null : _model.SegundoApellido.Trim(),
+                Email = _model.Email.Trim().ToLowerInvariant(),
+                Password = _model.Password,
+                Role = _model.Role
+            };
+
+            var result = await UserService.CrearUsuario(request);
+
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo("/usuarios");
+            }
+            else
+            {
+                _errorMessage = result.Error.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Ocurrió un error inesperado: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
+    public sealed class UserFormModel
+    {
+        public string PrimerNombre { get; set; } = string.Empty;
+        public string? SegundoNombre { get; set; }
+        public string PrimerApellido { get; set; } = string.Empty;
+        public string? SegundoApellido { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public UserRole Role { get; set; } = UserRole.Cashier;
+    }
 }

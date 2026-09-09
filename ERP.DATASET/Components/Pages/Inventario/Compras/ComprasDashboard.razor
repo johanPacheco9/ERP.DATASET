@@ -1,4 +1,5 @@
 @page "/inventario/compras"
+@attribute [Authorize(Roles = AppPermissions.Policies.InventoryManagement)]
 @using ERP.DATA.Services.InventarioService.OrdenesDeCompra
 @using ERP.TRAN.CrossLayers.API.Pos.Compras.Responses
 @using ERP.DATA.Services.Inventario.ProveedorService
