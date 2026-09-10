@@ -1,19 +1,27 @@
 using ERP.DATA.Services.UserService;
+using ERP.DATA.Services.VentasService.Stores;
+using ERP.TRAN.CrossLayers.API.Pos.Stores.Requests;
 using ERP.TRAN.CrossLayers.API.Users.Enums;
 using ERP.TRAN.CrossLayers.API.Users.Requests;
+using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.AspNetCore.Components;
+using StoreSummaryDto = ERP.TRAN.CrossLayers.API.Stores.Responses.StoreSummaryDto;
 
 namespace ERP.DATASET.Components.Pages.Usuarios;
 
 public partial class AddUser
 {
     [Inject] private UserManager UserService { get; set; } = null!;
+    [Inject] private StoresManager StoresManager { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     private UserFormModel _model = new();
     private string _confirmPassword = string.Empty;
     private bool _isLoading;
     private string? _errorMessage;
+
+    private static readonly UserRole[] _roles = Enum.GetValues<UserRole>();
+    private List<StoreSummaryDto> _tiendas = new();
 
     private string _roleString
     {
@@ -23,7 +31,28 @@ public partial class AddUser
             if (Enum.TryParse<UserRole>(value, out var role))
             {
                 _model.Role = role;
+                if (!RequiereTienda)
+                {
+                    _model.StoreId = null;
+                }
             }
+        }
+    }
+
+    private bool RequiereTienda =>
+        _model.Role == UserRole.Cashier || _model.Role == UserRole.Supervisor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var request = new ListStoresRequest(pageNumber: 1, pageSize: -1);
+            var tiendas = await StoresManager.List(request, searchTerm: null, CancellationToken.None);
+            _tiendas = tiendas.ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"No se pudieron cargar las tiendas: {ex.Message}";
         }
     }
 
@@ -67,6 +96,12 @@ public partial class AddUser
             return;
         }
 
+        if (RequiereTienda && _model.StoreId is null)
+        {
+            _errorMessage = "Debe asignar una tienda para este rol.";
+            return;
+        }
+
         _isLoading = true;
 
         try
@@ -79,7 +114,8 @@ public partial class AddUser
                 SegundoApellido = string.IsNullOrWhiteSpace(_model.SegundoApellido) ? null : _model.SegundoApellido.Trim(),
                 Email = _model.Email.Trim().ToLowerInvariant(),
                 Password = _model.Password,
-                Role = _model.Role
+                Role = _model.Role,
+                StoreId = RequiereTienda ? _model.StoreId : null
             };
 
             var result = await UserService.CrearUsuario(request);
@@ -112,5 +148,6 @@ public partial class AddUser
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public UserRole Role { get; set; } = UserRole.Cashier;
+        public int? StoreId { get; set; }
     }
 }

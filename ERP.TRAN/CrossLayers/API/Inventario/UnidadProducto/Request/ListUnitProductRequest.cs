@@ -50,6 +50,10 @@ public sealed class ListUnitProductRequest : BaseListRequest
 
     /// <summary>Búsqueda por serial, SKU o nombre de línea de producto.</summary>
     public string? Search { get; set; }
+    
+    public int? CategoryId { get; set; }
+    
+    public int? BodegaId { get; set; }
 
     /// <inheritdoc />
     public override bool ParametersAreValid(out string? errors)

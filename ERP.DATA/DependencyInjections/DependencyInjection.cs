@@ -43,7 +43,7 @@ public static class DependencyInjection
         services.AddTransient<OrdenesDeCompraManager>();
         services.AddTransient<RecepcionCompraManager>();
         services.AddTransient<ControlCalidadManager>();
-        services.AddTransient<UserManager>();
+        services.AddScoped<UserManager>();
         return services;
     }
 }

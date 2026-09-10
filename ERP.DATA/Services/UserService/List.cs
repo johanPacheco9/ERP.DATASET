@@ -2,6 +2,8 @@ using ERP.TRAN.CrossLayers.API.Base.ResultPattern;
 using ERP.TRAN.CrossLayers.API.Users.Requests;
 using ERP.TRAN.CrossLayers.API.Users.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
+using Microsoft.EntityFrameworkCore;
+
 namespace ERP.DATA.Services.UserService;
 public partial class UserManager
 {
@@ -47,7 +49,8 @@ public partial class UserManager
                 u.PrimerAPellido,
                 u.SegundoAPellido,
                 u.IsActive,
-                u.Role
+                u.Role,
+                0 //Arreglar, deberia ser la tienda a la que pertenece.
             ));
 
             // 4. Ejecución de la paginación

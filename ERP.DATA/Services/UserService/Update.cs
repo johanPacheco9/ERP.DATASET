@@ -42,7 +42,8 @@ public partial class UserManager
                     user.PrimerAPellido,
                     user.SegundoAPellido,
                     user.IsActive,
-                    user.Role
+                    user.Role,
+                    0 //Arreglar deberia ser la tienad a la que pertenece
                 );
             },
             ex => new Error("User.UpdateFailed", ex.Message));

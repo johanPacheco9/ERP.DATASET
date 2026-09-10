@@ -37,6 +37,17 @@ public partial class UnidadProductoManager
                 p.ProductoVariante.ProductoBase.Code.Contains(term));
         }
 
+        if (request.CategoryId is not null)
+        {
+            query = query.Where(p =>
+                p.ProductoVariante.ProductoBase.Categorias.Any(c => c.CategoryId == request.CategoryId));
+        }
+
+        if (request.BodegaId is not null)
+        {
+            query = query.Where(p => p.BodegaId == request.BodegaId);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.OrderBy))
         {
             var parts = request.OrderBy.Split(' ', StringSplitOptions.RemoveEmptyEntries);

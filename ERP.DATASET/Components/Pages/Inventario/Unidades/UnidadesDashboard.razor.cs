@@ -1,4 +1,10 @@
+using ERP.DATA.Services.InventarioService.CategoriaService;
 using ERP.DATA.Services.InventarioService.UnidadProductoService;
+using ERP.DATA.Services.InventarioService.WarehouseService;
+using ERP.DATA.Services.UserService;
+using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
@@ -6,6 +12,9 @@ using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Responses;
+using ERP.TRAN.CrossLayers.API.Users.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -17,16 +26,26 @@ public partial class UnidadesDashboard
 {
     [Inject] private UnidadProductoManager UnidadProductoManager { get; set; } = null!;
     [Inject] private ProductoBaseManager ProductoManager { get; set; } = null!;
+    [Inject] private WarehouseService WarehouseService { get; set; } = null!;
+    [Inject] private CategoriaService CategoriaService { get; set; } = null!;
+    [Inject] private UserManager UserManager { get; set; } = null!;
+    private UserDetailDto _user;
+
 
     private bool _loading = true;
     private string? _error;
     private string _search = "";
     private int _page = 1;
-    private const int PageSize = 50;
+    private const int PageSize = 10;
     private int _total;
     private int _totalPages;
     private int _totalCatalogo;
     private List<UnidadProductoDetailDto> _items = new();
+
+    private List<CategoriaDetailDto> _categorias = new();
+    private List<WarehouseSummaryDto> _bodegas = new();
+    private int? _categoriaFiltro;
+    private int? _bodegaFiltro;
 
     protected override async Task OnInitializedAsync()
     {
@@ -39,12 +58,65 @@ public partial class UnidadesDashboard
                 stockFilter: null,
                 cancellationToken: CancellationToken.None
             );
-            
+
             _totalCatalogo = catalogo.TotalCount;
         }
         catch { /* opcional */ }
 
+        await GetUserAutenticate();
+        await GetBodegas();
+        await GetCategorias();
         await Cargar();
+    }
+
+
+    private async Task GetUserAutenticate()
+    {
+        var user = await UserManager.GetUserAuthenticate();
+        if (user.IsSuccess)
+        {
+            _user = user.Value;
+        }
+        else
+        {
+            _error = user.Error?.Message ?? "No se pudo obtener el usuario autenticado.";
+        }
+    }
+
+
+    private async Task GetBodegas()
+    {
+        var request = new ListWarehousesRequest()
+        {
+            StoreId = _user.StoreId
+        };
+
+        try
+        {
+            var bodegas = await WarehouseService.List(request, CancellationToken.None);
+            _bodegas = bodegas.ToList();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    private async Task GetCategorias()
+    {
+        var request = new ListCategoriasRequest(pageNumber: 1, pageSize: -1);
+
+        try
+        {
+            var categorias = await CategoriaService.List(request, CancellationToken.None);
+            _categorias = categorias.ToList();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     private async Task Cargar()
@@ -55,7 +127,9 @@ public partial class UnidadesDashboard
         {
             var request = new ListUnitProductRequest(_page, PageSize)
             {
-                Search = string.IsNullOrWhiteSpace(_search) ? null : _search.Trim()
+                Search = string.IsNullOrWhiteSpace(_search) ? null : _search.Trim(),
+                CategoryId = _categoriaFiltro,
+                BodegaId = _bodegaFiltro
             };
 
             var result = await UnidadProductoManager.ListAsync(request, CancellationToken.None);
@@ -83,6 +157,22 @@ public partial class UnidadesDashboard
     private async Task Limpiar()
     {
         _search = "";
+        _categoriaFiltro = null;
+        _bodegaFiltro = null;
+        _page = 1;
+        await Cargar();
+    }
+
+    private async Task FiltrarPorCategoria(ChangeEventArgs e)
+    {
+        _categoriaFiltro = int.TryParse(e.Value?.ToString(), out var id) ? id : null;
+        _page = 1;
+        await Cargar();
+    }
+
+    private async Task FiltrarPorBodega(ChangeEventArgs e)
+    {
+        _bodegaFiltro = int.TryParse(e.Value?.ToString(), out var id) ? id : null;
         _page = 1;
         await Cargar();
     }

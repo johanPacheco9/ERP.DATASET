@@ -16,11 +16,25 @@ public partial class UserManager(
     MainDataContext context)
 {
     private readonly ILogger<UserManager> _logger = logger;
-
+    
+    private Result<UserDetailDto>? _usuarioAutenticadoCache;
 
     public async Task<Result<UserDetailDto>> GetUserAuthenticate()
     {
+        if (_usuarioAutenticadoCache is not null)
+        {
+            return _usuarioAutenticadoCache;
+        }
+
         var userId = await GetUserId();
-        return await GetById(userId.Value);
+        if (userId is null)
+        {
+            return Result<UserDetailDto>.Failure(Error.Failure("Unauthorized", "Usuario no autenticado."));
+        }
+
+        var resultado = await GetById(userId.Value);
+        _usuarioAutenticadoCache = resultado;
+
+        return resultado;
     }
 }

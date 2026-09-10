@@ -9,5 +9,6 @@ public record UserDetailDto(
     string PrimerApellido,
     string? SegundoApellido,
     bool IsActive,
-    UserRole Role
+    UserRole Role,
+    int StoreId
 );
