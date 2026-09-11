@@ -1,5 +1,6 @@
 using ERP.TRAN.CrossLayers.API.Base.ResultPattern;
 using ERP.TRAN.CrossLayers.API.Inventario.Audit.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,8 @@ public partial class AuditoriaService
 {
     public async Task<Result> RegisterScanAsync(int auditId, string code, CancellationToken cancellationToken = default)
     {
+        code = code.Trim();
+
         try
         {
             var audit = await context.Audit
@@ -38,13 +41,13 @@ public partial class AuditoriaService
             if (auditDetail != null)
             {
                 // Escenario A: La unidad SÍ pertenecía a la auditoría
-                if (auditDetail.Status == UnitProductAuditStatus.Found)
+                if (auditDetail.Status == UnitProductAuditStatus.FoundOnAudit)
                 {
                     return Result.Failure(new Error("Audit.AlreadyScanned",
                         $"La unidad '{code}' ya fue escaneada previamente en esta auditoría."));
                 }
 
-                auditDetail.Status = UnitProductAuditStatus.Found;
+                auditDetail.Status = UnitProductAuditStatus.FoundOnAudit;
                 auditDetail.UpdatedAt = DateTime.UtcNow;
 
                 audit.TotalMatches += 1;
@@ -56,19 +59,41 @@ public partial class AuditoriaService
             }
             else
             {
-                // Escenario B: La unidad NO estaba listada -> Es un Sobrante (ExcessProduct = 60)
-                // Queda sin producto identificado hasta completarse desde el modal "Registrar Sobrante".
-                // El cierre de la auditoría bloquea mientras existan sobrantes sin identificar.
-                var excessUnit = new UnidadProductoAuditada
+                // Escenario B: la unidad NO estaba planeada en esta auditoría (conteo ciego).
+                // Buscar si corresponde a una unidad física real en el sistema.
+                var unidadProducto = await context.UnidadesProductos
+                    .Include(u => u.ProductoVariante)
+                    .FirstOrDefaultAsync(u => u.SerialNumber == code, cancellationToken);
+
+                if (unidadProducto == null)
+                {
+                    // Código no reconocido en el sistema: se rechaza, no se guarda huérfano.
+                    return Result.Failure(new Error("Audit.UnknownSerial",
+                        $"El código '{code}' no corresponde a ningún producto registrado en el sistema."));
+                }
+
+                if (unidadProducto.Status == UnidadProductoStatus.InAuditLock)
+                {
+                    // Ya está bloqueada por otro proceso de auditoría en curso (no esta).
+                    return Result.Failure(new Error("Audit.AlreadyLocked",
+                        $"La unidad '{code}' ya está bloqueada por otro proceso de auditoría en curso."));
+                }
+
+                var unexpectedUnit = new UnidadProductoAuditada
                 {
                     AuditId = auditId,
-                    Serial = code,
+                    UnitProductId = unidadProducto.Id,
+                    ProductoBaseId = unidadProducto.ProductoVariante.ProductoBaseId,
+                    ProductoVarianteId = unidadProducto.ProductoVarianteId,
                     BodegaId = audit.WarehouseId ?? 0,
-                    Status = UnitProductAuditStatus.ExcessProduct, // 60
-                    Observaciones = "Detectado y registrado automáticamente como producto en exceso por escaneo. Pendiente de identificar producto.",
+                    BodegaEncontrada = unidadProducto.BodegaId,
+                    Serial = code,
+                    Status = UnitProductAuditStatus.ExcessProduct,
+                    OriginalUnitStatus = unidadProducto.Status,
+                    Observaciones = "Producto identificado, no estaba en el plan de esta auditoría.",
                     CreatedAt = DateTime.UtcNow
                 };
-                context.UnitProductAudits.Add(excessUnit);
+                context.UnitProductAudits.Add(unexpectedUnit);
 
                 audit.TotalSurplus += 1;
                 audit.TotalCountedUnits += 1;

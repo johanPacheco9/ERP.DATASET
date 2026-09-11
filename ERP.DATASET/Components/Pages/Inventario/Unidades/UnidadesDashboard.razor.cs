@@ -2,18 +2,17 @@ using ERP.DATA.Services.InventarioService.CategoriaService;
 using ERP.DATA.Services.InventarioService.UnidadProductoService;
 using ERP.DATA.Services.InventarioService.WarehouseService;
 using ERP.DATA.Services.UserService;
+using ERP.DATA.Services.VentasService.Stores;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Categoria.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.Producto.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoBase.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Responses;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Request;
-using ERP.TRAN.CrossLayers.API.Inventario.UnitProduct.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
-using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Responses;
+using ERP.TRAN.CrossLayers.API.Pos.Stores.Requests;
+using ERP.TRAN.CrossLayers.API.Stores.Responses;
 using ERP.TRAN.CrossLayers.API.Users.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.AspNetCore.Components;
@@ -29,8 +28,9 @@ public partial class UnidadesDashboard
     [Inject] private WarehouseService WarehouseService { get; set; } = null!;
     [Inject] private CategoriaService CategoriaService { get; set; } = null!;
     [Inject] private UserManager UserManager { get; set; } = null!;
+    [Inject] private StoresManager StoreService { get; set; } = null!; // Ajusta según el servicio que uses para listar tiendas
+    
     private UserDetailDto _user;
-
 
     private bool _loading = true;
     private string? _error;
@@ -44,8 +44,11 @@ public partial class UnidadesDashboard
 
     private List<CategoriaDetailDto> _categorias = new();
     private List<WarehouseSummaryDto> _bodegas = new();
+    private List<StoreSummaryDto> _tiendas = new();
+    
     private int? _categoriaFiltro;
     private int? _bodegaFiltro;
+    private int? _tiendaFiltro;
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,11 +67,15 @@ public partial class UnidadesDashboard
         catch { /* opcional */ }
 
         await GetUserAutenticate();
-        await GetBodegas();
+        
+        // Inicializamos la tienda filtro con la tienda del usuario logueado
+        _tiendaFiltro = _user.StoreId;
+
+        await GetTiendasPermitidas();
+        await GetBodegasParaTienda(_tiendaFiltro);
         await GetCategorias();
         await Cargar();
     }
-
 
     private async Task GetUserAutenticate()
     {
@@ -83,12 +90,29 @@ public partial class UnidadesDashboard
         }
     }
 
+    private async Task GetTiendasPermitidas()
+    {
+        try
+        {
+            var request = new ListStoresRequest(pageNumber: 1, pageSize: 100); 
+            
+            var pagedResult = await StoreService.List(request, null, CancellationToken.None);
+        
+            // Extraemos la lista del PagedList que ya retorna tu método
+            _tiendas = pagedResult;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            _tiendas = new();
+        }
+    }
 
-    private async Task GetBodegas()
+    private async Task GetBodegasParaTienda(int? storeId)
     {
         var request = new ListWarehousesRequest()
         {
-            StoreId = _user.StoreId
+            StoreId = storeId
         };
 
         try
@@ -99,7 +123,7 @@ public partial class UnidadesDashboard
         catch (Exception e)
         {
             Console.WriteLine(e);
-            throw;
+            _bodegas = new();
         }
     }
 
@@ -129,7 +153,7 @@ public partial class UnidadesDashboard
             {
                 Search = string.IsNullOrWhiteSpace(_search) ? null : _search.Trim(),
                 CategoryId = _categoriaFiltro,
-                BodegaId = _bodegaFiltro
+                BodegaId = _bodegaFiltro,
             };
 
             var result = await UnidadProductoManager.ListAsync(request, CancellationToken.None);
@@ -159,7 +183,9 @@ public partial class UnidadesDashboard
         _search = "";
         _categoriaFiltro = null;
         _bodegaFiltro = null;
+        _tiendaFiltro = _user.StoreId;
         _page = 1;
+        await GetBodegasParaTienda(_tiendaFiltro);
         await Cargar();
     }
 
@@ -173,6 +199,19 @@ public partial class UnidadesDashboard
     private async Task FiltrarPorBodega(ChangeEventArgs e)
     {
         _bodegaFiltro = int.TryParse(e.Value?.ToString(), out var id) ? id : null;
+        _page = 1;
+        await Cargar();
+    }
+
+    private async Task FiltrarPorTiendas(ChangeEventArgs e)
+    {
+        _tiendaFiltro = int.TryParse(e.Value?.ToString(), out var id) ? id : null;
+        
+        // Al cambiar de tienda, reseteamos la bodega seleccionada para evitar incongruencias
+        _bodegaFiltro = null;
+
+        await GetBodegasParaTienda(_tiendaFiltro);
+
         _page = 1;
         await Cargar();
     }

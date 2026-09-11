@@ -1,8 +1,8 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
-using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
+﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
 
-namespace ERP.DATASET.Components.Pages.Inventario.NewFolder;
+namespace ERP.DATASET.Components.Pages.Inventario.Warehouse;
 
 public class UpdateWarehouseForm
 {
@@ -14,31 +14,7 @@ public class UpdateWarehouseForm
     public int StoreId { get; set; }
     public decimal? MaxCapacity { get; set; }
     public bool IsActive { get; set; }
-
-    // ===== Factory =====
-    public static UpdateWarehouseForm FromSummaryDto(WarehouseSummaryDto dto)
-    {
-        return new UpdateWarehouseForm
-        {
-            Id = dto.Id,
-            Code = dto.Code,
-            Name = dto.Name,
-            Location = dto.Location,
-            Type = dto.Type,
-            StoreId = dto.StoreId,
-            MaxCapacity = dto.MaxCapacity,
-            IsActive = dto.IsActive
-        };
-    }
-
-    // ===== To Request =====
-    public UpdateWarehouseRequest ToRequest()
-    {
-        return new UpdateWarehouseRequest
-        {
-            Id = Id,
-            Code = Code,
-            Max_Capacity = MaxCapacity
-        };
-    }
+    public string? Description { get; set; }
+    public string? Ubication  { get; set; }
+    
 }

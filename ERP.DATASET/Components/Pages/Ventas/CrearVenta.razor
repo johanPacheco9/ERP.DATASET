@@ -25,12 +25,7 @@
             <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs">
                 <i class="bi bi-building text-slate-400"></i>
                 <span class="font-medium text-slate-500">Bodega:</span>
-                <select class="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer" @bind="_warehouseId" @bind:after="OnWarehouseChanged">
-                    @foreach (var b in _bodegas)
-                    {
-                        <option value="@b.Id">@b.Name</option>
-                    }
-                </select>
+                <span class="font-semibold text-slate-800">@_turnoActivo?.WarehouseName</span>
             </div>
 
             <!-- Botón Bip Sonoro -->

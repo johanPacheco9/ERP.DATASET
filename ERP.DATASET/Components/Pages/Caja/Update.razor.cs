@@ -1,7 +1,5 @@
 using ERP.DATA.Services.CajaService;
-using ERP.TRAN.CrossLayers.API.Pos.Caja.Requests;
-using ERP.TRAN.CrossLayers.API.Pos.Terminals.Responses;
-using ERP.TRAN.CrossLayers.API.Stores.Requests;
+using ERP.TRAN.CrossLayers.API.Pos.Terminals.Requests;
 using Microsoft.AspNetCore.Components;
 
 namespace ERP.DATASET.Components.Pages.Caja;
@@ -11,139 +9,81 @@ public partial class Update
      [Parameter]
     public int Id { get; set; }
 
-    [Inject] public CajaManager CajaManager { get; set; } = null!;
-    
-    private UpdateStoreRequest _request = new();
-    private List<PosTerminalDto> _cajas = new();
-    private bool _isSubmitting;
-    private string? _errorMessage;
+    [Inject] private CajaManager CajaManager { get; set; } = null!;
 
-    // Estado del Modal de Caja Rápida
-    private bool _showCajaModal;
-    private bool _isSavingCaja;
-    private string? _cajaModalError;
-    private CreateCajaRequest _nuevaCaja = new();
+    private UpdateCajaRequest _updateForm = new();
+    private bool _isLoading = true;
+    private bool _isSubmitting = false;
+    private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadStoreDataAsync();
+        await LoadCajaAsync();
     }
 
-    /// <summary>
-    /// Carga la información general de la tienda y sus cajas asociadas desde la base de datos.
-    /// </summary>
-    private async Task LoadStoreDataAsync()
+    private async Task LoadCajaAsync()
     {
+        _isLoading = true;
         try
         {
-            _errorMessage = null;
-
-            // 1. Consultar la tienda junto con sus cajas utilizando tu StoresManager (o DbContext directo según prefieras)
-            // Ejemplo con StoresManager (asegúrate de tener un método GetForEdit o similar, o consulta el contexto):
-            var store = await StoresManager.GetByIdAsync(Id); // O tu método equivalente
-
-            if (store == null)
+            var result = await CajaManager.GetById(Id);
+            if (result.IsSuccess && result.Value != null)
             {
-                _errorMessage = "La tienda solicitada no existe o fue eliminada.";
-                return;
+                var caja = result.Value;
+                _updateForm = new UpdateCajaRequest
+                {
+                    Id = caja.Id,
+                    Name = caja.Name,
+                    Code = caja.Code,
+                    StoreId = caja.StoreId,
+                    WarehouseId = caja.WarehouseId,
+                    Prefix = caja.Prefix,
+                    CurrentConsecutive = caja.CurrentConsecutive,
+                    DianResolutionNumber = caja.DianResolutionNumber,
+                    IsActive = caja.IsActive
+                };
             }
-
-            // 2. Mapear los datos al Request de actualización para que los inputs se rellenen
-            _request = new UpdateStoreRequest
+            else
             {
-                Name = store.Name,
-                Description = store.Description,
-                IsMainStore = store.IsMainStore,
-                IsActive = store.IsActive
-            };
-
-            // 3. Cargar las cajas asociadas a esta tienda para la tabla
-            // (Si tu método GetById o Store incluye la lista de cajas, la asignas aquí)
-            // _cajas = store.Cajas.Select(c => new PosTerminalDto(...)).ToList();
+                _errorMessage = result.Error?.Message ?? "No se pudo cargar la información de la caja.";
+            }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _errorMessage = $"No se pudo cargar la información: {ex.Message}";
+            _errorMessage = "Ocurrió un error inesperado al cargar la caja.";
+            Console.WriteLine(e);
+        }
+        finally
+        {
+            _isLoading = false;
         }
     }
 
-    private async Task HandleUpdate()
+    private async Task UpdateCaja()
     {
+        _isSubmitting = true;
         _errorMessage = null;
 
-        if (string.IsNullOrWhiteSpace(_request.Name))
-        {
-            _errorMessage = "El nombre de la tienda es obligatorio.";
-            return;
-        }
-
         try
         {
-            _isSubmitting = true;
-            // TODO: Llama a tu método de actualización en StoresManager
-            // await StoresManager.UpdateAsync(Id, _request);
-            
-            Navigation.NavigateTo("/tiendas");
+            var result = await CajaManager.Update(_updateForm);
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo("/cajas");
+            }
+            else
+            {
+                _errorMessage = result.Error?.Message ?? "Error al actualizar la caja.";
+            }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _errorMessage = ex.Message;
+            _errorMessage = "Ocurrió un error inesperado al guardar los cambios.";
+            Console.WriteLine(e);
         }
         finally
         {
             _isSubmitting = false;
-        }
-    }
-
-    private void OpenCreateCajaModal()
-    {
-        _nuevaCaja = new CreateCajaRequest 
-        { 
-            StoreId = Id, 
-            Prefix = "POS", 
-            CurrentConsecutive = 1, 
-            IsActive = true 
-        };
-        _cajaModalError = null;
-        _showCajaModal = true;
-    }
-
-    private void CloseCajaModal()
-    {
-        _showCajaModal = false;
-    }
-
-    private async Task SaveNewCaja()
-    {
-        if (string.IsNullOrWhiteSpace(_nuevaCaja.Name) || string.IsNullOrWhiteSpace(_nuevaCaja.Code))
-        {
-            _cajaModalError = "El nombre y el código de la caja son obligatorios.";
-            return;
-        }
-
-        _isSavingCaja = true;
-        _cajaModalError = null;
-
-        try
-        {
-            // Amarramos la caja a la tienda actual
-            _nuevaCaja.StoreId = Id;
-
-            // Llamamos al servicio que ya tienes listo
-            await CajaManager.Create(_nuevaCaja);
-
-            CloseCajaModal();
-
-            // Recargamos los datos para que la nueva caja aparezca inmediatamente en la tabla
-            await LoadStoreDataAsync();
-        }
-        catch (Exception ex)
-        {
-            _cajaModalError = ex.Message;
-        }
-        finally
-        {
-            _isSavingCaja = false;
         }
     }
 }

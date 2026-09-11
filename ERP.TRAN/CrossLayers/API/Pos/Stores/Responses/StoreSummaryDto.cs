@@ -7,5 +7,5 @@ public sealed record StoreSummaryDto(
     bool IsMainStore,
     bool IsActive,
     int WarehousesCount,
-    int TerminalsCount
-);
+    int TerminalsCount,
+    List<int> CajasIds);

@@ -40,4 +40,12 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Components\Pages\Inventario\Bodegas\BodegasDashboard.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="Components\Pages\Stores\Update.razor" />
+  </ItemGroup>
+
 </Project>

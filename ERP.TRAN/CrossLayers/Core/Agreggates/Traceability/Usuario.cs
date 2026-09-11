@@ -1,4 +1,5 @@
 using ERP.TRAN.CrossLayers.API.Users.Enums;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
@@ -47,4 +48,9 @@ public class Usuario : EntityWithtraceability
     /// Colección de turnos (sesiones de caja) operados por este usuario.
     /// </summary>
     public ICollection<PosShift> PosShifts { get; set; } = new List<PosShift>();
+    
+    
+    // Tienda asignada actualmente (Obligatoria para cajeros/operativos)
+    public int? StoreId { get; set; }
+    public Store? Store { get; set; }
 }

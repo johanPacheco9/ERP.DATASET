@@ -1,6 +1,7 @@
 ﻿using ERP.DATA.Utilities.Providers;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IWarehouse;
 using Microsoft.AspNetCore.Mvc;

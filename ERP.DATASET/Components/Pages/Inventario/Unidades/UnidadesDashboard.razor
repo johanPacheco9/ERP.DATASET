@@ -11,13 +11,14 @@
     </div>
 
     <div class="row g-2 align-items-center mb-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <input type="text" class="form-control form-control-sm"
                    placeholder="Buscar serial, SKU o producto…"
                    @bind="_search"
                    @bind:event="oninput"
                    @onkeyup="OnSearchKey" />
         </div>
+        
         <div class="col-md-3">
             <select class="form-select form-select-sm" @onchange="FiltrarPorCategoria">
                 <option value="">Todas las categorías</option>
@@ -27,6 +28,22 @@
                 }
             </select>
         </div>
+
+        <!-- Selector de Tiendas para roles permitidos -->
+        <AuthorizeView Roles="@($"{AppPermissions.Policies.SupervisorOrAdmin}")">
+            <Authorized>
+                <div class="col-md-2">
+                    <select class="form-select form-select-sm" @onchange="FiltrarPorTiendas">
+                        <option value="">Todas las tiendas</option>
+                        @foreach (var t in _tiendas)
+                        {
+                            <option value="@t.Id" selected="@(t.Id == _tiendaFiltro)">@t.Name</option>
+                        }
+                    </select>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
         <div class="col-md-3">
             <select class="form-select form-select-sm" @onchange="FiltrarPorBodega">
                 <option value="">Todas las bodegas</option>
@@ -36,6 +53,7 @@
                 }
             </select>
         </div>
+        
         <div class="col-md-auto">
             <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="Buscar">Buscar</button>
             <button type="button" class="btn btn-sm btn-link" @onclick="Limpiar">Limpiar</button>

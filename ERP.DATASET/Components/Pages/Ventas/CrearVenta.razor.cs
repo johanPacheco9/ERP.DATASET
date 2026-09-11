@@ -14,15 +14,21 @@ using ERP.TRAN.CrossLayers.API.Pos.Sales.Requests;
 using ERP.TRAN.CrossLayers.API.Pos.Sales.Responses;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using ERP.DATA.Services.CajaService;
 using Microsoft.JSInterop;
+using ERP.DATA.Services.UserService;
+using ERP.TRAN.CrossLayers.API.Pos.Terminals.Responses;
 
 namespace ERP.DATASET.Components.Pages.Ventas;
 
 public partial class CrearVenta
 {
-    [Inject] private SaleService SaleService { get; set; } = null!;
+    [Inject] private CajaManager CajaManager { get; set; } = null!;
+    [Inject] private UserManager UserManager { get; set; } = null!;
+    private ActiveUserShiftDto? _turnoActivo;
     [Inject] private ClientService ClientService { get; set; } = null!;
-    [Inject] private WarehouseService WarehouseService { get; set; } = null!;
+
+    [Inject] private SaleService _saleService { get; set; } = null!;
     [Inject] private CategoriaService CategoriaService { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
     [Inject] private IJSRuntime JS { get; set; } = null!;
@@ -105,9 +111,20 @@ public partial class CrearVenta
         _loading = true;
         try
         {
+            // Obtener usuario actual
+            var userId = await UserManager.GetUserId();
+            // Obtener turno activo
+            _turnoActivo = await CajaManager.GetActiveShiftForUserAsync(userId ?? 0, default);
+            if (_turnoActivo == null)
+            {
+                _error = "No tiene una caja abierta. Debe abrir turno antes de vender.";
+                return;
+            }
+            // Asignar bodega fija del turno
+            _warehouseId = _turnoActivo.WarehouseId;
+
+            // Cargar datos auxiliares (clientes, categorías)
             _clientes = await ClientService.ListAsync(CancellationToken.None);
-            
-            // Garantizar cliente Consumidor Final si la lista está vacía
             if (!_clientes.Any())
             {
                 var defaultClient = await ClientService.CreateAsync(new CreateClientRequest
@@ -118,24 +135,13 @@ public partial class CrearVenta
                     Email = "consumidorfinal@erp.local",
                     City = "General"
                 }, CancellationToken.None);
-
-                if (defaultClient != null)
-                {
-                    _clientes.Add(defaultClient);
-                }
+                if (defaultClient != null) _clientes.Add(defaultClient);
             }
-
-            var bodegas = await WarehouseService.List(new ListWarehousesRequest { PageNumber = 1, PageSize = 50 }, CancellationToken.None);
-            _bodegas = bodegas.ToList();
 
             var categorias = await CategoriaService.List(new ListCategoriasRequest { PageNumber = 1, PageSize = 50 }, CancellationToken.None);
             _categorias = categorias.ToList();
 
-            if (_bodegas.Any())
-                _warehouseId = _bodegas[0].Id;
-
-            if (_clientes.Any())
-                _clientId = _clientes[0].Id;
+            // No cargamos la lista de bodegas porque la bodega está fija por turno
 
             await RefreshCatalog();
         }
@@ -155,7 +161,7 @@ public partial class CrearVenta
         {
             if (_warehouseId > 0)
             {
-                var catalogo  = await SaleService.SearchProductsForPosAsync(null, null, _warehouseId, 50, CancellationToken.None);
+                var catalogo  = await _saleService.SearchProductsForPosAsync(null, null, _warehouseId, 50, CancellationToken.None);
                 if (catalogo.IsSuccess)
                 {
                     _catalogProducts = catalogo.Value;
@@ -226,11 +232,11 @@ public partial class CrearVenta
         return;
     }
 
-    var resultado = await SaleService.LookupProductByBarcodeAsync(query, _warehouseId, CancellationToken.None);
+    var resultado = await _saleService.LookupProductByBarcodeAsync(query, _warehouseId, CancellationToken.None);
 
     if (resultado.IsFailure)
     {
-        _error = resultado.Error.Message;
+        _error = resultado.Error.Message + $" Si el producto está en otra bodega, solicite un traspaso a '{_turnoActivo!.WarehouseName}' antes de venderlo aquí.";
         await PlayAudioError();
         _barcodeInput = "";
         await FocusBarcodeInput();
@@ -347,7 +353,7 @@ public partial class CrearVenta
     {
         _error = null;
         // Se ajustó para consultar stock por variante si el servicio lo soporta o manteniendo el método de validación
-        var available = await SaleService.GetAvailableStockAsync(line.ProductoVarianteId, _warehouseId, CancellationToken.None);
+        var available = await _saleService.GetAvailableStockAsync(line.ProductoVarianteId, _warehouseId, CancellationToken.None);
         if (line.Quantity + 1 > available)
         {
             _error = $"{line.ProductName}: no hay más unidades disponibles en esta bodega.";
@@ -478,7 +484,7 @@ public partial class CrearVenta
             {
                 ClientId = _clientId,
                 WarehouseId = _warehouseId,
-                StoreId = 1,
+                StoreId = _turnoActivo!.StoreId,
                 Notes = _notes,
                 _CreatorAuth0Id = 1,
                 PaymentAmount = _paymentMethod == PaymentMethod.Credit ? 0 : Math.Min(_paymentAmount, CartTotal),
@@ -492,7 +498,7 @@ public partial class CrearVenta
                 }).ToList()
             };
 
-            _completedSale = await SaleService.CreateAsync(request, CancellationToken.None);
+            _completedSale = await _saleService.CreateAsync(request, CancellationToken.None);
             _showReceiptModal = true;
             _cart.Clear();
             _paymentAmount = 0;

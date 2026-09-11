@@ -19,15 +19,17 @@ public partial class AuditoriaService
     {
         var warehouse = await _context.Warehouse
             .FirstOrDefaultAsync(s => s.Id == request.WarehouseId, cancellationToken);
-        
+
         if (warehouse == null)
         {
             throw new InvalidOperationException($"La bodega {request.WarehouseId} no existe.");
         }
-        
+
         var hasAuditInProgress = await _context.Audit
-            .AnyAsync(s => s.WarehouseId == warehouse.Id && (s.Status == AuditStatus.Pendiente || s.Status == AuditStatus.InProgress), cancellationToken);
-        
+            .AnyAsync(
+                s => s.WarehouseId == warehouse.Id &&
+                     (s.Status == AuditStatus.Pendiente || s.Status == AuditStatus.InProgress), cancellationToken);
+
         if (hasAuditInProgress)
         {
             throw new InvalidOperationException($"Ya hay una auditoría en progreso para la bodega requerida.");
@@ -37,16 +39,17 @@ public partial class AuditoriaService
 
         if (!userId.HasValue)
         {
-            throw new InvalidOperationException($"Excepcion rara, deberia haber un usuario autenticado para llegar a este punto.");   
+            throw new InvalidOperationException(
+                $"Excepcion rara, deberia haber un usuario autenticado para llegar a este punto.");
         }
-        
+
         var productsToAuditQuery = _context.UnidadesProductos
             .Include(u => u.ProductoVariante)
-                .ThenInclude(v => v.ProductoBase)
-                    .ThenInclude(pb => pb.Categorias)
-            .Where(s => s.BodegaId == request.WarehouseId && 
-                        (request.IncludeReservedUnits 
-                            ? (s.Status == UnidadProductoStatus.Available || s.Status == UnidadProductoStatus.Separated) 
+            .ThenInclude(v => v.ProductoBase)
+            .ThenInclude(pb => pb.Categorias)
+            .Where(s => s.BodegaId == request.WarehouseId &&
+                        (request.IncludeReservedUnits
+                            ? (s.Status == UnidadProductoStatus.Available || s.Status == UnidadProductoStatus.Separated)
                             : s.Status == UnidadProductoStatus.Available));
 
         if (request.CategoryIds != null && request.CategoryIds.Any())
@@ -68,6 +71,17 @@ public partial class AuditoriaService
         {
             throw new InvalidOperationException(
                 "No se encontraron unidades para auditar con los filtros especificados.");
+        }
+
+        // Validación explícita: cualquier unidad sin ProductoVariante asociada
+        // rompería la FK de ProductoBaseId al insertar UnidadProductoAuditada.
+        // Mejor fallar aquí, con el Id exacto, que con un 23503 genérico de Postgres.
+        var unidadesSinVariante = productsToAudit.Where(u => u.ProductoVariante == null).ToList();
+        if (unidadesSinVariante.Any())
+        {
+            var ids = string.Join(", ", unidadesSinVariante.Select(u => u.Id));
+            throw new InvalidOperationException(
+                $"Las siguientes unidades no tienen ProductoVariante asociado y no pueden auditarse: {ids}.");
         }
 
         // Usamos una estrategia de transacción explícita para evitar bloqueos fantasma si falla el guardado intermedio
@@ -115,7 +129,7 @@ public partial class AuditoriaService
                 _context.Set<AuditCategory>().AddRange(auditCategories);
                 await _context.SaveChangesAsync(cancellationToken);
             }
-            
+
             var unitProductAudits = new List<UnidadProductoAuditada>();
 
             foreach (var unit in productsToAudit)
@@ -125,21 +139,22 @@ public partial class AuditoriaService
                     AuditId = audit.Id,
                     UnitProductId = unit.Id,
                     ProductoVarianteId = unit.ProductoVarianteId,
-                    ProductoBaseId = unit.ProductoVariante?.ProductoBaseId ?? 0, 
+                    ProductoBaseId = unit.ProductoVariante.ProductoBaseId,
                     BodegaId = unit.BodegaId,
-                    Serial = unit.SerialNumber ?? unit.ProductoVariante?.SKU ?? string.Empty,
+                    Serial = unit.SerialNumber ?? unit.ProductoVariante.SKU ?? string.Empty,
                     Status = UnitProductAuditStatus.NotFound,
-                    
+
                     OriginalUnitStatus = unit.Status,
-        
+
                     CreatedBy = request._CreatorAuth0Id,
                     CreatedAt = DateTime.UtcNow
                 });
 
-                unit.Status = UnidadProductoStatus.InAuditLock; 
+                unit.Status = UnidadProductoStatus.InAuditLock;
                 unit.UpdatedAt = DateTime.UtcNow;
                 unit.UpdatedBy = request._CreatorAuth0Id;
             }
+
             _context.UnitProductAudits.AddRange(unitProductAudits);
             await _context.SaveChangesAsync(cancellationToken);
 

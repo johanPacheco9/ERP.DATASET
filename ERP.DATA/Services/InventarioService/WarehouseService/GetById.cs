@@ -1,4 +1,5 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Responses;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERP.DATA.Services.InventarioService.WarehouseService;
@@ -13,13 +14,15 @@ public partial class WarehouseService
             .Where(b => b.Id == id)
             .Select(b => new WarehouseDetailDTO(
                 b.Id,
-                b.Code,
+                b.Name,
                 b.Description,
                 b.Ubication,
                 b.IsActive,
                 b.CreatedAt,
                 b.UpdatedAt,
-                b.Max_Capacity
+                b.Max_Capacity,
+                b.Code,
+                b.Type
             ))
             .FirstOrDefaultAsync(cancellationToken);
         if (response != null) 

@@ -1,7 +1,8 @@
-﻿namespace ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
 
-public record WarehouseDetailDTO
-(
+namespace ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Responses;
+
+public record WarehouseDetailDTO(
     int Id,
     string Nombre,
     string? Descripcion,
@@ -9,6 +10,7 @@ public record WarehouseDetailDTO
     bool Activa,
     DateTime FechaCreacion,
     DateTime? FechaModificacion,
-    decimal? Max_Capacity
+    decimal? Max_Capacity,
+    string? Code,
+    WarehouseType Type
 );
-

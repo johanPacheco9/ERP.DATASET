@@ -16,6 +16,17 @@ public partial class WarehouseService
             .AsNoTracking()
             .AsQueryable();
 
+        // Filtro por término de búsqueda (Nombre, Código o Ubicación)
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            string term = request.SearchTerm.Trim().ToLower();
+            query = query.Where(w => 
+                w.Name.ToLower().Contains(term) || 
+                w.Code.ToLower().Contains(term) || 
+                (w.Ubication != null && w.Ubication.ToLower().Contains(term))
+            );
+        }
+
         // Filtro por tienda
         if (request.StoreId.HasValue)
         {
@@ -27,7 +38,7 @@ public partial class WarehouseService
         {
             query = query.Where(s => s.Status == request.Status.Value);
         }
-        
+    
         query = query.OrderBy(w => w.Name);
 
         var dtoQuery = query.Select(w => new WarehouseSummaryDto(

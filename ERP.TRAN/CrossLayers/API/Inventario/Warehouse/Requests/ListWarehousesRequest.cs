@@ -58,6 +58,11 @@ public sealed class ListWarehousesRequest : BaseListRequest, IValidatableRequest
     public int? StoreId { get; set; }
 
     public WarehouseStatus? Status { get; set; }
+    
+    
+    [DisplayName("Filtro: Texto de búsqueda")]
+    public string? SearchTerm { get; set; }
+    
     /// <inheritdoc />
     public override bool ParametersAreValid(out string? errors)
     {

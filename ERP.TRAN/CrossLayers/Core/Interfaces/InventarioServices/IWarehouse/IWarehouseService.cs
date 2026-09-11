@@ -1,6 +1,7 @@
 ﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
+using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
 
 namespace ERP.TRAN.CrossLayers.Core.Interfaces.InventarioServices.IWarehouse;

@@ -1,0 +1,93 @@
+@page "/bodegas/nuevo"
+@using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums
+@using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums
+@attribute [Authorize(Roles = AppPermissions.Policies.AdminOnly)]
+@rendermode InteractiveServer
+
+<div class="inv-page">
+    <div class="inv-header mb-4">
+        <div>
+            <h1 class="inv-title">Crear Nueva Bodega</h1>
+            <p class="inv-subtitle">Registra una nueva bodega asociada a una tienda del sistema.</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger small">@_error</div>
+    }
+
+    <div class="inv-card p-4" style="max-width: 600px;">
+        <EditForm Model="_createForm" OnValidSubmit="Create">
+            <DataAnnotationsValidator/>
+            <ValidationSummary class="alert alert-danger small"/>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Nombre de la bodega</label>
+                <InputText class="form-control form-control-sm" @bind-Value="_createForm.Nombre"
+                           placeholder="Ej. Bodega Principal"/>
+                <ValidationMessage For="() => _createForm.Nombre" class="text-danger small"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Código</label>
+                <InputText class="form-control form-control-sm" @bind-Value="_createForm.Code"
+                           placeholder="Ej. BOD-01"/>
+                <ValidationMessage For="() => _createForm.Code" class="text-danger small"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Tienda asignada</label>
+                <InputSelect class="form-select form-select-sm" @bind-Value="_createForm.storeId">
+                    <option value="0">Seleccione una tienda...</option>
+                    @foreach (var tienda in _tiendas)
+                    {
+                        <option value="@tienda.Id">@tienda.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => _createForm.storeId" class="text-danger small"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Tipo de bodega</label>
+                <InputSelect class="form-select form-select-sm" @bind-Value="_createForm.TipoBodega">
+                    @foreach (var tipo in Enum.GetValues<WarehouseType>())
+                    {
+                        <option value="@tipo">@tipo.GetDisplayName()</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Ubicación</label>
+                <InputText class="form-control form-control-sm" @bind-Value="_createForm.Ubicacion"
+                           placeholder="Ej. Pasillo A, Estante 3"/>
+                <ValidationMessage For="() => _createForm.Ubicacion" class="text-danger small"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Capacidad máxima</label>
+                <InputNumber class="form-control form-control-sm" @bind-Value="_createForm.CapacidadMaxima"/>
+                <ValidationMessage For="() => _createForm.CapacidadMaxima" class="text-danger small"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Descripción (Opcional)</label>
+                <InputTextArea class="form-control form-control-sm" @bind-Value="_createForm.Descripcion" rows="3"/>
+                <ValidationMessage For="() => _createForm.Descripcion" class="text-danger small"/>
+            </div>
+
+            <div class="mb-3 form-check">
+                <InputCheckbox class="form-check-input" @bind-Value="_createForm.IsActive" id="chkActive"/>
+                <label class="form-check-label small" for="chkActive">Bodega Activa</label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary" disabled="@_loading">
+                    @(_loading ? "Guardando..." : "Guardar Bodega")
+                </button>
+                <NavLink href="/warehouses" class="btn btn-sm btn-outline-secondary">Cancelar</NavLink>
+            </div>
+        </EditForm>
+    </div>
+</div>

@@ -10,6 +10,8 @@ public sealed record ActiveUserShiftDto(
     string TerminalCode,
     int StoreId,
     string StoreName,
+    int WarehouseId,
+    string WarehouseName,
     DateTime OpenedAt,
     decimal InitialCash
 );

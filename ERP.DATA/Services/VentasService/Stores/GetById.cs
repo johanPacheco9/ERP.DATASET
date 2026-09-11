@@ -22,6 +22,8 @@ public partial class StoresManager
 
         if (store == null) return null;
 
+        var CajasIds = store.Cajas.Select(s => s.Id).ToList();
+
         return new StoreSummaryDto(
             store.Id,
             store.Name,
@@ -29,7 +31,8 @@ public partial class StoresManager
             store.IsMainStore,
             store.IsActive,
             store.Bodegas.Count,
-            store.Cajas.Count
+            store.Cajas.Count,
+            CajasIds
         );
     }
 

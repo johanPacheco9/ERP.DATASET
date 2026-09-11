@@ -68,7 +68,7 @@ public partial class CajasDashboard
 
         try
         {
-            _terminals = await CajaManager.ListAllTerminalsAsync();
+            _terminals = await CajaManager.List();
             _cashiers = await CajaManager.ListCashierStoreAssignmentsAsync();
             _allStores = await Context.Store.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
         }
@@ -142,7 +142,7 @@ public partial class CajasDashboard
 
             // Recargar datos
             _cashiers = await CajaManager.ListCashierStoreAssignmentsAsync();
-            _terminals = await CajaManager.ListAllTerminalsAsync();
+            _terminals = await CajaManager.List();
         }
         catch (Exception ex)
         {

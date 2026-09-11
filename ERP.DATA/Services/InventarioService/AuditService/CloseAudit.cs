@@ -42,17 +42,6 @@ public partial class AuditoriaService
             .Where(u => u.AuditId == request.AuditId)
             .ToListAsync(cancellationToken);
 
-        // Guardrail: no cerrar con sobrantes sin producto identificado
-        var sobrantesSinIdentificar = unitAudits
-            .Count(u => u.Status == UnitProductAuditStatus.ExcessProduct && u.ProductoVarianteId == 0);
-
-        if (sobrantesSinIdentificar > 0)
-        {
-            throw new InvalidOperationException(
-                $"Hay {sobrantesSinIdentificar} unidad(es) sobrante(s) sin producto identificado. " +
-                "Complételas desde el modal de sobrantes antes de cerrar la auditoría.");
-        }
-
         // 2. Obtener las unidades físicas ya existentes (encontradas y faltantes; los sobrantes aún no existen)
         var unitProductIds = unitAudits
             .Where(u => u.Status != UnitProductAuditStatus.ExcessProduct)
@@ -66,7 +55,13 @@ public partial class AuditoriaService
         var bodegaAuditoriaId = audit.WarehouseId ?? 0;
 
         var userId = await userManager.GetUserId();
-        
+
+        if (!userId.HasValue)
+        {
+            throw new InvalidOperationException(
+                "Excepción rara, debería haber un usuario autenticado para llegar a este punto.");
+        }
+
         await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
         try
@@ -106,20 +101,17 @@ public partial class AuditoriaService
                 };
                 _context.Movements.Add(movimientoPerdida);
 
-                var variantIdsFaltantes = physicalUnits
-                    .Where(u => faltantes.Any(f => f.UnitProductId == u.Id))
-                    .Select(u => u.ProductoVarianteId)
-                    .Distinct()
-                    .ToList();
-
-                var stockFaltantes = await _context.WarehouseStock
-                    .Where(s => s.WarehouseId == bodegaAuditoriaId && variantIdsFaltantes.Contains(s.ProductoVarianteId))
-                    .ToListAsync(cancellationToken);
-
                 // Agrupamos el descuento total por variante para evitar restar unidad por unidad de forma repetitiva
                 var faltantesPorVariante = physicalUnits
                     .Where(u => faltantes.Any(f => f.UnitProductId == u.Id))
                     .GroupBy(u => u.ProductoVarianteId);
+
+                var variantIdsFaltantes = faltantesPorVariante.Select(g => g.Key).ToList();
+
+                var stockFaltantes = await _context.WarehouseStock
+                    .Where(s => s.WarehouseId == bodegaAuditoriaId &&
+                                variantIdsFaltantes.Contains(s.ProductoVarianteId))
+                    .ToListAsync(cancellationToken);
 
                 foreach (var grupo in faltantesPorVariante)
                 {
@@ -167,7 +159,8 @@ public partial class AuditoriaService
 
                 var variantIdsSobrantes = sobrantes.Select(d => d.ProductoVarianteId).Distinct().ToList();
                 var stockSobrantes = await _context.WarehouseStock
-                    .Where(s => s.WarehouseId == bodegaAuditoriaId && variantIdsSobrantes.Contains(s.ProductoVarianteId))
+                    .Where(s => s.WarehouseId == bodegaAuditoriaId &&
+                                variantIdsSobrantes.Contains(s.ProductoVarianteId))
                     .ToListAsync(cancellationToken);
 
                 foreach (var detalle in sobrantes)
@@ -185,8 +178,8 @@ public partial class AuditoriaService
 
                     _context.UnitProductMovements.Add(new UnitProductMovement
                     {
-                        UnidadProductoId = nuevaUnidad.Id,
-                        Movimiento = movimientoEntrada, // Vinculación por navegación en memoria
+                        UnidadProducto = nuevaUnidad, // Vinculación por navegación, igual que Movimiento — EF resuelve el Id real al guardar
+                        Movimiento = movimientoEntrada,
                         TipoMovimiento = TipoMovimiento.Entrada,
                         BodegaOrigenId = bodegaAuditoriaId,
                         BodegaDestinoId = null,
@@ -194,7 +187,8 @@ public partial class AuditoriaService
                         Observaciones = detalle.Observaciones
                     });
 
-                    var stockDestino = stockSobrantes.FirstOrDefault(s => s.ProductoVarianteId == detalle.ProductoVarianteId);
+                    var stockDestino =
+                        stockSobrantes.FirstOrDefault(s => s.ProductoVarianteId == detalle.ProductoVarianteId);
                     if (stockDestino != null)
                     {
                         stockDestino.CurrentStock += 1;
@@ -216,14 +210,15 @@ public partial class AuditoriaService
             // 6. Totales finales de la cabecera
             audit.TotalExpectedUnits = unitAudits.Count(u => u.Status != UnitProductAuditStatus.ExcessProduct);
             audit.TotalCountedUnits = unitAudits.Count(u => u.Status != UnitProductAuditStatus.NotFound);
-            audit.TotalMatches = unitAudits.Count(u => u.Status == UnitProductAuditStatus.Found);
+            audit.TotalMatches = unitAudits.Count(u => u.Status == UnitProductAuditStatus.FoundOnAudit);
             audit.TotalMissing = faltantes.Count;
             audit.TotalSurplus = sobrantes.Count;
             audit.TotalLocationDifferences = 0; // Not supported by enum
             audit.TotalStatusDifferences = unitAudits.Count(u => u.Status == UnitProductAuditStatus.StatusMismatch);
 
             // Asignación de estado final condicional sin sobrescrituras erróneas
-            if (faltantes.Count > 0 || sobrantes.Count > 0 || audit.TotalLocationDifferences > 0 || audit.TotalStatusDifferences > 0)
+            if (faltantes.Count > 0 || sobrantes.Count > 0 || audit.TotalLocationDifferences > 0 ||
+                audit.TotalStatusDifferences > 0)
             {
                 audit.Status = AuditStatus.ClosedWithInconsistences;
             }
