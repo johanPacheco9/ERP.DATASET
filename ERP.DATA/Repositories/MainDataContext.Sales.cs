@@ -68,6 +68,27 @@ public partial class MainDataContext
                 .HasForeignKey(m => m.DestinationWarehouseId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(m => m.ProductoVariante)
+                .WithMany(p => p.Movimientos)
+                .HasForeignKey(m => m.ProductoVarianteId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MovementConsumption>(entity =>
+        {
+            entity.ToTable("MovementConsumptions");
+            entity.HasKey(c => c.Id);
+
+            entity.HasOne(c => c.ExitMovement)
+                .WithMany()
+                .HasForeignKey(c => c.ExitMovementId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(c => c.EntryMovement)
+                .WithMany()
+                .HasForeignKey(c => c.EntryMovementId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // NUEVO: control de concurrencia optimista para evitar sobreventa

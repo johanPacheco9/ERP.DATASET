@@ -55,6 +55,7 @@ public partial class MovimientosManager
             var movimiento = new Movement
             {
                 OrigenWarehouseId = salida.BodegaId,
+                ProductoVarianteId = salida.ProductoVarianteId,
                 Type = TipoMovimiento.Salida,
                 Quantity = salida.Cantidad,
                 UnitCost = unitCost,

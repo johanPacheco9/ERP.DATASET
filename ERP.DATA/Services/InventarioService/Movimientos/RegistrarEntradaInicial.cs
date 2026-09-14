@@ -79,13 +79,15 @@ public partial class MovimientosManager
             var movement = new Movement
             {
                 OrigenWarehouseId = request.BodegaId,
+                ProductoVarianteId = request.ProductoVarianteId,
+                RemainingQuantity = request.Cantidad,
                 DestinationWarehouseId = null,
                 Type = TipoMovimiento.Entrada,
                 Quantity = request.Cantidad,
                 UnitCost = variante.CostoUnitario ?? 0,
                 Observations = request.Observations,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy =user.Value.Id
+                CreatedBy = user.Value.Id
             };
             context.Movements.Add(movement);
             await context.SaveChangesAsync(cancellationToken);

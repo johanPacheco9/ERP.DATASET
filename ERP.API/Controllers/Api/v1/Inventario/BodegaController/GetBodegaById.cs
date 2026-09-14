@@ -1,4 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
+using ERP.TRAN.CrossLayers.API.Inventario.Bodega;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Responses;
@@ -37,18 +37,7 @@ public sealed class GetBodegaByIdEndpoint : BaseGetEndpoint<GetBodegaByIdRequest
             return NotFound();
         }
 
-        var bodegaDto = new WarehouseDetailDTO(
-            bodega.Id,
-            bodega.Nombre,
-            bodega.Descripcion,
-            bodega.Ubicacion,
-            bodega.Activa,
-            bodega.FechaCreacion,
-            bodega.FechaModificacion,
-            bodega.Max_Capacity
-        );
-
         TraceFound(nameof(Warehouse), bodega.Id);
-        return Ok(bodegaDto);
+        return Ok(bodega);
     }
 }

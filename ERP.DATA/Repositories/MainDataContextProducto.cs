@@ -25,6 +25,7 @@ public partial class MainDataContext
     public DbSet<WarehouseStock> WarehouseStock { get; set; }
 
     public DbSet<Movement> Movements { get; set; }
+    public DbSet<MovementConsumption> MovementConsumptions { get; set; }
 
     public DbSet<UnidadProductoAuditada> UnitProductAudits{get; set;}
     

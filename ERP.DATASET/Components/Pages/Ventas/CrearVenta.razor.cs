@@ -494,11 +494,21 @@ public partial class CrearVenta
                     ProductoVarianteId = c.ProductoVarianteId, 
                     Quantity = c.Quantity,
                     UnitPrice = c.UnitPrice,
-                    TaxRate = c.TaxRate
+                    TaxRate = c.TaxRate,
+                    SerialNumber = c.SerialOrSku
                 }).ToList()
             };
 
-            _completedSale = await _saleService.CreateAsync(request, CancellationToken.None);
+            var resultado = await _saleService.CreateAsync(request, CancellationToken.None);
+
+            if (resultado.IsFailure)
+            {
+                _error = resultado.Error.Message; // aquí es donde por fin vas a ver la excepción real
+                await PlayAudioError();
+                return;
+            }
+
+            _completedSale = resultado.Value;
             _showReceiptModal = true;
             _cart.Clear();
             _paymentAmount = 0;

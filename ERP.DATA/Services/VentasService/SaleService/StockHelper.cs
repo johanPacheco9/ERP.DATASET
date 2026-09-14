@@ -12,7 +12,7 @@ internal static class StockHelper
     // Número máximo de reintentos ante un conflicto de concurrencia.
     private const int MaxConcurrencyRetries = 3;
 
-    internal static async Task<(int MovementId, int? UnidadProductoId)> DeductInventoryAsync(
+ internal static async Task<(int MovementId, int? UnidadProductoId, decimal CostoVentaTotal)> DeductInventoryAsync(
         MainDataContext context,
         int warehouseId,
         int productoBaseId,
@@ -25,26 +25,23 @@ internal static class StockHelper
         CancellationToken cancellationToken)
     {
         // 1. Obtener la variante y su producto base para resolver el costo
-        //    con fallback al producto padre.
         var variante = await context.ProductoVariantes
-                           .AsNoTracking()
-                           .Include(v => v.ProductoBase)
-                           .FirstOrDefaultAsync(
-                               v => v.Id == productoVarianteId &&
-                                    v.ProductoBaseId == productoBaseId,
-                               cancellationToken)
-                       ?? throw new InvalidOperationException(
-                           $"La variante #{productoVarianteId} asociada al producto base " +
-                           $"#{productoBaseId} no existe.");
+                     .AsNoTracking()
+                     .Include(v => v.ProductoBase)
+                     .FirstOrDefaultAsync(
+                          v => v.Id == productoVarianteId &&
+                               v.ProductoBaseId == productoBaseId,
+                          cancellationToken)
+                   ?? throw new InvalidOperationException(
+                       $"La variante #{productoVarianteId} asociada al producto base " +
+                       $"#{productoBaseId} no existe.");
 
         decimal costoAplicado =
             (variante.CostoUnitario.HasValue && variante.CostoUnitario.Value > 0)
                 ? variante.CostoUnitario.Value
                 : variante.ProductoBase.CostoUnitario;
 
-        int? unidadProductoId = null;
-
-        // 2. CASO 1: Venta por Serial / IMEI único.
+        // 2. CASO 1: Venta por Serial / IMEI único (No aplica FIFO por lotes).
         if (!string.IsNullOrWhiteSpace(serialNumber))
         {
             if (quantity != 1)
@@ -55,24 +52,105 @@ internal static class StockHelper
             }
 
             var unidad = await context.UnidadesProductos
-                .FirstOrDefaultAsync(
-                    u => u.SerialNumber == serialNumber &&
-                         u.ProductoVarianteId == productoVarianteId &&
-                         u.BodegaId == warehouseId &&
-                         u.Status == UnidadProductoStatus.Available,
-                    cancellationToken)
-                ?? throw new InvalidOperationException(
-                    $"El serial '{serialNumber}' no está disponible " +
-                    $"en la bodega especificada.");
+                           .FirstOrDefaultAsync(
+                                u => u.SerialNumber == serialNumber &&
+                                     u.ProductoVarianteId == productoVarianteId &&
+                                     u.BodegaId == warehouseId &&
+                                     u.Status == UnidadProductoStatus.Available,
+                                cancellationToken)
+                       ?? throw new InvalidOperationException(
+                           $"El serial '{serialNumber}' no está disponible " +
+                           $"en la bodega especificada.");
+
+            var unidadMasAntigua = await context.UnidadesProductos
+                .Where(u => u.ProductoVarianteId == productoVarianteId &&
+                            u.BodegaId == warehouseId &&
+                            u.Status == UnidadProductoStatus.Available)
+                .OrderBy(u => u.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            bool ventaFueraDeOrdenFifo = unidadMasAntigua != null && unidadMasAntigua.Id != unidad.Id;
+
+            // ==========================================
+            // VALIDACIÓN DE PARÁMETRO: FIFO Estricto
+            // ==========================================
+            if (ventaFueraDeOrdenFifo)
+            {
+                // Consultamos el parámetro global de la empresa/sistema
+                var parametros = await context.Parametros.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+                bool forzarFifoEstricto = parametros?.ForzarFifoEstricto ?? false;
+
+                if (forzarFifoEstricto)
+                {
+                    throw new InvalidOperationException(
+                        $"No se puede despachar el serial '{serialNumber}'. " +
+                        $"Por políticas de FIFO estricto de la empresa, debe despachar primero " +
+                        $"el serial más antiguo disponible ('{unidadMasAntigua!.SerialNumber}', ingresado el {unidadMasAntigua.CreatedAt:yyyy-MM-dd}).");
+                }
+            }
 
             unidad.Status = UnidadProductoStatus.Sold;
             unidad.UpdatedAt = DateTime.UtcNow;
             unidad.UpdatedBy = createdBy;
 
-            unidadProductoId = unidad.Id;
+            var unidadProductoId = unidad.Id;
+
+            // Descontar stock agregado con control de concurrencia.
+            await DeductWarehouseStockWithRetryAsync(
+                context,
+                warehouseId,
+                productoVarianteId,
+                quantity,
+                cancellationToken);
+
+            // Crear cabecera del movimiento de Kardex.
+            var observacionesSerial = saleId.HasValue
+                ? $"Venta #{saleId}"
+                : motivo;
+
+            if (ventaFueraDeOrdenFifo)
+            {
+                observacionesSerial += $" | Advertencia FIFO: se despachó el serial '{serialNumber}' " +
+                                       $"en vez del más antiguo disponible (serial '{unidadMasAntigua!.SerialNumber}', " +
+                                       $"ingresado el {unidadMasAntigua.CreatedAt:yyyy-MM-dd}).";
+            }
+
+            var movimientoSerial = new Movement
+            {
+                OrigenWarehouseId = warehouseId,
+                ProductoVarianteId = productoVarianteId,
+                Type = TipoMovimiento.Salida,
+                Quantity = quantity,
+                UnitCost = costoAplicado,
+                SaleId = saleId,
+                Motive = motivo,
+                Observations = observacionesSerial,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = createdBy
+            };
+
+            context.Movements.Add(movimientoSerial);
+            await context.SaveChangesAsync(cancellationToken);
+
+            context.UnitProductMovements.Add(new UnitProductMovement
+            {
+                UnidadProductoId = unidadProductoId,
+                MovimientoId = movimientoSerial.Id,
+                TipoMovimiento = TipoMovimiento.Salida,
+                BodegaOrigenId = warehouseId,
+                BodegaDestinoId = null,
+                Motivo = motivo,
+                Observaciones = observacionesSerial
+            });
+
+            await context.SaveChangesAsync(cancellationToken);
+
+            return (movimientoSerial.Id, unidadProductoId, costoAplicado * quantity);
         }
 
-        // 3. Descontar stock agregado con control de concurrencia.
+        // 3. CASO 2: Venta de productos NO serializados (Consumo FIFO real)...
+        // (El resto del código continúa exactamente igual)
+        
         await DeductWarehouseStockWithRetryAsync(
             context,
             warehouseId,
@@ -80,47 +158,78 @@ internal static class StockHelper
             quantity,
             cancellationToken);
 
-        // 4. Crear la cabecera del movimiento de Kardex.
-        var movimiento = new Movement
+        var movimientoSalida = new Movement
         {
             OrigenWarehouseId = warehouseId,
+            ProductoVarianteId = productoVarianteId,
             Type = TipoMovimiento.Salida,
             Quantity = quantity,
-            UnitCost = costoAplicado,
+            UnitCost = 0m,
             SaleId = saleId,
             Motive = motivo,
-            Observations = saleId.HasValue
-                ? $"Venta #{saleId}"
-                : motivo,
+            Observations = saleId.HasValue ? $"Venta #{saleId}" : motivo,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy
         };
 
-        context.Movements.Add(movimiento);
-
-        // Guardamos para obtener el ID del movimiento.
+        context.Movements.Add(movimientoSalida);
         await context.SaveChangesAsync(cancellationToken);
 
-        // 5. Crear detalle si se trata de una unidad serializada.
-        if (unidadProductoId.HasValue)
-        {
-            context.UnitProductMovements.Add(new UnitProductMovement
-            {
-                UnidadProductoId = unidadProductoId.Value,
-                MovimientoId = movimiento.Id,
-                TipoMovimiento = TipoMovimiento.Salida,
-                BodegaOrigenId = warehouseId,
-                BodegaDestinoId = null,
-                Motivo = motivo,
-                Observaciones = saleId.HasValue
-                    ? $"Venta #{saleId}"
-                    : motivo
-            });
+        var entradasDisponibles = await context.Movements
+            .Where(m => m.OrigenWarehouseId == warehouseId &&
+                        m.ProductoVarianteId == productoVarianteId &&
+                        m.Type == TipoMovimiento.Entrada &&
+                        m.RemainingQuantity.HasValue &&
+                        m.RemainingQuantity.Value > 0)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync(cancellationToken);
 
-            await context.SaveChangesAsync(cancellationToken);
+        int cantidadPendiente = quantity;
+        decimal costoTotalConsumido = 0m;
+
+        foreach (var entrada in entradasDisponibles)
+        {
+            if (cantidadPendiente <= 0) break;
+
+            int disponible = entrada.RemainingQuantity!.Value;
+            int aConsumir = Math.Min(disponible, cantidadPendiente);
+
+            entrada.RemainingQuantity = disponible - aConsumir;
+            entrada.UpdatedAt = DateTime.UtcNow;
+            entrada.UpdatedBy = createdBy;
+
+            var consumo = new MovementConsumption
+            {
+                ExitMovementId = movimientoSalida.Id,
+                EntryMovementId = entrada.Id,
+                QuantityConsumed = aConsumir,
+                UnitCost = entrada.UnitCost,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = createdBy
+            };
+
+            context.MovementConsumptions.Add(consumo);
+
+            costoTotalConsumido += aConsumir * entrada.UnitCost;
+            cantidadPendiente -= aConsumir;
         }
 
-        return (movimiento.Id, unidadProductoId);
+        if (cantidadPendiente > 0)
+        {
+            costoTotalConsumido += cantidadPendiente * costoAplicado;
+            string notaEstimada = $"Costo parcial estimado: {cantidadPendiente} unidades sin trazabilidad FIFO";
+            movimientoSalida.Observations = string.IsNullOrWhiteSpace(movimientoSalida.Observations)
+                ? notaEstimada
+                : $"{movimientoSalida.Observations} | {notaEstimada}";
+        }
+
+        movimientoSalida.UnitCost = quantity > 0 ? Math.Round(costoTotalConsumido / quantity, 4) : 0m;
+        movimientoSalida.UpdatedAt = DateTime.UtcNow;
+        movimientoSalida.UpdatedBy = createdBy;
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        return (movimientoSalida.Id, null, costoTotalConsumido);
     }
 
     // Descuenta stock con reintentos ante conflictos de concurrencia.
@@ -244,8 +353,10 @@ internal static class StockHelper
         var movimiento = new Movement
         {
             OrigenWarehouseId = warehouseId,
+            ProductoVarianteId = productoVarianteId,
             Type = TipoMovimiento.Entrada,
             Quantity = quantity,
+            RemainingQuantity = quantity,
             UnitCost = costoAplicado,
             SaleId = saleId,
             Motive = motivo,
@@ -293,13 +404,13 @@ internal static class StockHelper
              attempt++)
         {
             var stock = await context.WarehouseStock
-                .FirstOrDefaultAsync(
-                    s => s.WarehouseId == warehouseId &&
-                         s.ProductoVarianteId == productoVarianteId,
-                    cancellationToken)
-                ?? throw new InvalidOperationException(
-                    $"No existe registro de stock para la variante " +
-                    $"#{productoVarianteId} en la bodega #{warehouseId}.");
+                            .FirstOrDefaultAsync(
+                                s => s.WarehouseId == warehouseId &&
+                                     s.ProductoVarianteId == productoVarianteId,
+                                cancellationToken)
+                        ?? throw new InvalidOperationException(
+                            $"No existe registro de stock para la variante " +
+                            $"#{productoVarianteId} en la bodega #{warehouseId}.");
 
             stock.CurrentStock += quantity;
             stock.FechaActualizacion = DateTime.UtcNow;

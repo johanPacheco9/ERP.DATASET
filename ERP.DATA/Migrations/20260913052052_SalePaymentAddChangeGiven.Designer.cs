@@ -3,6 +3,7 @@ using System;
 using ERP.DATA.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ERP.DATA.Migrations
 {
     [DbContext(typeof(MainDataContext))]
-    partial class MainDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260913052052_SalePaymentAddChangeGiven")]
+    partial class SalePaymentAddChangeGiven
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,48 +24,6 @@ namespace ERP.DATA.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Parametros", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Direccion")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("ForzarFifoEstricto")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Logo1")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("ManejoUbicacionesBodega")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Nit")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("PermitirVentaSinStock")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("RazonSocial")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Telefono")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Parametros");
-                });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Payments.SalePayment", b =>
                 {
@@ -1135,13 +1096,10 @@ namespace ERP.DATA.Migrations
                     b.Property<int>("OrigenWarehouseId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ProductoVarianteId")
+                    b.Property<int?>("ProductoVarianteId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("RemainingQuantity")
                         .HasColumnType("integer");
 
                     b.Property<int?>("SaleId")
@@ -1179,50 +1137,6 @@ namespace ERP.DATA.Migrations
                     b.HasIndex("WarehouseId");
 
                     b.ToTable("Movements");
-                });
-
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.MovementConsumption", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("EntryMovementId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ExitMovementId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("QuantityConsumed")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("UnitCost")
-                        .HasColumnType("decimal(15,4)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UpdatedBy")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EntryMovementId");
-
-                    b.HasIndex("ExitMovementId");
-
-                    b.ToTable("MovementConsumptions", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Warehouse", b =>
@@ -1710,9 +1624,6 @@ namespace ERP.DATA.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("CostoVentaTotal")
-                        .HasColumnType("decimal(15,4)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -2134,11 +2045,9 @@ namespace ERP.DATA.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoVariante", "ProductoVariante")
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoVariante", null)
                         .WithMany("Movimientos")
-                        .HasForeignKey("ProductoVarianteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("ProductoVarianteId");
 
                     b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.Sale", "Sale")
                         .WithMany()
@@ -2156,28 +2065,7 @@ namespace ERP.DATA.Migrations
 
                     b.Navigation("OrigenWarehouse");
 
-                    b.Navigation("ProductoVariante");
-
                     b.Navigation("Sale");
-                });
-
-            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.MovementConsumption", b =>
-                {
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Movement", "EntryMovement")
-                        .WithMany()
-                        .HasForeignKey("EntryMovementId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Movement", "ExitMovement")
-                        .WithMany()
-                        .HasForeignKey("ExitMovementId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("EntryMovement");
-
-                    b.Navigation("ExitMovement");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Warehouse", b =>

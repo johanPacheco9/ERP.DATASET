@@ -106,6 +106,7 @@ public partial class ControlCalidadManager
                     BodegaId = recepcion.BodegaId,
                     ProductoVarianteId = detalle.DetalleOrdenCompra.ProductoVarianteId,
                     Cantidad = (int)detalle.CantidadAprobada,
+                    CostoUnitario = detalle.DetalleOrdenCompra.CostoUnitario,
                     Motivo = $"Ingreso aprobado por calidad — OC #{qr.OrdenCompraId}",
                     ReferenciaId = qr.OrdenCompraId,
                     ReferenciaTipo = "orden_compra"

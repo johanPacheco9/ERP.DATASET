@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
@@ -18,6 +19,16 @@ public class Movement : EntityWithtraceability
     // === CLASIFICACIÓN Y CANTIDAD ===
     public TipoMovimiento Type { get; set; }
     public int Quantity { get; set; }
+
+    // === PRODUCTO Y TRAZABILIDAD FIFO ===
+    public int ProductoVarianteId { get; set; }
+    public ProductoVariante ProductoVariante { get; set; } = null!;
+
+    /// <summary>
+    /// Cantidad remanente disponible de esta entrada para consumo FIFO posterior.
+    /// Solo relevante cuando Type == TipoMovimiento.Entrada.
+    /// </summary>
+    public int? RemainingQuantity { get; set; }
 
     // === VALORACIÓN DE INVENTARIO (FIFO / LIFO / Promedio Ponderado) ===
     [Column(TypeName = "decimal(15,4)")]

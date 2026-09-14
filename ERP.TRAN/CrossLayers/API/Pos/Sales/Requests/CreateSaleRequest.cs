@@ -11,10 +11,15 @@ public sealed class CreateSaleRequest : BaseCreateRequest
     public int? PosTerminalId { get; set; }
     public int? PosShiftId { get; set; }
     public string? Notes { get; set; }
-    public decimal PaymentAmount { get; set; }  
+    public decimal PaymentAmount { get; set; }
+
+    public string? Serial { get; set; }
     
+    public int? UnidadProductoId { get; set; }
+
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
-    
+    public decimal? CashReceived { get; set; }
+
     public List<SaleLineRequest> Lines { get; set; } = new();
 
     public override bool ParametersAreValid(out string? errors)
@@ -24,10 +29,10 @@ public sealed class CreateSaleRequest : BaseCreateRequest
             list.Add("Seleccione un cliente.");
         if (WarehouseId <= 0)
             list.Add("Seleccione una bodega.");
-            // FIX: PaymentAmount no se validaba y podía llegar negativo, contaminando
-    // los cálculos de saldo/estado de pago desde la creación de la venta.
-             if (PaymentAmount < 0)
-        list.Add("El monto de pago no puede ser negativo.");
+        // FIX: PaymentAmount no se validaba y podía llegar negativo, contaminando
+        // los cálculos de saldo/estado de pago desde la creación de la venta.
+        if (PaymentAmount < 0)
+            list.Add("El monto de pago no puede ser negativo.");
         if (Lines == null || !Lines.Any())
             list.Add("Agregue al menos un producto a la venta.");
         else
@@ -40,6 +45,7 @@ public sealed class CreateSaleRequest : BaseCreateRequest
                     list.Add($"Línea {i}: la cantidad debe ser mayor a cero.");
             }
         }
+
         errors = list.Any() ? string.Join("; ", list) : null;
         return errors == null;
     }
@@ -48,7 +54,7 @@ public sealed class CreateSaleRequest : BaseCreateRequest
 public sealed class SaleLineRequest
 {
     public int ProductoVarianteId { get; set; }
-    public string? SerialNumber { get; set; } // Añadido para dar soporte a productos serializados (UnidadProducto)
+    public string? SerialNumber { get; set; } 
     public int Quantity { get; set; } = 1;
     public decimal? UnitPrice { get; set; }
     public decimal? TaxRate { get; set; }

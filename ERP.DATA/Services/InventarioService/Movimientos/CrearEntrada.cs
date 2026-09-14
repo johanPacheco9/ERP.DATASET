@@ -1,4 +1,4 @@
-﻿using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
+using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Movimientos.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
@@ -50,7 +50,9 @@ public partial class MovimientosManager
             .FirstOrDefaultAsync(v => v.Id == request.ProductoVarianteId, cancellationToken)
             ?? throw new KeyNotFoundException($"La Variante #{request.ProductoVarianteId} no existe.");
 
-        decimal costoAplicado = (variante.CostoUnitario > 0 ? variante.CostoUnitario : variante.ProductoBase.CostoUnitario) ?? 0m;
+        decimal costoAplicado = request.CostoUnitario > 0 
+            ? request.CostoUnitario 
+            : ((variante.CostoUnitario > 0 ? variante.CostoUnitario : variante.ProductoBase.CostoUnitario) ?? 0m);
         
         var user = await userManager.GetUserAuthenticate();
         
@@ -58,8 +60,10 @@ public partial class MovimientosManager
         var movimiento = new Movement
         {
             OrigenWarehouseId = request.BodegaId,
+            ProductoVarianteId = variante.Id,
             Type = TipoMovimiento.Entrada,
             Quantity = request.Cantidad,
+            RemainingQuantity = request.Cantidad,
             UnitCost = costoAplicado,
             Lote = request.Lote,
             FechaVencimiento = request.FechaVencimiento,

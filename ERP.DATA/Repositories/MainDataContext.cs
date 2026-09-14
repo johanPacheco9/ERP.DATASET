@@ -1,3 +1,4 @@
+using ERP.TRAN.CrossLayers.Core.Agreggates;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,8 @@ public partial class MainDataContext(DbContextOptions<MainDataContext> options) 
     public DbSet<Usuario> Usuarios { get; set; }
     
     public DbSet<UsuarioStore>  UsuarioStores { get; set; }
+    
+    public DbSet<Parametros> Parametros { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

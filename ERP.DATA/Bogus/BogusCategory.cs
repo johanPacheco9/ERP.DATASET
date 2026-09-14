@@ -2,6 +2,7 @@ using Bogus;
 using ERP.TRAN.CrossLayers.API.Inventario.ProductoVariante.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
+using ERP.TRAN.CrossLayers.Core.Agreggates;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
@@ -90,7 +91,27 @@ public static class OneShotDatabaseSeeder
             context.Store.AddRange(stores);
             await context.SaveChangesAsync();
         }
+        // ========================
+        // Parametros
+        // ========================
+        if (!context.Parametros.Any())
+        {
+            var parametroGeneral = new Parametros
+            {
+                Nit = "900123456-1",
+                RazonSocial = "Comercializadora y ERP S.A.S.",
+                Direccion = "Calle 50 # 30-20, Bucaramanga",
+                Telefono = "+57 6076000000",
+                Email = "contacto@erp-demo.com",
+                Logo1 = "logo_default.png",
+                ForzarFifoEstricto = true,
+                PermitirVentaSinStock = false,
+                ManejoUbicacionesBodega = true
+            };
 
+            context.Parametros.Add(parametroGeneral);
+            await context.SaveChangesAsync();
+        }
         // =========================
         // WAREHOUSES
         // =========================

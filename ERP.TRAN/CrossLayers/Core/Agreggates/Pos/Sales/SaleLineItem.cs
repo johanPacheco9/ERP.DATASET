@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
@@ -14,12 +15,16 @@ public class SaleLineItem : EntityWithtraceability
     public int? UnidadProductoId { get; set; }
     
     public int Quantity { get; set; }
+    
     public decimal UnitPrice { get; set; }
     
     public decimal TaxRate { get; set; } = 0.19m;
     public decimal TaxAmount { get; set; } = 0m;
     public decimal LineTotal { get; set; }
     public int? MovementId { get; set; }
+
+    [Column(TypeName = "decimal(15,4)")]
+    public decimal CostoVentaTotal { get; set; }
 
     // === NAVEGACIÓN ===
     public Sale Sale { get; set; } = null!;
