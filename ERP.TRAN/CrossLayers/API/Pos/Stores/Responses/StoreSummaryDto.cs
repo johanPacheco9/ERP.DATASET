@@ -1,3 +1,15 @@
+// namespace ERP.TRAN.CrossLayers.API.Pos.Stores.Responses;
+
+// public sealed record StoreSummaryDto(
+//     int Id,
+//     string Name,
+//     string? Description,
+//     bool IsMainStore,
+//     bool IsActive,
+//     int WarehousesCount,
+//     int TerminalsCount,
+//     List<int> CajasIds);
+
 namespace ERP.TRAN.CrossLayers.API.Pos.Stores.Responses;
 
 public sealed record StoreSummaryDto(
@@ -6,6 +18,7 @@ public sealed record StoreSummaryDto(
     string? Description,
     bool IsMainStore,
     bool IsActive,
+    string Type,
     int WarehousesCount,
     int TerminalsCount,
     List<int> CajasIds);

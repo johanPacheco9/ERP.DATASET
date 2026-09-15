@@ -3,15 +3,12 @@ using ERP.TRAN.CrossLayers.API.Pos.Stores.Responses;
 using ERP.TRAN.CrossLayers.API.Pos.Terminals.Responses;
 using ERP.TRAN.CrossLayers.API.Stores.Requests;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores;
+using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.EntityFrameworkCore;
-
 namespace ERP.DATA.Services.VentasService.Stores;
 
 public partial class StoresManager
 {
-    /// <summary>
-    /// Obtiene una tienda específica por su Id, incluyendo sus cajas y bodegas asociadas para el panel de edición.
-    /// </summary>
     public async Task<StoreSummaryDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         var store = await _context.Store
@@ -30,19 +27,15 @@ public partial class StoresManager
             store.Description,
             store.IsMainStore,
             store.IsActive,
+            store.Type.GetDisplayName(),
             store.Bodegas.Count,
             store.Cajas.Count,
             CajasIds
         );
     }
 
-    /// <summary>
-    /// Crea una nueva sucursal/tienda en el sistema.
-    /// </summary>
     public async Task<int> CreateAsync(CreateStoreRequest request, CancellationToken cancellationToken = default)
     {
-        // Opcional: Si se marca como tienda principal, podríamos validar o apagar las demás, 
-        // pero por ahora realizamos la inserción directa.
         var storeEntity = new Store
         {
             Name = request.Name,
@@ -58,9 +51,6 @@ public partial class StoresManager
         return storeEntity.Id;
     }
 
-    /// <summary>
-    /// Actualiza la información de una tienda existente.
-    /// </summary>
     public async Task UpdateAsync(int id, UpdateStoreRequest request, CancellationToken cancellationToken = default)
     {
         var storeEntity = await _context.Store

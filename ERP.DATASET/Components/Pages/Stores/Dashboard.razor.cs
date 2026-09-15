@@ -1,5 +1,5 @@
 using ERP.TRAN.CrossLayers.API.Pos.Stores.Requests;
-using ERP.TRAN.CrossLayers.API.Stores.Responses;
+using ERP.TRAN.CrossLayers.API.Pos.Stores.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
 
 namespace ERP.DATASET.Components.Pages.Stores;

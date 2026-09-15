@@ -5,7 +5,8 @@ using ERP.TRAN.CrossLayers.API.Users.Enums;
 using ERP.TRAN.CrossLayers.API.Users.Requests;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.AspNetCore.Components;
-using StoreSummaryDto = ERP.TRAN.CrossLayers.API.Stores.Responses.StoreSummaryDto;
+// using StoreSummaryDto = ERP.TRAN.CrossLayers.API.Stores.Responses.StoreSummaryDto;
+using StoreSummaryDto = ERP.TRAN.CrossLayers.API.Pos.Stores.Responses.StoreSummaryDto;
 
 namespace ERP.DATASET.Components.Pages.Usuarios;
 

@@ -5,7 +5,7 @@ using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Enums;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Responses;
 using ERP.TRAN.CrossLayers.API.Pos.Stores.Requests;
-using ERP.TRAN.CrossLayers.API.Stores.Responses;
+using ERP.TRAN.CrossLayers.API.Pos.Stores.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.AspNetCore.Components;
 
