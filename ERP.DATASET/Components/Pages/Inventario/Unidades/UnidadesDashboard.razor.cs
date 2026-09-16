@@ -12,7 +12,7 @@ using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Request;
 using ERP.TRAN.CrossLayers.API.Inventario.UnidadProducto.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
 using ERP.TRAN.CrossLayers.API.Pos.Stores.Requests;
-using ERP.TRAN.CrossLayers.API.Stores.Responses;
+using ERP.TRAN.CrossLayers.API.Pos.Stores.Responses;
 using ERP.TRAN.CrossLayers.API.Users.Responses;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.AspNetCore.Components;
