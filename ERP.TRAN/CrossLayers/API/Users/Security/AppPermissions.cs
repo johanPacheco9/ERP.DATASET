@@ -55,6 +55,9 @@ public static class AppPermissions
 
         /// <summary>Gestión de Tiendas y Sucursales físicas.</summary>
         public const string StoreManagement = Roles.Admin;
+
+        /// <summary>Visualización y exportación de reportes gerenciales, utilidad FIFO y rendimiento.</summary>
+        public const string ReportsManagement = $"{Roles.Admin},{Roles.Supervisor}";
     }
 
     #region Métodos de Extensión para ClaimsPrincipal y UserRole

@@ -173,6 +173,25 @@
                 </div>
             </AuthorizeView>
 
+            <!-- SECCIÓN: REPORTES & ANALÍTICA (Admin y Supervisor) -->
+            <AuthorizeView Roles="@AppPermissions.Policies.ReportsManagement">
+                <div>
+                    @if (!IsCollapsed)
+                    {
+                        <div class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                            <span>Reportes & Analítica</span>
+                            <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">FIFO</span>
+                        </div>
+                    }
+                    <div class="space-y-1">
+                        <NavLink class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-colors group [&.active]:bg-blue-50 [&.active]:text-blue-700 [&.active]:font-semibold" href="reportes">
+                            <i class="bi bi-bar-chart-line-fill text-sm text-blue-600 group-hover:text-blue-700 group-[.active]:text-blue-600"></i>
+                            @if (!IsCollapsed) { <span class="font-semibold text-slate-900">Centro de Reportes</span> }
+                        </NavLink>
+                    </div>
+                </div>
+            </AuthorizeView>
+
             <!-- SECCIÓN: ADMINISTRACIÓN Y USUARIOS (Exclusivo Admin) -->
             <AuthorizeView Roles="@AppPermissions.Policies.UserManagement">
                 <div>

@@ -232,7 +232,6 @@ internal static class StockHelper
         return (movimientoSalida.Id, null, costoTotalConsumido);
     }
 
-    // Descuenta stock con reintentos ante conflictos de concurrencia.
     private static async Task DeductWarehouseStockWithRetryAsync(
         MainDataContext context,
         int warehouseId,
@@ -240,46 +239,60 @@ internal static class StockHelper
         int quantity,
         CancellationToken cancellationToken)
     {
-        for (var attempt = 1;
-             attempt <= MaxConcurrencyRetries;
-             attempt++)
+        for (var attempt = 1; attempt <= MaxConcurrencyRetries; attempt++)
         {
-            var stock = await context.WarehouseStock
-                .FirstOrDefaultAsync(
-                    s => s.WarehouseId == warehouseId &&
-                         s.ProductoVarianteId == productoVarianteId,
-                    cancellationToken);
-
-            if (stock == null || stock.CurrentStock < quantity)
-            {
-                throw new InvalidOperationException(
-                    $"Stock insuficiente en bodega. " +
-                    $"Disponible: {stock?.CurrentStock ?? 0}, " +
-                    $"solicitado: {quantity}.");
-            }
-
-            stock.CurrentStock -= quantity;
-            stock.FechaActualizacion = DateTime.UtcNow;
-
+            WarehouseStock stock = null!;
+            
             try
             {
+                // 1. Leer stock actual (con RowVersion)
+                stock = await context.WarehouseStock
+                    .FirstOrDefaultAsync(
+                        s => s.WarehouseId == warehouseId &&
+                             s.ProductoVarianteId == productoVarianteId,
+                        cancellationToken)
+                    ?? throw new InvalidOperationException(
+                        $"No existe stock para la variante #{productoVarianteId} " +
+                        $"en la bodega #{warehouseId}.");
+ 
+                // 2. Validar disponibilidad
+                if (stock.CurrentStock < quantity)
+                    throw new InvalidOperationException(
+                        $"Stock insuficiente en bodega. " +
+                        $"Disponible: {stock.CurrentStock}, " +
+                        $"solicitado: {quantity}.");
+ 
+                // 3. Actualizar
+                stock.CurrentStock -= quantity;
+                stock.FechaActualizacion = DateTime.UtcNow;
+ 
+                // 4. Guardar (EF Core valida RowVersion automáticamente)
                 await context.SaveChangesAsync(cancellationToken);
+ 
+                // ✅ Éxito
                 return;
             }
             catch (DbUpdateConcurrencyException)
                 when (attempt < MaxConcurrencyRetries)
             {
-                // La fila cambió antes de guardar.
-                // Desconectamos la entidad y volvemos a leer el stock actualizado.
-                context.Entry(stock).State = EntityState.Detached;
+                // Conflicto: reintentar
+                if (stock != null)
+                    context.Entry(stock).State = EntityState.Detached;
+                
+                // Backoff: esperar antes de reintentar
+                await Task.Delay(50 * attempt, cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException)
+                when (attempt == MaxConcurrencyRetries)
+            {
+                // Falló después de 3 intentos
+                throw new InvalidOperationException(
+                    $"No se pudo actualizar el stock de la variante " +
+                    $"#{productoVarianteId} en la bodega #{warehouseId} " +
+                    $"tras {MaxConcurrencyRetries} intentos por alta concurrencia. " +
+                    $"Intente la venta nuevamente.");
             }
         }
-
-        throw new InvalidOperationException(
-            $"No se pudo actualizar el stock de la variante " +
-            $"#{productoVarianteId} en la bodega #{warehouseId} " +
-            $"tras {MaxConcurrencyRetries} intentos por alta concurrencia. " +
-            $"Intente la venta nuevamente.");
     }
 
     internal static async Task<int> GetAvailableCountAsync(

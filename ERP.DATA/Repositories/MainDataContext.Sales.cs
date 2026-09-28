@@ -91,22 +91,38 @@ public partial class MainDataContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // NUEVO: control de concurrencia optimista para evitar sobreventa
-        // cuando dos ventas descuentan el mismo WarehouseStock casi al mismo tiempo.
-        //
-        // xmin es una columna interna que PostgreSQL mantiene automáticamente
-        // y cambia en cada UPDATE de la fila.
-        //
-        // No se crea ninguna columna nueva ni hace falta migración:
-        // se le pide a EF Core que la lea y la use para detectar si otro
-        // proceso modificó el registro entre que lo leímos y lo intentamos guardar.
-        modelBuilder.Entity<WarehouseStock>(e =>
+        modelBuilder.Entity<WarehouseStock>(entity =>
         {
-            e.Property<uint>("Version")
-                .HasColumnName("xmin")
-                .HasColumnType("xid")
-                .ValueGeneratedOnAddOrUpdate()
+            entity.ToTable("WarehouseStock");
+            entity.HasKey(e => e.Id);
+
+            // ✅ Configurar control de concurrencia
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
                 .IsConcurrencyToken();
+
+            // Índice único
+            entity.HasIndex(e => new { e.WarehouseId, e.ProductoVarianteId })
+                .IsUnique()
+                .HasDatabaseName("IX_WarehouseStock_WarehouseVariant_Unique");
+
+            entity.Property(e => e.CurrentStock).IsRequired();
+            entity.Property(e => e.StockReservado).IsRequired().HasDefaultValue(0);
+            entity.Property(e => e.FechaActualizacion).IsRequired();
+
+            entity.HasOne(e => e.Warehouse)
+                .WithMany(w => w.StockProductos)
+                .HasForeignKey(e => e.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ProductoVariante)
+                .WithMany(p => p.Stocks)
+                .HasForeignKey(e => e.ProductoVarianteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.CreatedBy).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired(false);
         });
     }
 }

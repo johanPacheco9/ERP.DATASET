@@ -98,7 +98,7 @@ if (app.Environment.IsDevelopment())
             Role = UserRole.Admin,
             IsActive = true
         };
-        admin.PasswordHash = hasher.HashPassword(null!, "CambiaEsta123!");
+        admin.PasswordHash = hasher.HashPassword(null!, "12345");
 
         context.Usuarios.Add(admin);
         await context.SaveChangesAsync();

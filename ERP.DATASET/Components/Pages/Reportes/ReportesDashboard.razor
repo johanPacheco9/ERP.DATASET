@@ -1,0 +1,627 @@
+@page "/reportes"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = AppPermissions.Policies.ReportsManagement)]
+
+<div class="max-w-[1600px] mx-auto space-y-5 pb-12">
+    <!-- Header Principal -->
+    <div class="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold text-[11px] border border-blue-200">
+                    Analítica & Rendimiento
+                </span>
+                <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px] border border-emerald-200">
+                    FIFO Estricto
+                </span>
+            </div>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Centro de Reportes Gerenciales</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Control de rentabilidad real, valoración de stock y rotación de inventarios</p>
+        </div>
+
+        <!-- Botones de Presets de Rango Rápido -->
+        <div class="flex flex-wrap items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200">
+            <button type="button" @onclick='() => SetPreset("hoy")'
+                    class="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors @(_presetSeleccionado == "hoy" ? "bg-white text-blue-600 shadow-xs border border-slate-200" : "text-slate-600 hover:text-slate-900")">
+                Hoy
+            </button>
+            <button type="button" @onclick='() => SetPreset("7dias")'
+                    class="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors @(_presetSeleccionado == "7dias" ? "bg-white text-blue-600 shadow-xs border border-slate-200" : "text-slate-600 hover:text-slate-900")">
+                7 Días
+            </button>
+            <button type="button" @onclick='() => SetPreset("mes")'
+                    class="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors @(_presetSeleccionado == "mes" ? "bg-white text-blue-600 shadow-xs border border-slate-200" : "text-slate-600 hover:text-slate-900")">
+                Este Mes
+            </button>
+            <button type="button" @onclick='() => SetPreset("anio")'
+                    class="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors @(_presetSeleccionado == "anio" ? "bg-white text-blue-600 shadow-xs border border-slate-200" : "text-slate-600 hover:text-slate-900")">
+                Año Actual
+            </button>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros Contextuales -->
+    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-1.5">
+                <span class="text-slate-500 font-medium">Desde:</span>
+                <input type="date" class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                       @bind="_fechaDesde" @bind:after="CargarReporteActivo" />
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="text-slate-500 font-medium">Hasta:</span>
+                <input type="date" class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                       @bind="_fechaHasta" @bind:after="CargarReporteActivo" />
+            </div>
+
+            <div class="flex items-center gap-1.5">
+                <span class="text-slate-500 font-medium">Sucursal:</span>
+                <select class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none cursor-pointer"
+                        @bind="_selectedStoreId" @bind:after="CargarReporteActivo">
+                    <option value="0">Todas las sucursales</option>
+                    @foreach (var t in _tiendas)
+                    {
+                        <option value="@t.Id">@t.Name</option>
+                    }
+                </select>
+            </div>
+
+            @if (_activeTab == 1 || _activeTab == 2 || _activeTab == 3)
+            {
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-500 font-medium">Bodega:</span>
+                    <select class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none cursor-pointer"
+                            @bind="_selectedWarehouseId" @bind:after="CargarReporteActivo">
+                        <option value="0">Todas las bodegas</option>
+                        @foreach (var b in _bodegas)
+                        {
+                            <option value="@b.Id">@b.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+
+        <button type="button" @onclick="CargarReporteActivo"
+                class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-xs transition-colors flex items-center justify-center gap-1.5 self-end lg:self-auto cursor-pointer">
+            <i class="bi bi-arrow-clockwise @(_loading ? "animate-spin" : "")"></i>
+            <span>Actualizar</span>
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center gap-2">
+            <i class="bi bi-exclamation-octagon-fill text-rose-600 text-sm"></i>
+            <span>@_error</span>
+        </div>
+    }
+
+    <!-- Navegación por Pestañas -->
+    <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
+        <button type="button" @onclick="() => CambiarPestana(1)"
+                class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer @(_activeTab == 1 ? "bg-blue-600 text-white shadow-xs" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200")">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Utilidad & Rentabilidad</span>
+        </button>
+
+        <button type="button" @onclick="() => CambiarPestana(2)"
+                class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer @(_activeTab == 2 ? "bg-blue-600 text-white shadow-xs" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200")">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>Rotación & Stock Valorizado FIFO</span>
+        </button>
+
+        <button type="button" @onclick="() => CambiarPestana(3)"
+                class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer @(_activeTab == 3 ? "bg-blue-600 text-white shadow-xs" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200")">
+            <i class="bi bi-trophy"></i>
+            <span>Productos Más Vendidos</span>
+        </button>
+
+        <button type="button" @onclick="() => CambiarPestana(4)"
+                class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer @(_activeTab == 4 ? "bg-blue-600 text-white shadow-xs" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200")">
+            <i class="bi bi-display"></i>
+            <span>Rendimiento por Caja</span>
+        </button>
+    </div>
+
+    <!-- Contenido según Pestaña -->
+    @if (_loading)
+    {
+        <div class="bg-white rounded-xl p-12 border border-slate-200 flex flex-col items-center justify-center space-y-3">
+            <div class="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs font-semibold text-slate-500">Calculando indicadores financieros y kárdex FIFO...</span>
+        </div>
+    }
+    else
+    {
+        @if (_activeTab == 1 && _reporteUtilidad != null)
+        {
+            <!-- ===================== PESTAÑA 1: UTILIDAD ===================== -->
+            <div class="space-y-4">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Ingresos Brutos</span>
+                        <div class="text-xl font-bold text-slate-900 font-mono">@_reporteUtilidad.TotalIngresos.ToString("C0")</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">@_reporteUtilidad.CantidadVentas ventas (@_reporteUtilidad.TotalUnidadesVendidas unid.)</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-rose-500 uppercase tracking-wider block mb-1">Costo de Venta (FIFO)</span>
+                        <div class="text-xl font-bold text-rose-600 font-mono">@_reporteUtilidad.TotalCostoVentas.ToString("C0")</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Consumo real de capas kárdex</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block mb-1">Utilidad Bruta</span>
+                        <div class="text-xl font-bold text-emerald-600 font-mono">@_reporteUtilidad.UtilidadBruta.ToString("C0")</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Ingresos - Costo FIFO</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-blue-600 uppercase tracking-wider block mb-1">Margen Bruto</span>
+                        <div class="text-xl font-bold text-blue-600 font-mono">@_reporteUtilidad.MargenBrutoPorcentaje%</div>
+                        <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                            <div class="bg-blue-600 h-1.5 rounded-full" style="width: @(Math.Min(100, Math.Max(0, (double)_reporteUtilidad.MargenBrutoPorcentaje)))%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">IVA Facturado</span>
+                        <div class="text-xl font-bold text-slate-700 font-mono">@_reporteUtilidad.TotalImpuestos.ToString("C0")</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Impuesto liquidado en ventas</span>
+                    </div>
+                </div>
+
+                <!-- Tabla de Utilidad por Producto -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-sm">Rentabilidad por Producto (Desglose FIFO)</h3>
+                            <p class="text-xs text-slate-500">Márgenes y costos calculados según las capas de compra consumidas</p>
+                        </div>
+                        <div class="relative w-full sm:w-64">
+                            <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" placeholder="Buscar por nombre o SKU..."
+                                   class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                   @bind="_searchUtilidad" @bind:event="oninput" />
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3">SKU</th>
+                                    <th class="px-4 py-3">Producto</th>
+                                    <th class="px-4 py-3 text-right">Cant. Vendida</th>
+                                    <th class="px-4 py-3 text-right">Ingresos</th>
+                                    <th class="px-4 py-3 text-right">Costo FIFO</th>
+                                    <th class="px-4 py-3 text-right">Utilidad Bruta</th>
+                                    <th class="px-4 py-3 text-right">Margen %</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @if (!ItemsUtilidadFiltrados.Any())
+                                {
+                                    <tr>
+                                        <td colspan="7" class="px-4 py-8 text-center text-slate-400">
+                                            No se encontraron ventas registradas en el rango seleccionado.
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var item in ItemsUtilidadFiltrados)
+                                    {
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-4 py-2.5 font-mono text-slate-700 font-semibold">@item.Sku</td>
+                                            <td class="px-4 py-2.5 font-medium text-slate-900">@item.NombreProducto</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-slate-700">@item.CantidadVendida</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-slate-800">@item.IngresoTotal.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-rose-600">@item.CostoTotal.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-emerald-600">@item.UtilidadBruta.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right">
+                                                <span class="px-2 py-0.5 rounded-full font-bold font-mono text-[11px] @(item.MargenPorcentaje >= 30 ? "bg-emerald-100 text-emerald-800" : item.MargenPorcentaje >= 15 ? "bg-amber-100 text-amber-800" : "bg-rose-100 text-rose-800")">
+                                                    @item.MargenPorcentaje%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (_activeTab == 2 && _reporteRotacion != null)
+        {
+            <!-- ===================== PESTAÑA 2: ROTACIÓN & STOCK VALORIZADO FIFO ===================== -->
+            <div class="space-y-4">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-blue-600 uppercase tracking-wider block mb-1">Stock Valorizado FIFO</span>
+                        <div class="text-xl font-bold text-blue-600 font-mono">@_reporteRotacion.TotalValorInventarioFifo.ToString("C0")</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">@_reporteRotacion.TotalUnidadesEnStock unid. físicas disponibles</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Costo Ventas (COGS)</span>
+                        <div class="text-xl font-bold text-slate-900 font-mono">@_reporteRotacion.TotalCostoVendidoPeriodo.ToString("C0")</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Costo total consumido en @_reporteRotacion.TotalDiasPeriodo días</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block mb-1">Índice de Rotación</span>
+                        <div class="text-xl font-bold text-emerald-600 font-mono">@_reporteRotacion.IndiceRotacionGlobal x</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Veces que gira el inventario</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-amber-600 uppercase tracking-wider block mb-1">Días de Inventario (DSI)</span>
+                        <div class="text-xl font-bold text-amber-600 font-mono">@_reporteRotacion.DiasInventarioGlobal días</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Cobertura promedio de stock</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Salud de Inventario</span>
+                        <div class="flex items-center gap-1.5 mt-1 text-[11px] font-bold">
+                            <span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800" title="Alta rotación">@_reporteRotacion.CantidadAltaRotacion A</span>
+                            <span class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800" title="Media rotación">@_reporteRotacion.CantidadMediaRotacion M</span>
+                            <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800" title="Baja rotación">@_reporteRotacion.CantidadBajaRotacion B</span>
+                            <span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800" title="Sin movimiento">@_reporteRotacion.CantidadSinMovimiento 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen por Bodega -->
+                @if (_reporteRotacion.ValorizacionPorBodega.Any())
+                {
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        @foreach (var b in _reporteRotacion.ValorizacionPorBodega)
+                        {
+                            <div class="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs flex items-center justify-between">
+                                <div>
+                                    <span class="font-bold text-slate-900 text-xs block">@b.NombreBodega</span>
+                                    <span class="text-[10px] text-slate-400">@b.TotalUnidades unidades (@b.VariantesDistintas variantes)</span>
+                                </div>
+                                <div class="text-right font-mono font-bold text-slate-900 text-sm">
+                                    @b.TotalValorFifo.ToString("C0")
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Tabla de Rotación y Existencias -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-sm">Existencias Valorizadas & Rotación de Inventario</h3>
+                            <p class="text-xs text-slate-500">Cálculo de costo unitario ponderado FIFO y días de rotación por SKU</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <select class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none cursor-pointer"
+                                    @bind="_filtroRotacionClasificacion" @bind:after="CargarReporteActivo">
+                                <option value="Todos">Todas las rotaciones</option>
+                                <option value="Alta">Alta Rotación</option>
+                                <option value="Media">Media Rotación</option>
+                                <option value="Baja">Baja Rotación</option>
+                                <option value="Sin Movimiento">Sin Movimiento (Estancado)</option>
+                            </select>
+
+                            <div class="relative w-full sm:w-56">
+                                <i class="bi bi-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                                <input type="text" placeholder="Buscar producto o SKU..."
+                                       class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                       @bind="_searchRotacion" @bind:event="oninput" @bind:after="CargarReporteActivo" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3">SKU</th>
+                                    <th class="px-4 py-3">Producto</th>
+                                    <th class="px-4 py-3">Bodega</th>
+                                    <th class="px-4 py-3 text-right">Stock Físico</th>
+                                    <th class="px-4 py-3 text-right">Costo FIFO Prom.</th>
+                                    <th class="px-4 py-3 text-right">Valor Stock FIFO</th>
+                                    <th class="px-4 py-3 text-right">Ventas Período</th>
+                                    <th class="px-4 py-3 text-right">Rotación (x)</th>
+                                    <th class="px-4 py-3 text-right">Días Cobertura</th>
+                                    <th class="px-4 py-3 text-center">Clasificación</th>
+                                    <th class="px-4 py-3 text-center">Capas FIFO</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @if (!_reporteRotacion.Items.Any())
+                                {
+                                    <tr>
+                                        <td colspan="11" class="px-4 py-8 text-center text-slate-400">
+                                            No se encontraron registros que coincidan con los filtros.
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var item in _reporteRotacion.Items)
+                                    {
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-4 py-2.5 font-mono text-slate-700 font-semibold">@item.Sku</td>
+                                            <td class="px-4 py-2.5">
+                                                <div class="font-medium text-slate-900">@item.NombreProducto</div>
+                                                @if (!string.IsNullOrEmpty(item.Categoria))
+                                                {
+                                                    <span class="text-[10px] text-slate-400">@item.Categoria</span>
+                                                }
+                                            </td>
+                                            <td class="px-4 py-2.5 text-slate-600">@item.NombreBodega</td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-semibold text-slate-800">
+                                                @item.StockActual
+                                                @if (item.StockReservado > 0)
+                                                {
+                                                    <span class="text-[10px] text-amber-600 block">(@item.StockReservado res.)</span>
+                                                }
+                                            </td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-slate-700">@item.CostoUnitarioFifoPromedio.ToString("C2")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-blue-600">@item.ValorTotalStockFifo.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-slate-700">@item.UnidadesVendidasPeriodo unid.</td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-slate-800">@item.IndiceRotacion x</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-slate-700">@(item.DiasInventario > 0 ? $"{item.DiasInventario} d" : "-")</td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold @(item.ClasificacionRotacion == "Alta" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" : item.ClasificacionRotacion == "Media" ? "bg-blue-100 text-blue-800 border border-blue-200" : item.ClasificacionRotacion == "Baja" ? "bg-amber-100 text-amber-800 border border-amber-200" : "bg-rose-100 text-rose-800 border border-rose-200")">
+                                                    @item.ClasificacionRotacion
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center">
+                                                <button type="button" @onclick="() => AbrirModalCapas(item.ProductoVarianteId, item.NombreProducto)"
+                                                        class="p-1 px-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg text-xs transition-colors cursor-pointer"
+                                                        title="Ver capas de compra FIFO">
+                                                    <i class="bi bi-layers"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (_activeTab == 3 && _reporteTopProductos != null)
+        {
+            <!-- ===================== PESTAÑA 3: TOP PRODUCTOS MÁS VENDIDOS ===================== -->
+            <div class="space-y-4">
+                <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm">Ranking de Productos Más Vendidos</h3>
+                        <p class="text-xs text-slate-500">Productos con mayor rotación e impacto en facturación en el período</p>
+                    </div>
+
+                    <div class="flex items-center gap-3 text-xs">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-slate-500">Mostrar Top:</span>
+                            <select class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-semibold cursor-pointer"
+                                    @bind="_topProductos" @bind:after="CargarReporteActivo">
+                                <option value="5">Top 5</option>
+                                <option value="10">Top 10</option>
+                                <option value="20">Top 20</option>
+                                <option value="50">Top 50</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-slate-500">Ordenar por:</span>
+                            <select class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-semibold cursor-pointer"
+                                    @bind="_ordenarTopPor" @bind:after="CargarReporteActivo">
+                                <option value="cantidad">Mayor Cantidad</option>
+                                <option value="total">Mayor Facturación ($)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3 text-center">#</th>
+                                    <th class="px-4 py-3">SKU</th>
+                                    <th class="px-4 py-3">Producto</th>
+                                    <th class="px-4 py-3 text-right">Cant. Vendida</th>
+                                    <th class="px-4 py-3 text-right">Total Facturado</th>
+                                    <th class="px-4 py-3 text-right">Costo FIFO Total</th>
+                                    <th class="px-4 py-3 text-right">Utilidad Bruta</th>
+                                    <th class="px-4 py-3 text-right">Margen %</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @if (!_reporteTopProductos.Productos.Any())
+                                {
+                                    <tr>
+                                        <td colspan="8" class="px-4 py-8 text-center text-slate-400">
+                                            No hay datos para mostrar en este rango.
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var prod in _reporteTopProductos.Productos)
+                                    {
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-4 py-2.5 text-center">
+                                                <span class="w-5 h-5 inline-flex items-center justify-center rounded-full font-bold text-[11px] @(prod.Ranking == 1 ? "bg-amber-400 text-white" : prod.Ranking == 2 ? "bg-slate-300 text-slate-800" : prod.Ranking == 3 ? "bg-amber-600 text-white" : "bg-slate-100 text-slate-600")">
+                                                    @prod.Ranking
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-2.5 font-mono font-semibold text-slate-700">@prod.Sku</td>
+                                            <td class="px-4 py-2.5 font-medium text-slate-900">@prod.NombreProducto</td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-blue-600">@prod.CantidadVendida</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-slate-900">@prod.TotalVendido.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-rose-600">@prod.CostoTotal.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-emerald-600">@prod.UtilidadGenerada.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right">
+                                                <span class="px-2 py-0.5 rounded-full font-mono font-bold text-[11px] @(prod.MargenPorcentaje >= 30 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800")">
+                                                    @prod.MargenPorcentaje%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (_activeTab == 4 && _reporteCajas != null)
+        {
+            <!-- ===================== PESTAÑA 4: RENDIMIENTO POR CAJA ===================== -->
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Total Ventas POS</span>
+                        <div class="text-xl font-bold text-slate-900 font-mono">@_reporteCajas.GranTotalVendido.ToString("C0")</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">@_reporteCajas.TotalTransacciones transacciones</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-blue-600 uppercase tracking-wider block mb-1">Ticket Promedio General</span>
+                        <div class="text-xl font-bold text-blue-600 font-mono">
+                            @(_reporteCajas.TotalTransacciones > 0 ? (_reporteCajas.GranTotalVendido / _reporteCajas.TotalTransacciones).ToString("C0") : "$0")
+                        </div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Facturación promedio por cliente</span>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                        <span class="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block mb-1">Cajas Activas</span>
+                        <div class="text-xl font-bold text-emerald-600 font-mono">@_reporteCajas.Cajas.Count</div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Terminales con ventas en el rango</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div class="p-4 border-b border-slate-200">
+                        <h3 class="font-bold text-slate-900 text-sm">Ventas y Métodos de Pago por Terminal POS</h3>
+                        <p class="text-xs text-slate-500">Desglose de ingresos por caja física y forma de recaudo</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3">Terminal POS</th>
+                                    <th class="px-4 py-3">Sucursal</th>
+                                    <th class="px-4 py-3 text-right">N° Ventas</th>
+                                    <th class="px-4 py-3 text-right">Total Facturado</th>
+                                    <th class="px-4 py-3 text-right">Ticket Promedio</th>
+                                    <th class="px-4 py-3 text-right">Efectivo</th>
+                                    <th class="px-4 py-3 text-right">Tarjetas</th>
+                                    <th class="px-4 py-3 text-right">Transferencias/Nequi</th>
+                                    <th class="px-4 py-3 text-right">Crédito</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @if (!_reporteCajas.Cajas.Any())
+                                {
+                                    <tr>
+                                        <td colspan="9" class="px-4 py-8 text-center text-slate-400">
+                                            No se registran ventas en cajas para las fechas seleccionadas.
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var c in _reporteCajas.Cajas)
+                                    {
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-4 py-2.5 font-bold text-slate-900">@c.TerminalNombre</td>
+                                            <td class="px-4 py-2.5 text-slate-600">@c.StoreNombre</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-slate-700">@c.TotalTransacciones</td>
+                                            <td class="px-4 py-2.5 text-right font-mono font-bold text-slate-900">@c.TotalVendido.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-blue-600 font-semibold">@c.TicketPromedio.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-emerald-700">@c.TotalEfectivo.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-slate-700">@c.TotalTarjeta.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-purple-700">@c.TotalTransferencia.ToString("C0")</td>
+                                            <td class="px-4 py-2.5 text-right font-mono text-amber-700">@c.TotalCredito.ToString("C0")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Modal de Capas FIFO -->
+    @if (_mostrarModalCapas)
+    {
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-sm">Capas FIFO Activas (Kárdex)</h4>
+                        <span class="text-xs text-slate-500">@_modalProductoNombre</span>
+                    </div>
+                    <button type="button" @onclick="CerrarModalCapas" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-200 flex items-center justify-center text-sm transition-colors cursor-pointer">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="p-4 max-h-[60vh] overflow-y-auto">
+                    @if (!_capasFiltradasModal.Any())
+                    {
+                        <div class="py-8 text-center text-slate-400 text-xs">
+                            No hay capas de entrada con remanente disponible para este producto.
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="px-3 py-2">Fecha Entrada</th>
+                                    <th class="px-3 py-2">Bodega</th>
+                                    <th class="px-3 py-2 text-right">Cant. Orig.</th>
+                                    <th class="px-3 py-2 text-right">Remanente</th>
+                                    <th class="px-3 py-2 text-right">Costo Unit.</th>
+                                    <th class="px-3 py-2 text-right">Valor Total</th>
+                                    <th class="px-3 py-2">Lote</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach (var c in _capasFiltradasModal)
+                                {
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-3 py-2 font-mono text-slate-700">@c.FechaEntrada.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="px-3 py-2 text-slate-600">@c.NombreBodega</td>
+                                        <td class="px-3 py-2 text-right font-mono text-slate-500">@c.CantidadOriginal</td>
+                                        <td class="px-3 py-2 text-right font-mono font-bold text-blue-600">@c.CantidadRemanente</td>
+                                        <td class="px-3 py-2 text-right font-mono text-slate-800">@c.CostoUnitario.ToString("C2")</td>
+                                        <td class="px-3 py-2 text-right font-mono font-bold text-emerald-600">@c.ValorRemanenteTotal.ToString("C0")</td>
+                                        <td class="px-3 py-2 text-slate-500">@(c.Lote ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+
+                <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+                    <button type="button" @onclick="CerrarModalCapas"
+                            class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg text-xs transition-colors cursor-pointer">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>

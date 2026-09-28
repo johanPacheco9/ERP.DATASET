@@ -1,4 +1,5 @@
-﻿using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
+using System.ComponentModel.DataAnnotations;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
 
 namespace ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
@@ -20,6 +21,11 @@ public class WarehouseStock : EntityWithtraceability
     public int StockMaximo { get; set; } = 0;
 
     public DateTime FechaActualizacion { get; set; }
+
+    // ✅ Control de concurrencia para evitar sobreventa
+    [Timestamp]
+    [ConcurrencyCheck]
+    public byte[] RowVersion { get; set; } = null!;
 
     // Navegación
     public Warehouse Warehouse { get; set; } = null!;

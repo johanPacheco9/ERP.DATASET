@@ -334,11 +334,12 @@ public static class OneShotDatabaseSeeder
             var stocks =
                 (from v in variantes
                  from w in warehouses
+                 let countUnidades = unitProducts.Count(u => u.ProductoVarianteId == v.Id && u.BodegaId == w.Id && u.Status == UnidadProductoStatus.Available)
                  select new WarehouseStock
                  {
                      WarehouseId = w.Id,
                      ProductoVarianteId = v.Id,
-                     CurrentStock = faker.Random.Number(5, 30),
+                     CurrentStock = countUnidades,
                      StockReservado = 0,
                      StockMinimo = 2,
                      StockMaximo = 50,
