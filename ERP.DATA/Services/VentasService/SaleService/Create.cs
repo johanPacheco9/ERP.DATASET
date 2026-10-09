@@ -14,8 +14,9 @@ public partial class SaleService
 {
     public async Task<Result<SaleDetailDto>> CreateAsync(CreateSaleRequest request, CancellationToken cancellationToken = default)
     {
+        // FIX: "errors ?? ..." evita el warning CS8604 (errors puede ser null según el compilador)
         if (!request.ParametersAreValid(out var errors))
-            return Result<SaleDetailDto>.Failure(new Error("Sale.InvalidParameters", errors));
+            return Result<SaleDetailDto>.Failure(new Error("Sale.InvalidParameters", errors ?? "Parámetros inválidos."));
 
         var client = await context.Clients.FindAsync([request.ClientId], cancellationToken);
         if (client == null)
@@ -28,6 +29,12 @@ public partial class SaleService
         var store = await context.Store.FindAsync([request.StoreId], cancellationToken);
         if (store == null)
             return Result<SaleDetailDto>.Failure(new Error("Sale.StoreNotFound", "Tienda no encontrada."));
+
+        // NUEVO (#15): la bodega debe pertenecer a la tienda de la venta.
+        // Sin esto se podía descontar stock de una bodega de otra tienda.
+        if (warehouse.StoreId != request.StoreId)
+            return Result<SaleDetailDto>.Failure(new Error("Sale.WarehouseStoreMismatch",
+                "La bodega seleccionada no pertenece a la tienda indicada."));
 
         return await Result<SaleDetailDto>.TryAsync(async () =>
         {
