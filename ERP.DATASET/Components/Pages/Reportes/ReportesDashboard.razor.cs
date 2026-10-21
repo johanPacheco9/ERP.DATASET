@@ -4,9 +4,9 @@ using ERP.DATA.Services.VentasService.Stores;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
 using ERP.TRAN.CrossLayers.API.Pos.Stores.Requests;
+using ERP.TRAN.CrossLayers.API.Pos.Stores.Responses;
 using ERP.TRAN.CrossLayers.API.Reportes.Requests;
 using ERP.TRAN.CrossLayers.API.Reportes.Responses;
-using ERP.TRAN.CrossLayers.API.Stores.Responses;
 using ERP.TRAN.CrossLayers.Core.Interfaces.ReportesServices;
 using Microsoft.AspNetCore.Components;
 

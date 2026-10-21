@@ -2,6 +2,7 @@ using System.Text;
 using ERP.DATA.Bogus;
 using ERP.DATA.DependencyInjections;
 using ERP.DATA.Services.TokenService;
+using ERP.DATASET.Api;
 using ERP.DATASET.Components;
 using ERP.TRAN.CrossLayers.API.Users.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
@@ -131,6 +132,9 @@ app.MapMethods("/logout", new[] { "GET", "POST" }, (HttpContext httpContext) =>
     });
     return Results.Redirect("/");
 });
+
+// Endpoints HTTP de ventas (POS) usados por las pruebas de carga con k6.
+app.MapVentasApi();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
