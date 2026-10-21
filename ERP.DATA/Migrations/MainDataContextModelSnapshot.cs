@@ -1783,6 +1783,62 @@ namespace ERP.DATA.Migrations
                     b.ToTable("SaleLineItems", (string)null);
                 });
 
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.SaleReturn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsFullCancellation")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("ProductoVarianteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SaleId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SaleLineItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("UnidadProductoId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SaleId");
+
+                    b.ToTable("SaleReturns", (string)null);
+                });
+
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Traceability.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -2369,6 +2425,17 @@ namespace ERP.DATA.Migrations
                     b.Navigation("Sale");
 
                     b.Navigation("UnidadProducto");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.SaleReturn", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.Sale", "Sale")
+                        .WithMany()
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sale");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Traceability.Usuario", b =>

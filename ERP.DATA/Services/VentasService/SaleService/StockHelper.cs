@@ -338,20 +338,23 @@ internal static class StockHelper
                 : variante.ProductoBase.CostoUnitario;
 
         // 2. Si corresponde a una unidad serializada,
-        //    devolverla al estado disponible.
+        //    devolverla al estado disponible (solo si estaba vendida).
         if (unidadProductoId.HasValue)
         {
             var unidad = await context.UnidadesProductos
                 .FirstOrDefaultAsync(
                     u => u.Id == unidadProductoId.Value,
-                    cancellationToken);
+                    cancellationToken)
+                ?? throw new InvalidOperationException(
+                    $"La unidad física #{unidadProductoId.Value} no existe.");
 
-            if (unidad != null)
-            {
-                unidad.Status = UnidadProductoStatus.Available;
-                unidad.UpdatedAt = DateTime.UtcNow;
-                unidad.UpdatedBy = createdBy;
-            }
+            if (unidad.Status != UnidadProductoStatus.Sold)
+                throw new InvalidOperationException(
+                    $"La unidad '{unidad.SerialNumber}' no está vendida o ya fue devuelta.");
+
+            unidad.Status = UnidadProductoStatus.Available;
+            unidad.UpdatedAt = DateTime.UtcNow;
+            unidad.UpdatedBy = createdBy;
         }
 
         // 3. Devolver stock agregado con control de concurrencia.

@@ -85,6 +85,48 @@ public static class VentasApiExtensions
             .WithName("ListarVentas")
             .WithTags("POS - Ventas");
 
+        // POST /api/v1/pos/ventas/{id}/anular -> anula la venta completa
+        app.MapPost("/api/v1/pos/ventas/{id:int}/anular", async (
+                int id,
+                CancelSaleRequest body,
+                ClaimsPrincipal user,
+                SaleService sales,
+                CancellationToken cancellationToken) =>
+            {
+                var userId = GetUserId(user);
+                if (userId is null) return Results.Unauthorized();
+
+                var result = await sales.CancelSaleAsync(id, body.Motivo, userId.Value, cancellationToken);
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.BadRequest(new { code = result.Error.Code, message = result.Error.Message });
+            })
+            .DisableAntiforgery()
+            .RequireAuthorization()
+            .WithName("AnularVenta")
+            .WithTags("POS - Ventas");
+
+        // POST /api/v1/pos/ventas/{id}/devoluciones -> devolución parcial de una línea
+        app.MapPost("/api/v1/pos/ventas/{id:int}/devoluciones", async (
+                int id,
+                ReturnLineRequest body,
+                ClaimsPrincipal user,
+                SaleService sales,
+                CancellationToken cancellationToken) =>
+            {
+                var userId = GetUserId(user);
+                if (userId is null) return Results.Unauthorized();
+
+                var result = await sales.ReturnLineAsync(id, body.LineId, body.Quantity, body.SerialNumber, body.Motivo, userId.Value, cancellationToken);
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : Results.BadRequest(new { code = result.Error.Code, message = result.Error.Message });
+            })
+            .DisableAntiforgery()
+            .RequireAuthorization()
+            .WithName("DevolverLineaVenta")
+            .WithTags("POS - Ventas");
+
         // =====================================================================
         // APOYO A LAS PRUEBAS (solo Development)
         // =====================================================================
@@ -412,4 +454,7 @@ public static class VentasApiExtensions
 
     /// <summary>Cuerpo del endpoint de login de desarrollo.</summary>
     public sealed record DevTokenRequest(string Email, string Password);
+
+    public sealed record CancelSaleRequest(string Motivo);
+    public sealed record ReturnLineRequest(int LineId, int Quantity, string? SerialNumber, string Motivo);
 }

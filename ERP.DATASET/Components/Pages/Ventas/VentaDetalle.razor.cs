@@ -4,6 +4,7 @@ using ERP.TRAN.CrossLayers.API.Pos.Payments.Enums;
 using ERP.TRAN.CrossLayers.API.Pos.Payments.Requests;
 using ERP.TRAN.CrossLayers.API.Pos.Payments.Responses;
 using ERP.TRAN.CrossLayers.API.Pos.Sales.Responses;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -25,6 +26,23 @@ public partial class VentaDetalle
     private SalePaymentsSummaryDto? _pagos;
     private AddPaymentForm _paymentForm = new();
 
+    // Anulación
+    private bool _showCancelModal;
+    private string _cancelReason = string.Empty;
+    private string? _cancelError;
+    private bool _cancelling;
+
+    // Devolución parcial
+    private bool _showReturnModal;
+    private int _returnLineId;
+    private int _returnQuantity = 1;
+    private string? _returnSerial;
+    private string _returnReason = string.Empty;
+    private string? _returnError;
+    private bool _returning;
+
+    private List<SaleReturn> _returns = new();
+
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
@@ -37,6 +55,7 @@ public partial class VentaDetalle
         {
             _venta = await SaleService.GetByIdAsync(Id, CancellationToken.None);
             _pagos = await PaymentService.GetBySaleId(Id, CancellationToken.None);
+            _returns = await SaleService.ListReturnsAsync(Id, CancellationToken.None);
         }
         catch (Exception)
         {
@@ -91,6 +110,87 @@ public partial class VentaDetalle
         finally
         {
             _savingPayment = false;
+        }
+    }
+
+    private void OpenCancelModal()
+    {
+        _cancelReason = string.Empty;
+        _cancelError = null;
+        _showCancelModal = true;
+    }
+
+    private async Task ConfirmCancel()
+    {
+        if (string.IsNullOrWhiteSpace(_cancelReason))
+        {
+            _cancelError = "El motivo es obligatorio.";
+            return;
+        }
+        _cancelling = true;
+        _cancelError = null;
+        try
+        {
+            var result = await SaleService.CancelSaleAsync(Id, _cancelReason.Trim(), 1, CancellationToken.None);
+            if (result.IsSuccess)
+            {
+                _showCancelModal = false;
+                await LoadData();
+            }
+            else
+            {
+                _cancelError = result.Error.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _cancelError = ex.Message;
+        }
+        finally
+        {
+            _cancelling = false;
+        }
+    }
+
+    private void OpenReturnModal(int lineId, int qtyDefault, string? serial)
+    {
+        _returnLineId = lineId;
+        _returnQuantity = qtyDefault > 0 ? 1 : 1;
+        _returnSerial = serial;
+        _returnReason = string.Empty;
+        _returnError = null;
+        _showReturnModal = true;
+    }
+
+    private async Task ConfirmReturn()
+    {
+        if (string.IsNullOrWhiteSpace(_returnReason))
+        {
+            _returnError = "El motivo es obligatorio.";
+            return;
+        }
+        _returning = true;
+        _returnError = null;
+        try
+        {
+            var result = await SaleService.ReturnLineAsync(Id, _returnLineId, _returnQuantity, _returnSerial, _returnReason.Trim(), 1, CancellationToken.None);
+            if (result.IsSuccess)
+            {
+                _showReturnModal = false;
+                await LoadData();
+            }
+            else
+            {
+                _returnError = result.Error.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _returnError = ex.Message;
+        }
+        finally
+        {
+            _returning = false;
         }
     }
 

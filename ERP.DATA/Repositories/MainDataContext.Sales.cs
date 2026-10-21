@@ -108,6 +108,14 @@ public partial class MainDataContext
                 .IsConcurrencyToken();
         });
 
+        modelBuilder.Entity<SaleReturn>(e =>
+        {
+            e.ToTable("SaleReturns");
+            e.HasKey(r => r.Id);
+            e.Property(r => r.Motivo).HasMaxLength(500).IsRequired();
+            e.HasOne(r => r.Sale).WithMany().HasForeignKey(r => r.SaleId);
+        });
+
         modelBuilder.Entity<WarehouseStock>(entity =>
         {
             entity.ToTable("WarehouseStock");

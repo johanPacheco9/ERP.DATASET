@@ -5,6 +5,7 @@ namespace ERP.DATA.Repositories;
 
 public partial class MainDataContext
 {
+    public DbSet<SaleReturn> SaleReturns { get; set; }
     public DbSet<SalePayment> SalePayments { get; set; }
     public DbSet<PosShift>  PosShifts { get; set; }
     public DbSet<PosShiftMovement> PosShiftMovements { get; set; }
