@@ -40,7 +40,14 @@ public partial class ClientService
         client.City = request.City?.Trim();
         client.TaxRegime = request.TaxRegime?.Trim();
 
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            throw new InvalidOperationException("Ya existe otro cliente con esa identificación.");
+        }
 
         return new ClientSummaryDto(
             client.Id,

@@ -210,6 +210,8 @@ public partial class SaleService
                 sale.FactusQrUrl,
                 lineDetails);
         },
-        ex => new Error("Sale.UnexpectedError", ex.Message));
+        ex => ex is DbUpdateConcurrencyException
+            ? new Error("Sale.ConcurrencyConflict", "Conflicto de concurrencia al descontar inventario. Reintente la venta.")
+            : new Error("Sale.UnexpectedError", ex.Message));
     }
 }

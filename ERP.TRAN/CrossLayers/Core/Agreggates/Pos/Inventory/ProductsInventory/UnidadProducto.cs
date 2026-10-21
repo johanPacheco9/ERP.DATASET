@@ -22,6 +22,12 @@ public class UnidadProducto : EntityWithtraceability
     public UnidadProductoStatus Status { get; set; } = UnidadProductoStatus.Available; // Available, Sold, Damaged, etc.
     public string? UbicacionFisica { get; set; }       // Ej: Estante A-3, Pasillo 2
 
+    /// <summary>
+    /// Token de concurrencia optimista (RowVersion). Evita que dos ventas
+    /// marquen la misma unidad física como vendida simultáneamente.
+    /// </summary>
+    public byte[] RowVersion { get; set; } = null!;
+
     // === RELACIONES ===
     public ProductoVariante ProductoVariante { get; set; } = null!;
     public Warehouse Bodega { get; set; } = null!;

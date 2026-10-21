@@ -45,6 +45,12 @@ public class Movement : EntityWithtraceability
     // === JUSTIFICACIÓN ===
     public string? Motive { get; set; }
     public string? Observations { get; set; }
+
+    /// <summary>
+    /// Token de concurrencia optimista (RowVersion). Protege el consumo FIFO
+    /// (RemainingQuantity) ante ventas concurrentes sobre la misma capa.
+    /// </summary>
+    public byte[] RowVersion { get; set; } = null!;
     
     // === UBICACIÓN ===
     /// <summary>

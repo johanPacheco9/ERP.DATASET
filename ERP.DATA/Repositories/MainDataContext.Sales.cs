@@ -1,4 +1,5 @@
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ public partial class MainDataContext
             e.HasKey(c => c.Id);
             e.Property(c => c.Name).HasMaxLength(200).IsRequired();
             e.Property(c => c.IdentificationNumber).HasMaxLength(50).IsRequired();
-            e.HasIndex(c => c.IdentificationNumber);
+            e.HasIndex(c => c.IdentificationNumber).IsUnique();
         });
 
         modelBuilder.Entity<Sale>(e =>
@@ -73,6 +74,11 @@ public partial class MainDataContext
                 .WithMany(p => p.Movimientos)
                 .HasForeignKey(m => m.ProductoVarianteId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Token de concurrencia optimista para proteger RemainingQuantity (FIFO).
+            entity.Property(m => m.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
         });
 
         modelBuilder.Entity<MovementConsumption>(entity =>
@@ -89,6 +95,17 @@ public partial class MainDataContext
                 .WithMany()
                 .HasForeignKey(c => c.EntryMovementId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<UnidadProducto>(entity =>
+        {
+            entity.ToTable("UnidadesProductos");
+            entity.HasKey(e => e.Id);
+
+            // Token de concurrencia optimista: evita doble venta del mismo serial.
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
         });
 
         modelBuilder.Entity<WarehouseStock>(entity =>

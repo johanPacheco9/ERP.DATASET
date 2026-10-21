@@ -174,7 +174,8 @@ namespace ERP.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IdentificationNumber");
+                    b.HasIndex("IdentificationNumber")
+                        .IsUnique();
 
                     b.ToTable("Clients", (string)null);
                 });
@@ -986,6 +987,12 @@ namespace ERP.DATA.Migrations
                     b.Property<int>("ProductoVarianteId")
                         .HasColumnType("integer");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
                     b.Property<string>("SerialNumber")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1008,7 +1015,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProductoVarianteId");
 
-                    b.ToTable("UnidadesProductos");
+                    b.ToTable("UnidadesProductos", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.Stores.Store", b =>
@@ -1143,6 +1150,12 @@ namespace ERP.DATA.Migrations
 
                     b.Property<int?>("RemainingQuantity")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<int?>("SaleId")
                         .HasColumnType("integer");

@@ -279,8 +279,8 @@ internal static class StockHelper
                 if (stock != null)
                     context.Entry(stock).State = EntityState.Detached;
                 
-                // Backoff: esperar antes de reintentar
-                await Task.Delay(50 * attempt, cancellationToken);
+                // Backoff con jitter: esperar antes de reintentar
+                await Task.Delay(50 * attempt + Random.Shared.Next(0, 50), cancellationToken);
             }
             catch (DbUpdateConcurrencyException)
                 when (attempt == MaxConcurrencyRetries)
@@ -437,6 +437,8 @@ internal static class StockHelper
                 when (attempt < MaxConcurrencyRetries)
             {
                 context.Entry(stock).State = EntityState.Detached;
+                // Backoff con jitter antes de reintentar.
+                await Task.Delay(50 * attempt + Random.Shared.Next(0, 50), cancellationToken);
             }
         }
 

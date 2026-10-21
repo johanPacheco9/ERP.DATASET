@@ -2,6 +2,7 @@ using ERP.TRAN.CrossLayers.API.Pos.Clients.Requests;
 using ERP.TRAN.CrossLayers.API.Pos.Clients.Responses;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace ERP.DATA.Services.VentasService.ClientService;
 
@@ -33,7 +34,14 @@ public partial class ClientService
         };
 
         context.Clients.Add(client);
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            throw new InvalidOperationException("Ya existe un cliente con esa identificación.");
+        }
 
         return new ClientSummaryDto(
             client.Id,
@@ -45,5 +53,10 @@ public partial class ClientService
             client.Email,
             client.Address,
             client.Dv);
+    }
+
+    private static bool IsUniqueViolation(DbUpdateException ex)
+    {
+        return ex.InnerException is PostgresException pg && pg.SqlState == "23505";
     }
 }
