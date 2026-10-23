@@ -2,6 +2,7 @@ using ERP.DATA.Services.InventarioService.WarehouseService;
 using ERP.DATA.Services.VentasService.SaleService;
 using ERP.TRAN.CrossLayers.API.Inventario.Warehouse.Requests;
 using ERP.TRAN.CrossLayers.API.Inventario.Bodega.Responses;
+using ERP.TRAN.CrossLayers.API.Pos.Sales.Requests;
 using ERP.TRAN.CrossLayers.API.Pos.Sales.Responses;
 using Microsoft.AspNetCore.Components;
 
@@ -19,6 +20,12 @@ public partial class VentasDashboard
 
     private string? _search;
     private int _selectedWarehouseId = 0;
+
+    // Paginación
+    private int _pageNumber = 1;
+    private int _pageSize = 20;
+    private int _totalCount = 0;
+    private int _totalPages => _pageSize > 0 ? (int)Math.Ceiling(_totalCount / (double)_pageSize) : 1;
 
     private decimal TotalFacturado => _items.Sum(v => v.Total);
     private decimal TotalIva => _items.Sum(v => v.TaxAmount);
@@ -49,17 +56,46 @@ public partial class VentasDashboard
         }
     }
 
-    private async Task FilterSales()
+    private async Task LoadPage()
     {
         _error = null;
         try
         {
             var wh = _selectedWarehouseId > 0 ? _selectedWarehouseId : (int?)null;
-            _items = await SaleService.ListAsync(_search, wh, 100, CancellationToken.None);
+            var request = new ListSalesRequest
+            {
+                Search = _search,
+                WarehouseId = wh,
+                PageNumber = _pageNumber,
+                PageSize = _pageSize
+            };
+            var paged = await SaleService.ListPagedAsync(request, CancellationToken.None);
+            _items = paged.ToList();
+            _totalCount = paged.TotalCount;
         }
         catch (Exception ex)
         {
             _error = ex.Message;
         }
+    }
+
+    private async Task FilterSales()
+    {
+        _pageNumber = 1;
+        await LoadPage();
+    }
+
+    private async Task GoToPage(int page)
+    {
+        if (page < 1 || page > _totalPages) return;
+        _pageNumber = page;
+        await LoadPage();
+    }
+
+    private async Task ChangePageSize(int size)
+    {
+        _pageSize = size;
+        _pageNumber = 1;
+        await LoadPage();
     }
 }

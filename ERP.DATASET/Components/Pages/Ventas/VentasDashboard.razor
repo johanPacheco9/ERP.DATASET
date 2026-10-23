@@ -40,7 +40,7 @@
             </div>
             <div>
                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Ventas Totales</span>
-                <div class="text-xl font-bold text-slate-900 font-mono">@_items.Count</div>
+                <div class="text-xl font-bold text-slate-900 font-mono">@_totalCount</div>
             </div>
         </div>
 
@@ -192,6 +192,27 @@
                         }
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="px-4 py-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                <div class="text-slate-500">
+                    Mostrando @((_pageNumber - 1) * _pageSize + 1)-@(Math.Min(_pageNumber * _pageSize, _totalCount)) de @_totalCount ventas
+                </div>
+                <div class="flex items-center gap-2">
+                    <select class="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg" @onchange="e => ChangePageSize(int.Parse(e.Value!.ToString()!))">
+                        <option value="10" selected="@(_pageSize==10)">10</option>
+                        <option value="20" selected="@(_pageSize==20)">20</option>
+                        <option value="50" selected="@(_pageSize==50)">50</option>
+                    </select>
+                    <button type="button" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40" disabled="@(_pageNumber <= 1)" @onclick="() => GoToPage(_pageNumber - 1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span class="font-mono text-slate-600">Pág. @_pageNumber / @_totalPages</span>
+                    <button type="button" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40" disabled="@(_pageNumber >= _totalPages)" @onclick="() => GoToPage(_pageNumber + 1)">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     }
