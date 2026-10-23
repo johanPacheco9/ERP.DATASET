@@ -69,16 +69,32 @@
             <div class="lg:col-span-8 space-y-4">
                 
                 <!-- Banner Factus DIAN Blanco -->
-                <div class="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs flex items-center justify-between gap-3 text-xs">
+                <div class="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div class="flex items-center gap-2.5">
                         <i class="bi bi-shield-check text-emerald-600 text-xl"></i>
                         <div>
                             <span class="font-bold text-slate-800 block">Facturación Electrónica DIAN</span>
-                            <span class="text-slate-500">Estructura impositiva lista para sincronización con la API de Factus.</span>
+                            <span class="text-slate-500">Integración con Factus API.</span>
+                            @if (!string.IsNullOrEmpty(_factusError))
+                            {
+                                <span class="text-rose-600 block mt-0.5">@_factusError</span>
+                            }
+                            @if (!string.IsNullOrEmpty(_factusSuccess))
+                            {
+                                <span class="text-emerald-600 block mt-0.5">@_factusSuccess</span>
+                            }
                         </div>
                     </div>
-                    <button type="button" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-2xs transition-colors" @onclick="EmitirFactusSimulado">
-                        <i class="bi bi-send me-1"></i> Emitir a Factus
+                    <button type="button" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-2xs transition-colors" @onclick="EmitirFactusAsync" disabled="@_emittingFactus">
+                        @if (_emittingFactus)
+                        {
+                            <span class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent mr-1"></span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-send me-1"></i>
+                        }
+                        Emitir a Factus
                     </button>
                 </div>
 

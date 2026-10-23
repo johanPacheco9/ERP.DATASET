@@ -1,5 +1,6 @@
 using ERP.DATA.Services.VentasService.Payments;
 using ERP.DATA.Services.VentasService.SaleService;
+using ERP.DATA.Services.FactusService;
 using ERP.TRAN.CrossLayers.API.Pos.Payments.Enums;
 using ERP.TRAN.CrossLayers.API.Pos.Payments.Requests;
 using ERP.TRAN.CrossLayers.API.Pos.Payments.Responses;
@@ -15,6 +16,7 @@ public partial class VentaDetalle
     [Parameter] public int Id { get; set; }
 
     [Inject] private SaleService SaleService { get; set; } = null!;
+    [Inject] private FactusService FactusService { get; set; } = null!;
     [Inject] private PaymentsService PaymentService { get; set; } = null!;
     [Inject] private IJSRuntime JS { get; set; } = null!;
 
@@ -42,6 +44,11 @@ public partial class VentaDetalle
     private bool _returning;
 
     private List<SaleReturn> _returns = new();
+
+    // Factus
+    private bool _emittingFactus;
+    private string? _factusError;
+    private string? _factusSuccess;
 
     protected override async Task OnInitializedAsync()
     {
@@ -199,13 +206,32 @@ public partial class VentaDetalle
         await JS.InvokeVoidAsync("erpPos.printReceipt");
     }
 
-    private void EmitirFactusSimulado()
+    private async Task EmitirFactusAsync()
     {
-        // Preparado para la llamada a la API de Factus en cuanto el usuario integre sus credenciales
-        if (_venta != null)
+        if (_venta == null) return;
+        _factusError = null;
+        _factusSuccess = null;
+        _emittingFactus = true;
+        try
         {
-            // Simular actualización visual
-            _venta = _venta with { FactusStatus = "Emitida a DIAN", FactusInvoiceNumber = $"FE-{_venta.Id:D4}" };
+            var result = await FactusService.EmitirFacturaAsync(_venta.Id, CancellationToken.None);
+            if (result.IsSuccess)
+            {
+                _factusSuccess = $"Factura emitida: {result.InvoiceNumber}";
+                await LoadData();
+            }
+            else
+            {
+                _factusError = result.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _factusError = ex.Message;
+        }
+        finally
+        {
+            _emittingFactus = false;
         }
     }
 

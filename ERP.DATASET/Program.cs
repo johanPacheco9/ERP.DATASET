@@ -3,6 +3,7 @@ using ERP.DATA.Bogus;
 using ERP.DATA.DependencyInjections;
 using ERP.DATA.Services.TokenService;
 using ERP.DATASET.Api;
+using ERP.DATA.Services.FactusService;
 using ERP.DATASET.Components;
 using ERP.TRAN.CrossLayers.API.Users.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Traceability;
@@ -26,6 +27,11 @@ builder.Services.AddCascadingAuthenticationState();
 
 // 2. Tus servicios del ERP (Registrados como Transient)
 builder.Services.AddDataServices();
+builder.Services.Configure<FactusOptions>(builder.Configuration.GetSection("Factus"));
+builder.Services.AddHttpClient<FactusTokenProvider>();
+builder.Services.AddSingleton<IFactusTokenProvider, FactusTokenProvider>();
+builder.Services.AddHttpClient<FactusService>();
+builder.Services.AddTransient<FactusService>();
 
 // 2.1 Autenticación / JWT
 builder.Services.AddHttpContextAccessor();
