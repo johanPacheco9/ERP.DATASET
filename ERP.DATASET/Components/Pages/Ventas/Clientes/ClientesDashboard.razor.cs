@@ -1,5 +1,7 @@
 using ERP.DATA.Services.VentasService.ClientService;
+using ERP.TRAN.CrossLayers.API.Pos.Clients.Requests;
 using ERP.TRAN.CrossLayers.API.Pos.Clients.Responses;
+using ERP.TRAN.CrossLayers.Core.Utilities.Pagination;
 using Microsoft.AspNetCore.Components;
 
 namespace ERP.DATASET.Components.Pages.Ventas.Clientes;
@@ -13,6 +15,12 @@ public partial class ClientesDashboard
     private string? _search;
     private List<ClientSummaryDto> _items = new();
 
+    // Paginación
+    private int _pageNumber = 1;
+    private int _pageSize = 20;
+    private int _totalCount = 0;
+    private int _totalPages => _pageSize > 0 ? (int)Math.Ceiling(_totalCount / (double)_pageSize) : 1;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
@@ -24,7 +32,15 @@ public partial class ClientesDashboard
         _error = null;
         try
         {
-            _items = await ClientService.ListAsync(_search, CancellationToken.None);
+            var request = new ListClientsRequest
+            {
+                Search = _search,
+                PageNumber = _pageNumber,
+                PageSize = _pageSize
+            };
+            var paged = await ClientService.ListPagedAsync(request, CancellationToken.None);
+            _items = paged.ToList();
+            _totalCount = paged.TotalCount;
         }
         catch (Exception ex)
         {
@@ -38,13 +54,21 @@ public partial class ClientesDashboard
 
     private async Task FilterClients()
     {
-        try
-        {
-            _items = await ClientService.ListAsync(_search, CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
+        _pageNumber = 1;
+        await LoadData();
+    }
+
+    private async Task GoToPage(int page)
+    {
+        if (page < 1 || page > _totalPages) return;
+        _pageNumber = page;
+        await LoadData();
+    }
+
+    private async Task ChangePageSize(int size)
+    {
+        _pageSize = size;
+        _pageNumber = 1;
+        await LoadData();
     }
 }

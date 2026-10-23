@@ -64,7 +64,8 @@ public partial class CajaManager
             IsActive: createdTerminal.IsActive,
             HasActiveShift: activeShift != null,
             ActiveShiftId: activeShift?.Id,
-            ActiveCashierName: activeShift?.Cajero.UserName
+            ActiveCashierName: activeShift?.Cajero.UserName,
+            ActiveShiftOpenedAt: activeShift?.OpenedAt
         );
     }
 }

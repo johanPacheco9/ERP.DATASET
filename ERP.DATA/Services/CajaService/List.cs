@@ -48,7 +48,8 @@ public partial class CajaManager
                 IsActive: t.IsActive,
                 HasActiveShift: activeShift != null,
                 ActiveShiftId: activeShift?.Id,
-                ActiveCashierName: cashierName
+                ActiveCashierName: cashierName,
+                ActiveShiftOpenedAt: activeShift?.OpenedAt
             );
         }).ToList();
     }

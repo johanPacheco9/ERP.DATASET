@@ -27,6 +27,7 @@ public partial class Dashboard
 
     // Cierre de Caja Modal
     private bool _showCloseModal;
+    private bool _hasStaleShift;
     private bool _isClosing;
     private string? _closeModalError;
     private CloseShiftRequest _closeRequest = new();
@@ -52,6 +53,12 @@ public partial class Dashboard
             // 1. Verificar si ya tiene un turno abierto
             _activeShift = await CajaManager.GetActiveShiftForUserAsync(_currentUserId);
 
+            // 1b. Detectar turno sin cerrar del día anterior
+            if (_activeShift != null && _activeShift.OpenedAt.Date < DateTime.UtcNow.Date)
+            {
+                _hasStaleShift = true;
+            }
+
             // 2. Si no tiene turno abierto, cargar las cajas disponibles
             if (_activeShift == null)
             {
@@ -72,6 +79,12 @@ public partial class Dashboard
         finally
         {
             _isLoading = false;
+        }
+
+        // Auto-abrir modal de cierre si hay turno sin cerrar del día anterior
+        if (_hasStaleShift && _activeShift != null)
+        {
+            OpenCloseShiftModal();
         }
     }
 

@@ -14,5 +14,6 @@ public sealed record PosTerminalDto(
     bool IsActive,
     bool HasActiveShift,
     int? ActiveShiftId,
-    string? ActiveCashierName
+    string? ActiveCashierName,
+    DateTime? ActiveShiftOpenedAt = null
 );

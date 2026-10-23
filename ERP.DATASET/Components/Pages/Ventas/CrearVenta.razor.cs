@@ -120,6 +120,15 @@ public partial class CrearVenta
                 _error = "No tiene una caja abierta. Debe abrir turno antes de vender.";
                 return;
             }
+
+            // Si el turno activo no se cerró el día anterior, bloquear y redirigir a cierre
+            if (_turnoActivo.OpenedAt.Date < DateTime.UtcNow.Date)
+            {
+                _error = "El turno de caja no fue cerrado el día anterior. Debe realizar el arqueo y cierre antes de vender.";
+                Navigation.NavigateTo("/caja/abrir");
+                return;
+            }
+
             // Asignar bodega fija del turno
             _warehouseId = _turnoActivo.WarehouseId;
 
