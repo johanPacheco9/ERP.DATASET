@@ -71,9 +71,29 @@ public sealed class FactusService
         doc.Intentos++;
         await _context.SaveChangesAsync(cancellationToken);
 
+        return await ProcesarDocumentoAsync(doc.Id, cancellationToken);
+
+
+    }
+
+    public async Task<FactusEmissionResult> ProcesarDocumentoAsync(int documentoId, CancellationToken cancellationToken = default)
+    {
+        var doc = await _context.DocumentosElectronicos.FirstOrDefaultAsync(d => d.Id == documentoId, cancellationToken);
+        if (doc is null)
+            return FactusEmissionResult.Failure("Documento no encontrado.");
+
+        var sale = await _context.Sales
+            .Include(s => s.Client)
+            .Include(s => s.Warehouse)
+            .Include(s => s.Lines).ThenInclude(l => l.ProductoVariante).ThenInclude(v => v.ProductoBase)
+            .Include(s => s.Payments)
+            .FirstOrDefaultAsync(s => s.Id == doc.VentaId, cancellationToken);
+
+        if (sale is null)
+            return FactusEmissionResult.Failure("Venta no encontrada.");
+
         var request = BuildRequest(sale);
 
-        // Intento inicial + un reintento tras 409.
         for (var attempt = 0; attempt < 2; attempt++)
         {
             await _rateLimiter.WaitAsync(cancellationToken);
@@ -88,9 +108,9 @@ public sealed class FactusService
             HttpResponseMessage response;
             try
             {
-                response = await SendWithResilienceAsync(httpRequest, cancellationToken);
+                response = await _httpClient.SendAsync(httpRequest, cancellationToken);
             }
-            catch (FactusException ex)
+            catch (Exception ex)
             {
                 await RegistrarErrorAsync(doc, ex.Message, recuperable: true, cancellationToken);
                 return FactusEmissionResult.Failure(ex.Message);
@@ -106,32 +126,27 @@ public sealed class FactusService
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
                 _tokenProvider.InvalidateToken();
-                // reintentar una vez con token nuevo
                 continue;
             }
 
             if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                // 409: factura pendiente por enviar a la DIAN.
-                // Consultar por reference_code (re-enviar crea devuelve la existente).
                 var existente = await ConsultarPorReferenciaAsync(sale.SaleNumber, cancellationToken);
                 var isValidated = existente?.IsValidated ?? false;
 
                 if (!isValidated)
                 {
-                    // Eliminar no validada y reintentar una vez.
                     await EliminarNoValidadaAsync(sale.SaleNumber, cancellationToken);
                     if (attempt == 0) continue;
                 }
                 else
                 {
-                    // Ya validada: actualizar registro local (idempotencia).
                     await ActualizarDesdeExistenteAsync(sale, doc, existente!, cancellationToken);
                     return FactusEmissionResult.Success(doc.Numero, doc.Cufe, doc.QrUrl);
                 }
 
                 await RegistrarErrorAsync(doc, $"Conflicto 409: {body}", recuperable: false, cancellationToken);
-                return new FactusConflictException("Factura pendiente en Factus.", sale.SaleNumber, isValidated).Message is var m ? FactusEmissionResult.Failure(m) : FactusEmissionResult.Failure("Conflicto 409");
+                return FactusEmissionResult.Failure("Conflicto 409");
             }
 
             if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
@@ -145,12 +160,10 @@ public sealed class FactusService
 
             if ((int)response.StatusCode >= 400 && (int)response.StatusCode < 500)
             {
-                // Error de validación: pasar a ConErrores para corrección manual.
                 await RegistrarErrorAsync(doc, $"Validación ({(int)response.StatusCode}): {body}", recuperable: false, cancellationToken);
                 throw new FactusValidationException($"Error de validación Factus: {body}");
             }
 
-            // 5xx: reintentar con backoff.
             await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt + 1)), cancellationToken);
             if (attempt == 1)
             {
@@ -161,6 +174,8 @@ public sealed class FactusService
 
         return FactusEmissionResult.Failure("No se pudo emitir la factura.");
     }
+
+
 
     private async Task<HttpResponseMessage> SendWithResilienceAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -385,6 +400,65 @@ public sealed class FactusService
         ERP.TRAN.CrossLayers.API.Pos.Payments.Enums.PaymentMethod.Nequi => "42",
         _ => "10"
     };
+
+    public async Task<List<DocumentoElectronico>> ListDocumentosAsync(int saleId, CancellationToken cancellationToken = default)
+    {
+        return await _context.DocumentosElectronicos
+            .AsNoTracking()
+            .Where(d => d.VentaId == saleId)
+            .OrderByDescending(d => d.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+public async Task<FactusArchivoResult> DescargarPdfAsync(int documentoId, CancellationToken cancellationToken = default)
+    {
+        var doc = await _context.DocumentosElectronicos.FirstOrDefaultAsync(d => d.Id == documentoId, cancellationToken);
+        if (doc is null || string.IsNullOrEmpty(doc.Numero))
+            return FactusArchivoResult.Failure("Documento no encontrado o sin número de factura.");
+
+        await _rateLimiter.WaitAsync(cancellationToken);
+        var token = await _tokenProvider.GetAccessTokenAsync(cancellationToken);
+        using var http = new HttpRequestMessage(HttpMethod.Get, $"/v2/bills/{Uri.EscapeDataString(doc.Numero)}/download-pdf");
+        http.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var resp = await _httpClient.SendAsync(http, cancellationToken);
+        var body = await resp.Content.ReadAsStringAsync(cancellationToken);
+        if (!resp.IsSuccessStatusCode)
+            return FactusArchivoResult.Failure($"Error Factus ({(int)resp.StatusCode}): {body}");
+
+        using var json = System.Text.Json.JsonDocument.Parse(body);
+        var data = json.RootElement.TryGetProperty("data", out var d) ? d : json.RootElement;
+        var base64 = data.TryGetProperty("pdf_base_64_encoded", out var b) ? b.GetString() : null;
+        var fileName = data.TryGetProperty("file_name", out var fn) ? fn.GetString() : $"factura-{doc.Numero}.pdf";
+        if (string.IsNullOrEmpty(base64))
+            return FactusArchivoResult.Failure("Respuesta sin contenido PDF.");
+
+        return FactusArchivoResult.Success(Convert.FromBase64String(base64), fileName ?? $"factura-{doc.Numero}.pdf", "application/pdf");
+    }
+
+    public async Task<FactusArchivoResult> DescargarXmlAsync(int documentoId, CancellationToken cancellationToken = default)
+    {
+        var doc = await _context.DocumentosElectronicos.FirstOrDefaultAsync(d => d.Id == documentoId, cancellationToken);
+        if (doc is null || string.IsNullOrEmpty(doc.Numero))
+            return FactusArchivoResult.Failure("Documento no encontrado o sin número de factura.");
+
+        await _rateLimiter.WaitAsync(cancellationToken);
+        var token = await _tokenProvider.GetAccessTokenAsync(cancellationToken);
+        using var http = new HttpRequestMessage(HttpMethod.Get, $"/v2/bills/{Uri.EscapeDataString(doc.Numero)}/download-xml/");
+        http.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var resp = await _httpClient.SendAsync(http, cancellationToken);
+        var body = await resp.Content.ReadAsStringAsync(cancellationToken);
+        if (!resp.IsSuccessStatusCode)
+            return FactusArchivoResult.Failure($"Error Factus ({(int)resp.StatusCode}): {body}");
+
+        using var json = System.Text.Json.JsonDocument.Parse(body);
+        var data = json.RootElement.TryGetProperty("data", out var d) ? d : json.RootElement;
+        var base64 = data.TryGetProperty("xml_base_64_encoded", out var b) ? b.GetString() : null;
+        var fileName = data.TryGetProperty("file_name", out var fn) ? fn.GetString() : $"factura-{doc.Numero}.xml";
+        if (string.IsNullOrEmpty(base64))
+            return FactusArchivoResult.Failure("Respuesta sin contenido XML.");
+
+        return FactusArchivoResult.Success(Convert.FromBase64String(base64), fileName ?? $"factura-{doc.Numero}.xml", "application/xml");
+    }
 }
 
 public sealed record FactusEmissionResult(bool IsSuccess, string? InvoiceNumber, string? Cufe, string? QrUrl, string? Error)
@@ -400,4 +474,10 @@ internal sealed class FactusDocumentoExistente
     public string? Number { get; set; }
     public string? Cufe { get; set; }
     public string? QrUrl { get; set; }
+}
+
+public sealed record FactusArchivoResult(bool IsSuccess, byte[]? Bytes, string? FileName, string? ContentType, string? Error)
+{
+    public static FactusArchivoResult Success(byte[] bytes, string fileName, string contentType) => new(true, bytes, fileName, contentType, null);
+    public static FactusArchivoResult Failure(string error) => new(false, null, null, null, error);
 }

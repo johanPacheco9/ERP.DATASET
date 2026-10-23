@@ -44,6 +44,7 @@ public partial class VentaDetalle
     private bool _returning;
 
     private List<SaleReturn> _returns = new();
+    private List<DocumentoElectronico> _documentos = new();
 
     // Factus
     private bool _emittingFactus;
@@ -63,6 +64,7 @@ public partial class VentaDetalle
             _venta = await SaleService.GetByIdAsync(Id, CancellationToken.None);
             _pagos = await PaymentService.GetBySaleId(Id, CancellationToken.None);
             _returns = await SaleService.ListReturnsAsync(Id, CancellationToken.None);
+            _documentos = await FactusService.ListDocumentosAsync(Id, CancellationToken.None);
         }
         catch (Exception)
         {

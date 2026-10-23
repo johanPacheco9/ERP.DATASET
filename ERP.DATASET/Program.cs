@@ -33,6 +33,7 @@ builder.Services.AddSingleton<IFactusTokenProvider, FactusTokenProvider>();
 builder.Services.AddSingleton<FactusRateLimiter>();
 builder.Services.AddHttpClient<FactusService>().AddStandardResilienceHandler();
 builder.Services.AddTransient<FactusService>();
+builder.Services.AddHostedService<FactusBackgroundService>();
 
 // 2.1 Autenticación / JWT
 builder.Services.AddHttpContextAccessor();
@@ -142,6 +143,7 @@ app.MapMethods("/logout", new[] { "GET", "POST" }, (HttpContext httpContext) =>
 
 // Endpoints HTTP de ventas (POS) usados por las pruebas de carga con k6.
 app.MapVentasApi();
+app.MapFactusApi();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
