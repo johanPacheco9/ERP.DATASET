@@ -22,4 +22,10 @@ public class Client
     public string? Fax { get; set; }
     public string? LegalOrganizationType { get; set; }
     public string? TaxRegime { get; set; }
+
+    // === FISCAL (Factus / DIAN) ===
+    public int? LegalOrganizationCode { get; set; }   // 1 jurídica, 2 natural
+    public string? TributeCode { get; set; }            // 01 IVA, ZZ no aplica
+    public string? MunicipalityCode { get; set; }      // código Factus
+    public string? Responsibilities { get; set; }      // ej. R-99-PN (separados por coma)
 }

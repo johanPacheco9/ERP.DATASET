@@ -152,7 +152,13 @@ namespace ERP.DATA.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int?>("LegalOrganizationCode")
+                        .HasColumnType("integer");
+
                     b.Property<string>("LegalOrganizationType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MunicipalityCode")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -169,7 +175,13 @@ namespace ERP.DATA.Migrations
                     b.Property<string>("Region")
                         .HasColumnType("text");
 
+                    b.Property<string>("Responsibilities")
+                        .HasColumnType("text");
+
                     b.Property<string>("TaxRegime")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TributeCode")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -759,6 +771,9 @@ namespace ERP.DATA.Migrations
                     b.Property<bool>("RequiereSerial")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("StandardCode")
+                        .HasColumnType("text");
+
                     b.Property<int?>("SupplierId")
                         .HasColumnType("integer");
 
@@ -767,6 +782,9 @@ namespace ERP.DATA.Migrations
 
                     b.Property<string>("UnidadMedida")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UnitMeasureCode")
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")

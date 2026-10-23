@@ -313,7 +313,13 @@ public sealed class FactusService
     private FactusBillRequest BuildRequest(ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.Sale sale)
     {
         var client = sale.Client;
-        var legalOrg = client.DniType == ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType.nit ? "1" : "2";
+        var legalOrg = client.LegalOrganizationCode.HasValue
+            ? client.LegalOrganizationCode.Value.ToString()
+            : (client.DniType == ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType.nit ? "1" : "2");
+
+        var responsibilities = string.IsNullOrWhiteSpace(client.Responsibilities)
+            ? new[] { "R-99-PN" }
+            : client.Responsibilities.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         var customer = new FactusCustomer
         {
@@ -321,15 +327,15 @@ public sealed class FactusService
             Identification = client.IdentificationNumber,
             Dv = client.Dv,
             LegalOrganizationCode = legalOrg,
-            TributeCode = "ZZ",
+            TributeCode = string.IsNullOrWhiteSpace(client.TributeCode) ? "ZZ" : client.TributeCode,
             Company = legalOrg == "1" ? client.Name : null,
             Names = legalOrg == "2" ? client.Name : null,
             Address = client.Address,
             Email = client.Email,
             Phone = client.PhoneNumber,
             CountryCode = "CO",
-            MunicipalityCode = null,
-            Responsibilities = new[] { "R-99-PN" }
+            MunicipalityCode = client.MunicipalityCode,
+            Responsibilities = responsibilities
         };
 
         var items = sale.Lines.Select(l => new FactusItem
@@ -338,8 +344,8 @@ public sealed class FactusService
             Name = l.ProductoVariante?.ProductoBase?.Name ?? "Producto",
             Quantity = l.Quantity.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
             Price = l.UnitPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
-            UnitMeasureCode = "94",
-            StandardCode = "999",
+            UnitMeasureCode = string.IsNullOrWhiteSpace(l.ProductoVariante?.ProductoBase?.UnitMeasureCode) ? "94" : l.ProductoVariante!.ProductoBase!.UnitMeasureCode!,
+            StandardCode = string.IsNullOrWhiteSpace(l.ProductoVariante?.ProductoBase?.StandardCode) ? "999" : l.ProductoVariante!.ProductoBase!.StandardCode!,
             Taxes = new List<FactusTax>
             {
                 new FactusTax

@@ -36,6 +36,10 @@ public class ProductoBase : EntityWithtraceability
     public bool EsPerecedero { get; set; }
     public bool RequiereSerial { get; set; }         // Indica si se debe instanciar UnidadProducto
     public string UnidadMedida { get; set; } = "unidades";
+
+    // === FISCAL (Factus / DIAN) ===
+    public string? StandardCode { get; set; }          // 999 estándar de adopción del contribuyente
+    public string? UnitMeasureCode { get; set; }       // 94 = unidad
     
     public int? SupplierId { get; set; }
     public string? ImagenUrl { get; set; }

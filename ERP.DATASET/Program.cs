@@ -27,12 +27,15 @@ builder.Services.AddCascadingAuthenticationState();
 
 // 2. Tus servicios del ERP (Registrados como Transient)
 builder.Services.AddDataServices();
+builder.Services.AddMemoryCache();
 builder.Services.Configure<FactusOptions>(builder.Configuration.GetSection("Factus"));
 builder.Services.AddHttpClient<FactusTokenProvider>().AddStandardResilienceHandler();
 builder.Services.AddSingleton<IFactusTokenProvider, FactusTokenProvider>();
 builder.Services.AddSingleton<FactusRateLimiter>();
 builder.Services.AddHttpClient<FactusService>().AddStandardResilienceHandler();
 builder.Services.AddTransient<FactusService>();
+builder.Services.AddHttpClient<FactusReferenceService>();
+builder.Services.AddTransient<FactusReferenceService>();
 builder.Services.AddHostedService<FactusBackgroundService>();
 
 // 2.1 Autenticación / JWT
