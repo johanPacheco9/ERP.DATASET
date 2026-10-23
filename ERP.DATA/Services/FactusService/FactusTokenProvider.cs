@@ -3,12 +3,6 @@ using Microsoft.Extensions.Options;
 
 namespace ERP.DATA.Services.FactusService;
 
-/// <summary>
-/// Proveedor de token de acceso para Factus con renovación thread-safe.
-/// Implementa un patrón "factory" con SemaphoreSlim para que, si varias peticiones
-/// intentan renovar el token a la vez, solo la primera realice la llamada HTTP
-/// y las demás esperen y reutilicen el token resultante.
-/// </summary>
 public sealed class FactusTokenProvider : IFactusTokenProvider
 {
     private readonly HttpClient _httpClient;
@@ -16,6 +10,7 @@ public sealed class FactusTokenProvider : IFactusTokenProvider
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     private string? _accessToken;
+    private string? _refreshToken;
     private DateTime _expiresAt = DateTime.MinValue;
 
     public FactusTokenProvider(HttpClient httpClient, IOptions<FactusOptions> options)
@@ -28,14 +23,12 @@ public sealed class FactusTokenProvider : IFactusTokenProvider
 
     public async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
     {
-        // Fast path: token vigente.
         if (!string.IsNullOrEmpty(_accessToken) && DateTime.UtcNow < _expiresAt.AddSeconds(-30))
             return _accessToken!;
 
         await _semaphore.WaitAsync(cancellationToken);
         try
         {
-            // Double-check dentro del lock.
             if (!string.IsNullOrEmpty(_accessToken) && DateTime.UtcNow < _expiresAt.AddSeconds(-30))
                 return _accessToken!;
 
@@ -48,8 +41,41 @@ public sealed class FactusTokenProvider : IFactusTokenProvider
         }
     }
 
+    public void InvalidateToken()
+    {
+        _accessToken = null;
+        _expiresAt = DateTime.MinValue;
+    }
+
     private async Task RenewAsync(CancellationToken cancellationToken)
     {
+        // 1) Intentar refresh_token si existe.
+        if (!string.IsNullOrEmpty(_refreshToken))
+        {
+            var refreshForm = new Dictionary<string, string>
+            {
+                ["grant_type"] = "refresh_token",
+                ["client_id"] = _options.ClientId,
+                ["client_secret"] = _options.ClientSecret,
+                ["refresh_token"] = _refreshToken!
+            };
+            using var refreshContent = new FormUrlEncodedContent(refreshForm);
+            var refreshResponse = await _httpClient.PostAsync("/oauth/token", refreshContent, cancellationToken);
+            if (refreshResponse.IsSuccessStatusCode)
+            {
+                var rt = await refreshResponse.Content.ReadFromJsonAsync<FactusTokenResponse>(cancellationToken: cancellationToken);
+                if (rt != null && !string.IsNullOrEmpty(rt.AccessToken))
+                {
+                    _accessToken = rt.AccessToken;
+                    _refreshToken = string.IsNullOrEmpty(rt.RefreshToken) ? _refreshToken : rt.RefreshToken;
+                    _expiresAt = DateTime.UtcNow.AddSeconds(rt.ExpiresIn > 0 ? rt.ExpiresIn : 600);
+                    return;
+                }
+            }
+            _refreshToken = null;
+        }
+
+        // 2) Password grant.
         var form = new Dictionary<string, string>
         {
             ["grant_type"] = "password",
@@ -61,13 +87,17 @@ public sealed class FactusTokenProvider : IFactusTokenProvider
 
         using var content = new FormUrlEncodedContent(form);
         var response = await _httpClient.PostAsync("/oauth/token", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new FactusAuthException($"No se pudo obtener token de Factus: {(int)response.StatusCode} {body}");
+        }
 
         var token = await response.Content.ReadFromJsonAsync<FactusTokenResponse>(cancellationToken: cancellationToken)
-                    ?? throw new InvalidOperationException("Respuesta de token vacía.");
+                    ?? throw new FactusAuthException("Respuesta de token vacía.");
 
         _accessToken = token.AccessToken;
-        // expires_in viene en segundos.
+        _refreshToken = string.IsNullOrEmpty(token.RefreshToken) ? _refreshToken : token.RefreshToken;
         _expiresAt = DateTime.UtcNow.AddSeconds(token.ExpiresIn > 0 ? token.ExpiresIn : 600);
     }
 }
@@ -75,6 +105,7 @@ public sealed class FactusTokenProvider : IFactusTokenProvider
 public interface IFactusTokenProvider
 {
     Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default);
+    void InvalidateToken();
 }
 
 internal sealed class FactusTokenResponse

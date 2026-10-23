@@ -5,6 +5,7 @@ using ERP.TRAN.CrossLayers.API.Pos.Sales.Enums;
 using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 using ERP.TRAN.CrossLayers.Core.Utilities.Base.Enums;
 using Microsoft.EntityFrameworkCore;
+using ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales;
 
 namespace ERP.DATA.Services.VentasService.SaleService;
 
@@ -37,6 +38,12 @@ public partial class SaleService
 
         if (sale is null)
             return Result<SaleDetailDto>.Failure(new Error("Sale.NotFound", "Venta no encontrada."));
+
+        var facturaValidada = await context.DocumentosElectronicos
+            .AnyAsync(d => d.VentaId == saleId && d.Estado == EstadoDocumentoElectronico.Validado, cancellationToken);
+        if (facturaValidada)
+            return Result<SaleDetailDto>.Failure(new Error("Sale.HasValidatedInvoice",
+                "La venta tiene una factura electrónica validada ante la DIAN. No se puede anular; debe generar una nota crédito (Fase 2)."));
 
         if (sale.Status == SaleStatus.Cancelled)
             return Result<SaleDetailDto>.Failure(new Error("Sale.AlreadyCancelled", "La venta ya está anulada."));
@@ -122,6 +129,12 @@ public partial class SaleService
 
         if (sale is null)
             return Result<SaleDetailDto>.Failure(new Error("Sale.NotFound", "Venta no encontrada."));
+
+        var facturaValidada = await context.DocumentosElectronicos
+            .AnyAsync(d => d.VentaId == saleId && d.Estado == EstadoDocumentoElectronico.Validado, cancellationToken);
+        if (facturaValidada)
+            return Result<SaleDetailDto>.Failure(new Error("Sale.HasValidatedInvoice",
+                "La venta tiene una factura electrónica validada ante la DIAN. No se puede devolver parcialmente; debe generar una nota crédito (Fase 2)."));
 
         if (sale.Status == SaleStatus.Cancelled)
             return Result<SaleDetailDto>.Failure(new Error("Sale.Cancelled", "No se puede devolver sobre una venta anulada."));

@@ -116,6 +116,16 @@ public partial class MainDataContext
             e.HasOne(r => r.Sale).WithMany().HasForeignKey(r => r.SaleId);
         });
 
+        modelBuilder.Entity<DocumentoElectronico>(e =>
+        {
+            e.ToTable("DocumentosElectronicos");
+            e.HasKey(d => d.Id);
+            e.Property(d => d.ReferenceCode).HasMaxLength(60).IsRequired();
+            e.HasIndex(d => d.ReferenceCode).IsUnique();
+            e.Property(d => d.RowVersion).IsRowVersion().IsConcurrencyToken();
+            e.HasOne(d => d.Venta).WithMany().HasForeignKey(d => d.VentaId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<WarehouseStock>(entity =>
         {
             entity.ToTable("WarehouseStock");

@@ -1431,6 +1431,89 @@ namespace ERP.DATA.Migrations
                     b.ToTable("QualityReviewDetails");
                 });
 
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.DocumentoElectronico", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Cufe")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ErroresDian")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Intentos")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsValidated")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Numero")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ProximoIntentoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PublicUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("QrUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReferenceCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UltimoError")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UpdatedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ValidatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("VentaId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReferenceCode")
+                        .IsUnique();
+
+                    b.HasIndex("VentaId");
+
+                    b.ToTable("DocumentosElectronicos", (string)null);
+                });
+
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShift", b =>
                 {
                     b.Property<int>("Id")
@@ -2311,6 +2394,17 @@ namespace ERP.DATA.Migrations
                     b.Navigation("DetalleOrdenCompra");
 
                     b.Navigation("QualityReview");
+                });
+
+            modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.DocumentoElectronico", b =>
+                {
+                    b.HasOne("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.Sale", "Venta")
+                        .WithMany()
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Venta");
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShift", b =>
