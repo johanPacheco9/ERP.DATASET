@@ -48,7 +48,7 @@ public sealed class FactusService
         var request = BuildRequest(sale);
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/v2/bills/validate")
         {
-            Content = JsonContent.Create(request)
+            Content = JsonContent.Create(request, options: FactusJson.Options)
         };
         httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -110,8 +110,8 @@ public sealed class FactusService
         {
             CodeReference = l.ProductoVariante?.SKU ?? l.ProductoVarianteId.ToString(),
             Name = l.ProductoVariante?.ProductoBase?.Name ?? "Producto",
-            Quantity = l.Quantity.ToString("0.00"),
-            Price = l.UnitPrice.ToString("0.00"),
+            Quantity = l.Quantity.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+            Price = l.UnitPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
             UnitMeasureCode = "94",
             StandardCode = "999",
             Taxes = new List<FactusTax>
@@ -119,7 +119,7 @@ public sealed class FactusService
                 new FactusTax
                 {
                     Code = "01",
-                    Rate = (l.TaxRate * 100).ToString("0.00")
+                    Rate = (l.TaxRate * 100).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)
                 }
             }
         }).ToList();
@@ -128,7 +128,7 @@ public sealed class FactusService
         {
             PaymentForm = p.Method == ERP.TRAN.CrossLayers.API.Pos.Payments.Enums.PaymentMethod.Cash ? "1" : "2",
             PaymentMethodCode = MapPaymentMethod(p.Method),
-            Amount = p.Amount.ToString("0.00"),
+            Amount = p.Amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
             ReferenceCode = null
         }).ToList();
 
@@ -138,7 +138,7 @@ public sealed class FactusService
             {
                 PaymentForm = "1",
                 PaymentMethodCode = "10",
-                Amount = sale.Total.ToString("0.00")
+                Amount = sale.Total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)
             });
         }
 
@@ -182,60 +182,3 @@ public sealed record FactusEmissionResult(bool IsSuccess, string? InvoiceNumber,
     public static FactusEmissionResult Failure(string error) => new(false, null, null, null, error);
 }
 
-// --- DTOs de request (serialización JSON para Factus) ---
-public sealed class FactusBillRequest
-{
-    public string ReferenceCode { get; set; } = string.Empty;
-    public string Document { get; set; } = "01";
-    public int? NumberingRangeId { get; set; }
-    public string OperationType { get; set; } = "10";
-    public string? Observation { get; set; }
-    public bool SendEmail { get; set; } = true;
-    public FactusCustomer Customer { get; set; } = new();
-    public List<FactusItem> Items { get; set; } = new();
-    public List<FactusPaymentDetail> PaymentDetails { get; set; } = new();
-}
-
-public sealed class FactusCustomer
-{
-    public string IdentificationDocumentCode { get; set; } = string.Empty;
-    public string Identification { get; set; } = string.Empty;
-    public string? Dv { get; set; }
-    public string LegalOrganizationCode { get; set; } = "2";
-    public string TributeCode { get; set; } = "ZZ";
-    public string? Company { get; set; }
-    public string? TradeName { get; set; }
-    public string? Names { get; set; }
-    public string? Address { get; set; }
-    public string? Email { get; set; }
-    public string? Phone { get; set; }
-    public string CountryCode { get; set; } = "CO";
-    public string? MunicipalityCode { get; set; }
-    public string[] Responsibilities { get; set; } = new[] { "R-99-PN" };
-}
-
-public sealed class FactusItem
-{
-    public string CodeReference { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Quantity { get; set; } = "1.00";
-    public string Price { get; set; } = "0.00";
-    public string UnitMeasureCode { get; set; } = "94";
-    public string StandardCode { get; set; } = "999";
-    public string? Note { get; set; }
-    public List<FactusTax> Taxes { get; set; } = new();
-}
-
-public sealed class FactusTax
-{
-    public string Code { get; set; } = "01";
-    public string Rate { get; set; } = "0.00";
-}
-
-public sealed class FactusPaymentDetail
-{
-    public string PaymentForm { get; set; } = "1";
-    public string PaymentMethodCode { get; set; } = "10";
-    public string? ReferenceCode { get; set; }
-    public string Amount { get; set; } = "0.00";
-}
