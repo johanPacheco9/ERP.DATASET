@@ -61,7 +61,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Parametros");
+                    b.ToTable("Parametros", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Payments.SalePayment", b =>
@@ -115,7 +115,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("SaleId");
 
-                    b.ToTable("SalePayments");
+                    b.ToTable("SalePayments", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Client", b =>
@@ -227,7 +227,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProductoVarianteId");
 
-                    b.ToTable("DetalleOrdenCompra");
+                    b.ToTable("DetalleOrdenCompra", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.OrdenCompra", b =>
@@ -275,7 +275,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProveedorId");
 
-                    b.ToTable("OrdenesDeCompra");
+                    b.ToTable("OrdenesDeCompra", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.OrdenCompraObservaciones", b =>
@@ -306,7 +306,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("OrdenCompraId");
 
-                    b.ToTable("OrdenCompraObservaciones");
+                    b.ToTable("OrdenCompraObservaciones", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.Recepciones.DetalleRecepcionCompra", b =>
@@ -341,7 +341,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("RecepcionCompraId");
 
-                    b.ToTable("DetallesRecepcion");
+                    b.ToTable("DetallesRecepcion", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Compras.Recepciones.RecepcionCompra", b =>
@@ -389,7 +389,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("OrdenCompraId");
 
-                    b.ToTable("RecepcionesDeCompra");
+                    b.ToTable("RecepcionesDeCompra", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventario.ProductsInventory.Category", b =>
@@ -428,7 +428,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Category");
+                    b.ToTable("Category", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary.Audit", b =>
@@ -511,7 +511,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("Audit");
+                    b.ToTable("Audit", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary.AuditCategory", b =>
@@ -549,7 +549,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("AuditCategory");
+                    b.ToTable("AuditCategory", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.AuditoriasInventary.UnidadProductoAuditada", b =>
@@ -642,7 +642,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProductoVarianteId");
 
-                    b.ToTable("UnitProductAudits");
+                    b.ToTable("UnitProductAudits", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.Marca", b =>
@@ -683,7 +683,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Marca");
+                    b.ToTable("Marca", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoBase", b =>
@@ -804,7 +804,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProveedorId");
 
-                    b.ToTable("ProductoBase");
+                    b.ToTable("ProductoBase", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoBaseCategory", b =>
@@ -827,7 +827,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProductoBaseId");
 
-                    b.ToTable("ProductoBaseCategories");
+                    b.ToTable("ProductoBaseCategories", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoProveedor", b =>
@@ -877,7 +877,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProveedorId");
 
-                    b.ToTable("ProductoProveedor");
+                    b.ToTable("ProductoProveedor", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.ProductoVariante", b =>
@@ -929,7 +929,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("ProductoBaseId");
 
-                    b.ToTable("ProductoVariantes");
+                    b.ToTable("ProductoVariantes", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.Proveedor", b =>
@@ -973,7 +973,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Proveedor");
+                    b.ToTable("Proveedor", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.ProductsInventory.UnidadProducto", b =>
@@ -1074,7 +1074,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Store");
+                    b.ToTable("Store", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.UnitProducts.UnitProductMovement", b =>
@@ -1113,7 +1113,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("UnidadProductoId");
 
-                    b.ToTable("UnitProductMovements");
+                    b.ToTable("UnitProductMovements", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.Movement", b =>
@@ -1209,7 +1209,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("Movements");
+                    b.ToTable("Movements", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.MovementConsumption", b =>
@@ -1309,7 +1309,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("Warehouse");
+                    b.ToTable("Warehouse", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Inventory.WarehouseInventory.WarehouseStock", b =>
@@ -1411,7 +1411,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("OrdenCompraId");
 
-                    b.ToTable("QualityReviews");
+                    b.ToTable("QualityReviews", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.QualityReviews.QualityReviewDetail", b =>
@@ -1446,7 +1446,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("QualityReviewId");
 
-                    b.ToTable("QualityReviewDetails");
+                    b.ToTable("QualityReviewDetails", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.DocumentoElectronico", b =>
@@ -1612,7 +1612,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("PosTerminalId");
 
-                    b.ToTable("PosShifts");
+                    b.ToTable("PosShifts", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosShiftMovement", b =>
@@ -1655,7 +1655,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("PosShiftId");
 
-                    b.ToTable("PosShiftMovements");
+                    b.ToTable("PosShiftMovements", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.PosTerminal", b =>
@@ -1720,7 +1720,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("PosTerminals");
+                    b.ToTable("PosTerminals", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Pos.Sales.Sale", b =>
@@ -1998,7 +1998,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("Usuarios");
+                    b.ToTable("Usuarios", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Traceability.UsuarioStore", b =>
@@ -2024,7 +2024,7 @@ namespace ERP.DATA.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("UsuarioStores");
+                    b.ToTable("UsuarioStores", (string)null);
                 });
 
             modelBuilder.Entity("ERP.TRAN.CrossLayers.Core.Agreggates.Payments.SalePayment", b =>

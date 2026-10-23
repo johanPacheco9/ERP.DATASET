@@ -91,7 +91,8 @@ public partial class SaleService
                     ReferenceCode = $"{sale.SaleNumber}-NC",
                     Estado = EstadoDocumentoElectronico.Pendiente,
                     CorrectionConceptCode = "2",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    RowVersion = Array.Empty<byte>()
                 });
             }
 
@@ -219,7 +220,8 @@ public partial class SaleService
                     ReferenceCode = $"{sale.SaleNumber}-NC-{line.Id}",
                     Estado = EstadoDocumentoElectronico.Pendiente,
                     CorrectionConceptCode = "1",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    RowVersion = Array.Empty<byte>()
                 });
             }
 

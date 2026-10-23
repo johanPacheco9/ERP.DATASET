@@ -61,7 +61,8 @@ public sealed class FactusService
                 ReferenceCode = sale.SaleNumber,
                 Estado = EstadoDocumentoElectronico.Pendiente,
                 Intentos = 0,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                RowVersion = Array.Empty<byte>()
             };
             _context.DocumentosElectronicos.Add(doc);
             await _context.SaveChangesAsync(cancellationToken);
