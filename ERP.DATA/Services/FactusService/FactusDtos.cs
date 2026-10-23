@@ -316,3 +316,39 @@ public sealed class FactusRelatedDocument
     [JsonPropertyName("number")]
     public string Number { get; set; } = string.Empty;
 }
+
+public sealed class FactusNotaCreditoRequest
+{
+    [JsonPropertyName("reference_code")]
+    public string ReferenceCode { get; set; } = string.Empty;
+
+    [JsonPropertyName("correction_concept_code")]
+    public string CorrectionConceptCode { get; set; } = "1";
+
+    [JsonPropertyName("customization_id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? CustomizationId { get; set; } = "20";
+
+    [JsonPropertyName("bill_number")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? BillNumber { get; set; }
+
+    [JsonPropertyName("numbering_range_id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? NumberingRangeId { get; set; }
+
+    [JsonPropertyName("observation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Observation { get; set; }
+
+    [JsonPropertyName("customer")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public FactusCustomer? Customer { get; set; }
+
+    [JsonPropertyName("items")]
+    public List<FactusItem> Items { get; set; } = new();
+
+    [JsonPropertyName("payment_details")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<FactusPaymentDetail>? PaymentDetails { get; set; }
+}

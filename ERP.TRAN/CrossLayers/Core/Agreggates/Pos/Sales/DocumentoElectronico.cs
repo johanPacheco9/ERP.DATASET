@@ -46,6 +46,9 @@ public class DocumentoElectronico : EntityWithtraceability
     public DateTime? ProximoIntentoEn { get; set; }
     public string? UltimoError { get; set; }
 
+    /// <summary>Concepto de corrección (solo notas crédito/débito).</summary>
+    public string? CorrectionConceptCode { get; set; }
+
     /// <summary>Token de concurrencia optimista para reclamar pendientes sin doble procesamiento.</summary>
     public byte[] RowVersion { get; set; } = null!;
 }

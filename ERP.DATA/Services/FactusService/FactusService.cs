@@ -388,6 +388,15 @@ public sealed class FactusService
         };
     }
 
+    public static string MapDniTypeStatic(ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType dniType) => dniType switch
+    {
+        ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType.cc => "13",
+        ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType.nit => "31",
+        ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType.ce => "22",
+        ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType.pasaporte => "41",
+        _ => "13"
+    };
+
     private static string MapDniType(ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType dniType) => dniType switch
     {
         ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType.cc => "13",
@@ -465,12 +474,145 @@ public async Task<FactusArchivoResult> DescargarPdfAsync(int documentoId, Cancel
 
         return FactusArchivoResult.Success(Convert.FromBase64String(base64), fileName ?? $"factura-{doc.Numero}.xml", "application/xml");
     }
-}
+    public async Task<FactusEmissionResult> ProcesarNotaCreditoAsync(int documentoId, CancellationToken cancellationToken = default)
+    {
+        var doc = await _context.DocumentosElectronicos.FirstOrDefaultAsync(d => d.Id == documentoId, cancellationToken);
+        if (doc is null)
+            return FactusEmissionResult.Failure("Documento no encontrado.");
 
-public sealed record FactusEmissionResult(bool IsSuccess, string? InvoiceNumber, string? Cufe, string? QrUrl, string? Error)
-{
-    public static FactusEmissionResult Success(string? invoiceNumber, string? cufe, string? qrUrl) => new(true, invoiceNumber, cufe, qrUrl, null);
-    public static FactusEmissionResult Failure(string error) => new(false, null, null, null, error);
+        var sale = await _context.Sales
+            .Include(s => s.Client)
+            .Include(s => s.Lines).ThenInclude(l => l.ProductoVariante).ThenInclude(v => v.ProductoBase)
+            .FirstOrDefaultAsync(s => s.Id == doc.VentaId, cancellationToken);
+        if (sale is null)
+            return FactusEmissionResult.Failure("Venta no encontrada.");
+
+        var facturaOriginal = await _context.DocumentosElectronicos
+            .FirstOrDefaultAsync(d => d.VentaId == sale.Id && d.Tipo == TipoDocumentoElectronico.Factura && d.Estado == EstadoDocumentoElectronico.Validado, cancellationToken);
+        if (facturaOriginal is null || string.IsNullOrEmpty(facturaOriginal.Numero))
+            return FactusEmissionResult.Failure("No existe factura validada para generar la nota crédito.");
+
+        // Determinar líneas a devolver.
+        var returns = await _context.SaleReturns.Where(r => r.SaleId == sale.Id).ToListAsync(cancellationToken);
+        var items = new List<FactusItem>();
+        if (returns.Any())
+        {
+            foreach (var r in returns)
+            {
+                var line = sale.Lines.FirstOrDefault(l => l.Id == r.SaleLineItemId);
+                if (line is null) continue;
+                items.Add(new FactusItem
+                {
+                    CodeReference = line.ProductoVariante?.SKU ?? line.ProductoVarianteId.ToString(),
+                    Name = line.ProductoVariante?.ProductoBase?.Name ?? "Producto",
+                    Quantity = r.Quantity.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                    Price = line.UnitPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                    UnitMeasureCode = string.IsNullOrWhiteSpace(line.ProductoVariante?.ProductoBase?.UnitMeasureCode) ? "94" : line.ProductoVariante!.ProductoBase!.UnitMeasureCode!,
+                    StandardCode = string.IsNullOrWhiteSpace(line.ProductoVariante?.ProductoBase?.StandardCode) ? "999" : line.ProductoVariante!.ProductoBase!.StandardCode!,
+                    Taxes = new List<FactusTax>
+                    {
+                        new FactusTax { Code = "01", Rate = (line.TaxRate * 100).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) }
+                    }
+                });
+            }
+        }
+        else
+        {
+            // Anulación total: todas las líneas.
+            foreach (var line in sale.Lines)
+            {
+                items.Add(new FactusItem
+                {
+                    CodeReference = line.ProductoVariante?.SKU ?? line.ProductoVarianteId.ToString(),
+                    Name = line.ProductoVariante?.ProductoBase?.Name ?? "Producto",
+                    Quantity = line.Quantity.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                    Price = line.UnitPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                    UnitMeasureCode = string.IsNullOrWhiteSpace(line.ProductoVariante?.ProductoBase?.UnitMeasureCode) ? "94" : line.ProductoVariante!.ProductoBase!.UnitMeasureCode!,
+                    StandardCode = string.IsNullOrWhiteSpace(line.ProductoVariante?.ProductoBase?.StandardCode) ? "999" : line.ProductoVariante!.ProductoBase!.StandardCode!,
+                    Taxes = new List<FactusTax>
+                    {
+                        new FactusTax { Code = "01", Rate = (line.TaxRate * 100).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) }
+                    }
+                });
+            }
+        }
+
+        var client = sale.Client;
+        var legalOrg = client.LegalOrganizationCode.HasValue ? client.LegalOrganizationCode.Value.ToString() : (client.DniType == ERP.TRAN.CrossLayers.API.Pos.Clients.Enums.DniType.nit ? "1" : "2");
+
+        var request = new FactusNotaCreditoRequest
+        {
+            ReferenceCode = $"{sale.SaleNumber}-NC-{doc.Id}",
+            CorrectionConceptCode = string.IsNullOrWhiteSpace(doc.CorrectionConceptCode) ? "1" : doc.CorrectionConceptCode!,
+            CustomizationId = "20",
+            BillNumber = facturaOriginal.Numero,
+            NumberingRangeId = _options.NumberingRangeId,
+            Observation = sale.Notes,
+            Customer = new FactusCustomer
+            {
+                IdentificationDocumentCode = FactusService.MapDniTypeStatic(client.DniType),
+                Identification = client.IdentificationNumber,
+                Dv = client.Dv,
+                LegalOrganizationCode = legalOrg,
+                TributeCode = string.IsNullOrWhiteSpace(client.TributeCode) ? "ZZ" : client.TributeCode,
+                Company = legalOrg == "1" ? client.Name : null,
+                Names = legalOrg == "2" ? client.Name : null,
+                Address = client.Address,
+                Email = client.Email,
+                Phone = client.PhoneNumber,
+                CountryCode = "CO",
+                MunicipalityCode = client.MunicipalityCode,
+                Responsibilities = string.IsNullOrWhiteSpace(client.Responsibilities) ? new[] { "R-99-PN" } : client.Responsibilities.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            },
+            Items = items
+        };
+
+        doc.Estado = EstadoDocumentoElectronico.Procesando;
+        doc.Intentos++;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        await _rateLimiter.WaitAsync(cancellationToken);
+        var token = await _tokenProvider.GetAccessTokenAsync(cancellationToken);
+        using var http = new HttpRequestMessage(HttpMethod.Post, "/v2/credit-notes/validate")
+        {
+            Content = JsonContent.Create(request, options: FactusJson.Options)
+        };
+        http.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var resp = await _httpClient.SendAsync(http, cancellationToken);
+        var body = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            doc.Estado = EstadoDocumentoElectronico.ConErrores;
+            doc.UltimoError = $"Error ({(int)resp.StatusCode}): {body}";
+            await _context.SaveChangesAsync(cancellationToken);
+            return FactusEmissionResult.Failure(doc.UltimoError);
+        }
+
+        try
+        {
+            using var json = System.Text.Json.JsonDocument.Parse(body);
+            var data = json.RootElement.TryGetProperty("data", out var d) ? d : json.RootElement;
+            var nc = data.TryGetProperty("credit_note", out var c) ? c : (data.TryGetProperty("bill", out var b) ? b : data);
+
+            doc.Numero = nc.TryGetProperty("number", out var n) ? n.GetString() : doc.Numero;
+            doc.Cufe = nc.TryGetProperty("cufe", out var cu) ? cu.GetString() : doc.Cufe;
+            doc.QrUrl = nc.TryGetProperty("qr", out var q) ? q.GetString() : doc.QrUrl;
+            doc.PublicUrl = nc.TryGetProperty("public_url", out var pu) ? pu.GetString() : doc.PublicUrl;
+            doc.IsValidated = nc.TryGetProperty("is_validated", out var iv) && iv.ValueKind == System.Text.Json.JsonValueKind.True;
+            doc.Estado = EstadoDocumentoElectronico.Validado;
+            doc.ValidatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            return FactusEmissionResult.Success(doc.Numero, doc.Cufe, doc.QrUrl);
+        }
+        catch (Exception ex)
+        {
+            doc.Estado = EstadoDocumentoElectronico.ConErrores;
+            doc.UltimoError = $"Parseo: {ex.Message}. Body: {body}";
+            await _context.SaveChangesAsync(cancellationToken);
+            return FactusEmissionResult.Failure(doc.UltimoError);
+        }
+    }
 }
 
 
@@ -480,6 +622,14 @@ internal sealed class FactusDocumentoExistente
     public string? Number { get; set; }
     public string? Cufe { get; set; }
     public string? QrUrl { get; set; }
+}
+
+
+
+public sealed record FactusEmissionResult(bool IsSuccess, string? InvoiceNumber, string? Cufe, string? QrUrl, string? Error)
+{
+    public static FactusEmissionResult Success(string? invoiceNumber, string? cufe, string? qrUrl) => new(true, invoiceNumber, cufe, qrUrl, null);
+    public static FactusEmissionResult Failure(string error) => new(false, null, null, null, error);
 }
 
 public sealed record FactusArchivoResult(bool IsSuccess, byte[]? Bytes, string? FileName, string? ContentType, string? Error)

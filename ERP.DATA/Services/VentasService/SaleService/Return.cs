@@ -39,12 +39,6 @@ public partial class SaleService
         if (sale is null)
             return Result<SaleDetailDto>.Failure(new Error("Sale.NotFound", "Venta no encontrada."));
 
-        var facturaValidada = await context.DocumentosElectronicos
-            .AnyAsync(d => d.VentaId == saleId && d.Estado == EstadoDocumentoElectronico.Validado, cancellationToken);
-        if (facturaValidada)
-            return Result<SaleDetailDto>.Failure(new Error("Sale.HasValidatedInvoice",
-                "La venta tiene una factura electrónica validada ante la DIAN. No se puede anular; debe generar una nota crédito (Fase 2)."));
-
         if (sale.Status == SaleStatus.Cancelled)
             return Result<SaleDetailDto>.Failure(new Error("Sale.AlreadyCancelled", "La venta ya está anulada."));
 
@@ -84,6 +78,22 @@ public partial class SaleService
             sale.Notes = string.IsNullOrWhiteSpace(sale.Notes)
                 ? $"Anulada: {motivo}"
                 : $"{sale.Notes}\nAnulada: {motivo}";
+
+            // Encolar nota crédito si la venta tiene factura validada ante la DIAN.
+            var tieneFacturaValidada = await context.DocumentosElectronicos
+                .AnyAsync(d => d.VentaId == sale.Id && d.Tipo == TipoDocumentoElectronico.Factura && d.Estado == EstadoDocumentoElectronico.Validado, cancellationToken);
+            if (tieneFacturaValidada)
+            {
+                context.DocumentosElectronicos.Add(new DocumentoElectronico
+                {
+                    VentaId = sale.Id,
+                    Tipo = TipoDocumentoElectronico.NotaCredito,
+                    ReferenceCode = $"{sale.SaleNumber}-NC",
+                    Estado = EstadoDocumentoElectronico.Pendiente,
+                    CorrectionConceptCode = "2",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
 
             await context.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
@@ -129,12 +139,6 @@ public partial class SaleService
 
         if (sale is null)
             return Result<SaleDetailDto>.Failure(new Error("Sale.NotFound", "Venta no encontrada."));
-
-        var facturaValidada = await context.DocumentosElectronicos
-            .AnyAsync(d => d.VentaId == saleId && d.Estado == EstadoDocumentoElectronico.Validado, cancellationToken);
-        if (facturaValidada)
-            return Result<SaleDetailDto>.Failure(new Error("Sale.HasValidatedInvoice",
-                "La venta tiene una factura electrónica validada ante la DIAN. No se puede devolver parcialmente; debe generar una nota crédito (Fase 2)."));
 
         if (sale.Status == SaleStatus.Cancelled)
             return Result<SaleDetailDto>.Failure(new Error("Sale.Cancelled", "No se puede devolver sobre una venta anulada."));
@@ -202,6 +206,22 @@ public partial class SaleService
                 CreatedBy = createdBy,
                 CreatedAt = DateTime.UtcNow
             });
+
+            // Encolar nota crédito si la venta tiene factura validada ante la DIAN.
+            var tieneFacturaValidada2 = await context.DocumentosElectronicos
+                .AnyAsync(d => d.VentaId == sale.Id && d.Tipo == TipoDocumentoElectronico.Factura && d.Estado == EstadoDocumentoElectronico.Validado, cancellationToken);
+            if (tieneFacturaValidada2)
+            {
+                context.DocumentosElectronicos.Add(new DocumentoElectronico
+                {
+                    VentaId = sale.Id,
+                    Tipo = TipoDocumentoElectronico.NotaCredito,
+                    ReferenceCode = $"{sale.SaleNumber}-NC-{line.Id}",
+                    Estado = EstadoDocumentoElectronico.Pendiente,
+                    CorrectionConceptCode = "1",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
 
             await context.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);

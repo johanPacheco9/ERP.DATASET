@@ -90,7 +90,10 @@ public sealed class FactusBackgroundService : BackgroundService
         // Procesar.
         try
         {
-            await factus.ProcesarDocumentoAsync(candidato.Id, ct);
+            if (candidato.Tipo == TipoDocumentoElectronico.NotaCredito)
+                await factus.ProcesarNotaCreditoAsync(candidato.Id, ct);
+            else
+                await factus.ProcesarDocumentoAsync(candidato.Id, ct);
         }
         catch (FactusValidationException ex)
         {
